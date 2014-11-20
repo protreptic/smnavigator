@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory
+        android:icon="@android:drawable/ic_menu_mylocation"
+        android:title="Местоположение" >
+        <EditTextPreference
+            android:defaultValue="90"
+            android:enabled="true"
+            android:persistent="@string/preference_location_update_interval"
+            android:summary="-"
+            android:title="Интервал обновления данных о расположении" />
+        <EditTextPreference
+            android:defaultValue="300"
+            android:enabled="true"
+            android:persistent="@string/preference_location_accuracy"
+            android:summary="-"
+            android:title="Точность размещения" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -1,0 +1,20 @@
+<resources>
+
+    <string name="app_name">smNavigator</string>
+    <string name="label_login">Логин:</string>
+    <string name="label_password">Пароль:</string>
+    <string name="button_login">Войти</string>
+    <string name="please_wait">Выполняется операция</string>
+    <string name="i_got_it">Я понял</string>
+    <string name="bad_login_password1">Введите логин и пароль!</string>
+    <string name="bad_login_password2">Некорректный логин или пароль!</string>
+    <string name="google_maps_api_key">0n7IqmcMRCnDYfxEdmJWdykrbYwOBFa2xylOxIw</string>
+
+    <!-- Main menu items -->
+    <string name="settings">Настройки</string>
+
+    <!-- Preferrences -->
+    <string name="preference_location_update_interval">preference_location_update_interval</string>
+    <string name="preference_location_accuracy">preference_location_accuracy</string>
+
+</resources>
