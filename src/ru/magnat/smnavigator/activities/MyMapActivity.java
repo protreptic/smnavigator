@@ -5,26 +5,18 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.data.GetStoresHelper;
-import ru.magnat.smnavigator.data.UpdateStoresTask;
 import ru.magnat.smnavigator.entities.Store;
 import ru.magnat.smnavigator.map.LocationHelper;
-import android.accounts.AccountManager;
-import android.accounts.AccountManagerCallback;
-import android.accounts.AccountManagerFuture;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapView;
@@ -40,6 +32,8 @@ public class MyMapActivity extends MapActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
+		getActionBar().setTitle(""); 
+		
 		new UpdateStoresTask().execute();
 		
 		init();
