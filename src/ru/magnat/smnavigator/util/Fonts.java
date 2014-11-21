@@ -28,7 +28,7 @@ public class Fonts {
 	private Fonts(Context context) {
 		mContext = context;
 
-		mDefaultTypeface = Typeface.createFromAsset(context.getAssets(), "fonts/RobotoCondensed-Regular.ttf");
+		mDefaultTypeface = Typeface.createFromAsset(context.getAssets(), "font/RobotoCondensed-Regular.ttf");
 		
 //		mTypefaces.put("Roboto-Black", Typeface.createFromAsset(context.getAssets(), "fonts/Roboto-Black.ttf"));
 //		mTypefaces.put("Roboto-BlackItalic", Typeface.createFromAsset(context.getAssets(), "fonts/Roboto-BlackItalic.ttf"));
@@ -62,7 +62,7 @@ public class Fonts {
 		Typeface result = mTypefaces.get(typeface);
 		
 		if (result == null) {
-			result = Typeface.createFromAsset(mContext.getAssets(), "fonts/" + typeface + ".ttf");
+			result = Typeface.createFromAsset(mContext.getAssets(), "font/" + typeface + ".ttf");
 			if (result == null) {
 				result = Typeface.DEFAULT;
 			} else {
