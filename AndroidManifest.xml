@@ -18,7 +18,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/analytics_balls_512"
+        android:icon="@drawable/suit"
         android:label="@string/app_name"
         android:theme="@android:style/Theme.Holo.Light" >
         <uses-library android:name="com.google.android.maps" />
