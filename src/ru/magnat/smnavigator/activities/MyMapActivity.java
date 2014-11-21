@@ -33,6 +33,7 @@ public class MyMapActivity extends MapActivity {
 		super.onCreate(savedInstanceState);
 
 		getActionBar().setTitle(""); 
+		getActionBar().setIcon(null);   
 		
 		new UpdateStoresTask().execute();
 		
@@ -49,8 +50,8 @@ public class MyMapActivity extends MapActivity {
 			mProgressDialog = new ProgressDialog(MyMapActivity.this);
 			mProgressDialog.setTitle("");
 			mProgressDialog.setCancelable(false);
-			mProgressDialog.setMessage("Loading");
-			mProgressDialog.setIndeterminate(true); 
+			mProgressDialog.setMessage(getResources().getString(R.string.loading));
+			mProgressDialog.setIndeterminate(true);  
 		}
 		
 		@Override
@@ -122,6 +123,9 @@ public class MyMapActivity extends MapActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
+			case R.id.showMyself: {
+				mLocationHelper.showMyself(); 
+			} break;
 			case R.id.settings: {
 				Intent intent = new Intent(this, SettingsActivity.class);
 				

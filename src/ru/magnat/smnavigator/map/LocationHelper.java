@@ -55,6 +55,10 @@ public class LocationHelper implements OnSharedPreferenceChangeListener {
 		startTracking();
 	}
 	
+	public void showMyself() {
+		mMyLocationListener.showMyself(mLocationManager, mBestProvider);
+	}
+	
 	public void setMapView(MapView mapView) {
 		mMapView = mapView;
 		
