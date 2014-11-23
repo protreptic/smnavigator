@@ -8,14 +8,14 @@
             android:defaultValue="90"
             android:enabled="true"
             android:persistent="@string/preference_location_update_interval"
-            android:summary="-"
-            android:title="Интервал обновления данных о расположении" />
+            android:summary="Интервал обновления данных о расположении"
+            android:title="" />
         <EditTextPreference
             android:defaultValue="300"
             android:enabled="true"
             android:persistent="@string/preference_location_accuracy"
-            android:summary="-"
-            android:title="Точность размещения" />
+            android:summary="Точность размещения"
+            android:title="" />
     </PreferenceCategory>
 
 </PreferenceScreen>
