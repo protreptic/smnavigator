@@ -13,11 +13,11 @@ create table sm_navigator.store (
 	psr integer,
 	visit_frequency varchar (255),
 	latitude double,
-	longitude double
+	longitude double,
+	store_statistics integer
 );
-create table sm_navigator.store_staistics (
+create table sm_navigator.store_statistics (
 	id integer primary key,
-	store integer,
 	last_visit date,
 	next_visit date,
 	turnover_previous_month float,
