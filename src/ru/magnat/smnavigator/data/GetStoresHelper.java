@@ -31,6 +31,8 @@ public class GetStoresHelper {
 	    }
 	    reader.endArray();
 	    
+	    Log.d("", "stores loaded = " + stores.size());
+	    
 	    return stores;
 	}
 
@@ -44,7 +46,7 @@ public class GetStoresHelper {
 	    	if (name.equals("Id")) {
 	    		store.setId(reader.nextInt());
 	    	} else if (name.equals("Descr")) {
-	    		store.setDescription(reader.nextString());
+	    		store.setName(reader.nextString());
 	    	} else if (name.equals("Address")) {
 	    		store.setAddress(reader.nextString()); 
 	    	} else if (name.equals("LocationLat")) {
@@ -56,9 +58,7 @@ public class GetStoresHelper {
 	    	}
 	    }
 	    reader.endObject();
-	    
-	    Log.d("", "id = " + store.getId() + " descr = " + store.getDescription() + " lat = " + store.getLatitude() + " lon = " + store.getLongitude());
-	    
+
 	    return store;
 	}
 	

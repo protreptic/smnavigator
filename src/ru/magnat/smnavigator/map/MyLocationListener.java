@@ -1,9 +1,10 @@
 package ru.magnat.smnavigator.map;
 
+import java.sql.SQLException;
 import java.util.List;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.activities.MyMapActivity;
+import ru.magnat.smnavigator.data.db.MainDbHelper;
 import ru.magnat.smnavigator.entities.Store;
 import ru.magnat.smnavigator.map.overlay.PsrOverlay;
 import ru.magnat.smnavigator.map.overlay.StoreOverlay;
@@ -12,7 +13,6 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapController;
@@ -30,8 +30,6 @@ public class MyLocationListener implements LocationListener {
 	
 	@Override
 	public void onLocationChanged(Location location) {
-		Log.d("Shared", "Location changed!");
-		
 		// Getting latitude
 		double latitude = location.getLatitude();
 
@@ -41,15 +39,6 @@ public class MyLocationListener implements LocationListener {
 		// Creating an instance of GeoPoint corresponding to latitude and
 		// longitude
 		GeoPoint point = new GeoPoint((int) (latitude * 1E6), (int) (longitude * 1E6));
-
-		// Getting MapController
-		//MapController mapController = mMapView.getController();
-
-		// Locating the Geographical point in the Map
-		//mapController.animateTo(point);
-
-		// Applying a zoom
-		//mapController.setZoom(15);
 
 		// Redraw the map
 		mMapView.invalidate();
@@ -67,10 +56,14 @@ public class MyLocationListener implements LocationListener {
 		// Adding the mark to the overlay
 		currentLocationOverlay.addOverlay(currentLocation);
 		
-		StoreOverlay storeOverlay = new StoreOverlay(mMapView.getResources().getDrawable(R.drawable.shop32), mMapView);
-		
-		for (Store store : MyMapActivity.sStores) {
-			storeOverlay.addOverlay(new OverlayItem(new GeoPoint((int) (store.getLatitude() * 1E6), (int) (store.getLongitude() * 1E6)), store.getDescription(), Text.prepareAddress(store.getAddress())));
+		StoreOverlay storeOverlay = new StoreOverlay(mMapView.getResources().getDrawable(R.drawable.shop), mMapView);
+
+		try {
+			for (Store store : MainDbHelper.getInstance(mMapView.getContext()).getStoreDao().queryForAll()) {
+				storeOverlay.addOverlay(new OverlayItem(new GeoPoint((int) (store.getLatitude() * 1E6), (int) (store.getLongitude() * 1E6)), store.getName(), Text.prepareAddress(store.getAddress())));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 		
 		// Clear Existing overlays in the map
@@ -101,7 +94,7 @@ public class MyLocationListener implements LocationListener {
 		mapController.animateTo(point);
 
 		// Applying a zoom
-		//mapController.setZoom(15);
+		mapController.setZoom(12);
 	}
 	
 	@Override

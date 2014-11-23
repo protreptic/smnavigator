@@ -10,10 +10,6 @@ import android.util.Log;
 
 public class Apps {
 
-	/**
-	 * @param context - контекст приложения
-	 * @param file
-	 */
 	public static void installApk(final Context context, final String file) {
 		
 		Intent intentInstallApk = new Intent(Intent.ACTION_VIEW);
@@ -23,10 +19,6 @@ public class Apps {
 	    context.startActivity(intentInstallApk);
 	}
 
-	/**
-	 * @param context - контекст приложения
-	 * @return Возвращает версию для переданного в параметре контекста приложения
-	 */
 	public static String getVersionName(Context context) {
 		String versionName = null;
 		try {
@@ -39,6 +31,5 @@ public class Apps {
 		}
 		return versionName;
 	}
-
-
+	
 }

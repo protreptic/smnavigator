@@ -3,13 +3,15 @@ package ru.magnat.smnavigator.activities;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.SQLException;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.data.GetStoresHelper;
+import ru.magnat.smnavigator.data.db.MainDbHelper;
 import ru.magnat.smnavigator.entities.Store;
 import ru.magnat.smnavigator.map.LocationHelper;
+import ru.magnat.smnavigator.util.Apps;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -26,8 +28,6 @@ public class MyMapActivity extends MapActivity {
 	private MapView mMapView;
 	private LocationHelper mLocationHelper;
 	
-	public static List<Store> sStores = new ArrayList<Store>();
-	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -40,6 +40,8 @@ public class MyMapActivity extends MapActivity {
 		init();
 		
 		setContentView(mMapView);
+		
+		mLocationHelper.showMyself(); 
 	}
 	
 	public class UpdateStoresTask extends AsyncTask<Void, Void, Void> {
@@ -65,9 +67,15 @@ public class MyMapActivity extends MapActivity {
 				URL url = new URL("http://sfs.magnat.ru:8081/sm_get_outlets");
 				HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 				GetStoresHelper storesHelper = new GetStoresHelper();
-				sStores = storesHelper.readJsonStream(urlConnection.getInputStream());
+				
+				for (Store store : storesHelper.readJsonStream(urlConnection.getInputStream())) {
+					MainDbHelper.getInstance(MyMapActivity.this).getStoreDao().createOrUpdate(store);
+				}
+
 				urlConnection.disconnect();
 			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 			
@@ -125,6 +133,15 @@ public class MyMapActivity extends MapActivity {
 		switch (item.getItemId()) {
 			case R.id.showMyself: {
 				mLocationHelper.showMyself(); 
+			} break;
+			case R.id.showObjects: {
+				startActivity(new Intent(this, ObjectsActivity.class)); 
+			} break;
+			case R.id.about: {
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setMessage("Версия: " + Apps.getVersionName(this)); 
+				builder.setCancelable(true);
+				builder.create().show();
 			} break;
 			case R.id.settings: {
 				Intent intent = new Intent(this, SettingsActivity.class);
