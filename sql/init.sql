@@ -11,9 +11,11 @@ create table sm_navigator.store (
 	coverage_type varchar (255),
 	golden_status varchar (255),
 	psr integer,
-	visit_frequency varchar (255)
+	visit_frequency varchar (255),
+	latitude double,
+	longitude double
 );
-create table sm_navigator.store_stat (
+create table sm_navigator.store_staistics (
 	id integer primary key,
 	store integer,
 	last_visit date,
