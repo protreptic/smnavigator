@@ -2,3 +2,4 @@
 /bin
 /assets/*.lock.db
 /assets/*.trace.db
+**/*~
