@@ -17,8 +17,8 @@ public class PsrRoute {
 	@DatabaseField(columnName = "psr")
 	private Integer psr;
 	
-	@DatabaseField(columnName = "store")
-	private Integer store;
+	@DatabaseField(columnName = "store", foreign = true)
+	private Store store;
 
 	public Integer getId() {
 		return id;
@@ -44,11 +44,11 @@ public class PsrRoute {
 		this.psr = psr;
 	}
 
-	public Integer getStore() {
+	public Store getStore() {
 		return store;
 	}
 
-	public void setStore(Integer store) {
+	public void setStore(Store store) {
 		this.store = store;
 	}
 	

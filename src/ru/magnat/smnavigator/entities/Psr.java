@@ -23,7 +23,7 @@ public class Psr {
 	
 	@DatabaseField(columnName = "department")
 	private String department;
-
+	
 	public Integer getId() {
 		return id;
 	}

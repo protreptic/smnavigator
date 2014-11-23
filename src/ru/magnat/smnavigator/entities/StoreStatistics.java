@@ -5,14 +5,11 @@ import java.sql.Date;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
-@DatabaseTable(tableName = "store_staistics")
+@DatabaseTable(tableName = "store_statistics")
 public class StoreStatistics {
 	
 	@DatabaseField(columnName = "id", id = true)
 	private Integer id;
-	
-	@DatabaseField(columnName = "store")
-	private Integer store;
 	
 	@DatabaseField(columnName = "last_visit")
 	private Date lastVisit;
@@ -38,14 +35,6 @@ public class StoreStatistics {
 
 	public void setId(Integer id) {
 		this.id = id;
-	}
-
-	public Integer getStore() {
-		return store;
-	}
-
-	public void setStore(Integer store) {
-		this.store = store;
 	}
 
 	public Date getLastVisit() {
