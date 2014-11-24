@@ -25,15 +25,19 @@ public class LocationHelper implements OnSharedPreferenceChangeListener {
 	private long mUpdateInterval;
 	private long mAccuracy;
 	
-	private LocationHelper(Context context) {
-		mDefaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+	private LocationHelper(MapView mapView) {
+		mDefaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(mapView.getContext());
 		mDefaultSharedPreferences.registerOnSharedPreferenceChangeListener(this); 
 		
-		mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+		mLocationManager = (LocationManager) mapView.getContext().getSystemService(Context.LOCATION_SERVICE);
 
 		mBestProvider = mLocationManager.getBestProvider(new Criteria(), true);
 
 		mCurrentLocation = mLocationManager.getLastKnownLocation(mBestProvider);
+		
+		mMapView = mapView;
+		mUpdateInterval = mDefaultSharedPreferences.getLong(mMapView.getResources().getString(R.string.preference_location_update_interval), 90);
+		mMyLocationListener = new MyLocationListener(mMapView); 
 	}
 	
 	public void startTracking() {
@@ -59,16 +63,9 @@ public class LocationHelper implements OnSharedPreferenceChangeListener {
 		mMyLocationListener.showMyself(mLocationManager, mBestProvider);
 	}
 	
-	public void setMapView(MapView mapView) {
-		mMapView = mapView;
-		
-		mUpdateInterval = mDefaultSharedPreferences.getLong(mMapView.getResources().getString(R.string.preference_location_update_interval), 90);
-		mMyLocationListener = new MyLocationListener(mMapView); 
-	}
-	
-	public static LocationHelper getInstance(Context context) {
+	public static LocationHelper getInstance(MapView mapView) {
 		if (sInstance == null) {
-			sInstance = new LocationHelper(context);
+			sInstance = new LocationHelper(mapView);
 		}
 		
 		return sInstance;
