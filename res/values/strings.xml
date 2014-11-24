@@ -15,10 +15,12 @@
 	<string name="about">О программе</string>
 	<string name="showObjects">Объекты управления</string>
     <string name="showMyself">Текущее местоположение</string>
+    <string name="refresh">Синхронизировать данные</string>
     
     <!-- Preferrences -->
     <string name="preference_location_update_interval">preference_location_update_interval</string>
     <string name="preference_location_accuracy">preference_location_accuracy</string>
 	
     <string name="loading">Загрузка</string>
+    <string name="waiting">Ожидайте</string>
 </resources>
