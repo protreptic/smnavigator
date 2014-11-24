@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.auth;
+package ru.magnat.smnavigator.sync;
 
 import android.app.Service;
 import android.content.Intent;

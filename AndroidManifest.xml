@@ -59,7 +59,7 @@
             android:syncable="true" />
 
         <service
-            android:name="ru.magnat.smnavigator.auth.SyncService"
+            android:name="ru.magnat.smnavigator.sync.SyncService"
             android:exported="true"
             android:process=":sync" >
             <intent-filter>

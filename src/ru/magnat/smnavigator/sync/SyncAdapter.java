@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.auth;
+package ru.magnat.smnavigator.sync;
 
 import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
