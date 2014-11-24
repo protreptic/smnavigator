@@ -13,6 +13,8 @@ public class ObjectsActivity extends FragmentActivity {
 		setContentView(R.layout.main_activity);
 		
 		getActionBar().setTitle(""); 
+		getActionBar().setIcon(getResources().getDrawable(R.drawable.logotype_small)); 
+		 
 		getSupportFragmentManager().beginTransaction().add(R.id.conteiner, new NavigationListFragment()).commit();
 	}
 }
