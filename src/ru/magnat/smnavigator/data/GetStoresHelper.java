@@ -8,7 +8,6 @@ import java.util.List;
 
 import ru.magnat.smnavigator.entities.Store;
 import android.util.JsonReader;
-import android.util.Log;
 
 public class GetStoresHelper {
 	
@@ -30,8 +29,6 @@ public class GetStoresHelper {
 	    	stores.add(readStore(reader));
 	    }
 	    reader.endArray();
-	    
-	    Log.d("", "stores loaded = " + stores.size());
 	    
 	    return stores;
 	}

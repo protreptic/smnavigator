@@ -25,4 +25,6 @@
     <string name="waiting">Ожидайте</string>
     
     <string name="contentDescription" />
+    
+    <string name="syncServer">sfs.magnat.ru:8081</string>
 </resources>

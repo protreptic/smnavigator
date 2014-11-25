@@ -8,6 +8,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapController;
@@ -26,6 +27,10 @@ public class MyLocationListener implements LocationListener {
 	
 	@Override
 	public void onLocationChanged(Location location) {
+		addPsrOverlay(location); 
+	}
+	
+	private void addPsrOverlay(Location location) {
 		// Getting latitude
 		double latitude = location.getLatitude();
 
@@ -35,7 +40,7 @@ public class MyLocationListener implements LocationListener {
 		// Creating an instance of GeoPoint corresponding to latitude and
 		// longitude
 		GeoPoint point = new GeoPoint((int) (latitude * 1E6), (int) (longitude * 1E6));
-
+		
 		// Redraw the map
 		mMapView.invalidate();
 		
@@ -56,11 +61,16 @@ public class MyLocationListener implements LocationListener {
 		mPsrOverlay.addOverlay(currentLocation);
 
 		// Adding new overlay to map overlay
-		mapOverlays.add(mPsrOverlay);		
+		mapOverlays.add(mPsrOverlay);
 	}
 	
 	public void showMyself(LocationManager locationManager, String bestProvider) {
 		Location location = locationManager.getLastKnownLocation(bestProvider);
+		
+		if (location == null) {
+			Toast.makeText(mMapView.getContext(), "“екущее местоположение не определено", Toast.LENGTH_LONG).show();
+			return;
+		}
 		
 		// Getting latitude
 		double latitude = location.getLatitude();
@@ -80,6 +90,8 @@ public class MyLocationListener implements LocationListener {
 
 		// Applying a zoom
 		mapController.setZoom(12);
+
+		addPsrOverlay(location); 
 	}
 	
 	@Override

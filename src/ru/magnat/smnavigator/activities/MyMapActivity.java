@@ -1,15 +1,12 @@
 package ru.magnat.smnavigator.activities;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.sql.Date;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.Application;
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.data.GetStoresHelper;
 import ru.magnat.smnavigator.data.db.MainDbHelper;
 import ru.magnat.smnavigator.entities.Store;
 import ru.magnat.smnavigator.map.LocationHelper;
@@ -18,20 +15,21 @@ import ru.magnat.smnavigator.util.Apps;
 import ru.magnat.smnavigator.util.Text;
 import android.accounts.Account;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.ViewGroup.LayoutParams;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.RelativeLayout;
+import android.widget.RelativeLayout.LayoutParams;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
@@ -75,71 +73,19 @@ public class MyMapActivity extends MapActivity {
 		mAccount = Application.addSyncAccount(this);
 		
 	    //Turn on periodic syncing
-	    //ContentResolver.addPeriodicSync(mAccount, AUTHORITY, new Bundle(), SYNC_INTERVAL);
+	    ContentResolver.addPeriodicSync(mAccount, AUTHORITY, new Bundle(), SYNC_INTERVAL);
 		
 		addStoresOverlay();
 	}
 	
-	public class UpdateStoresTask extends AsyncTask<Void, Void, Void> {
+	private void addStoresOverlay() {
+		try {
+			List<Store> stores = MainDbHelper.getInstance(this).getStoreDao().queryForAll();
 		
-		private ProgressDialog mProgressDialog;
-		
-		public UpdateStoresTask() {
-			mProgressDialog = new ProgressDialog(MyMapActivity.this);
-			mProgressDialog.setTitle("");
-			mProgressDialog.setCancelable(false);
-			mProgressDialog.setMessage(getResources().getString(R.string.waiting));
-			mProgressDialog.setIndeterminate(true);  
-		}
-		
-		@Override
-		protected void onPreExecute() {
-			//mProgressDialog.show();
-			
-			LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			RelativeLayout imageView = (RelativeLayout) inflater.inflate(R.layout.animated_refresh_icon, null);
-
-		    Animation rotation = AnimationUtils.loadAnimation(getBaseContext(), R.anim.rotate360);
-		    imageView.startAnimation(rotation);
-		    imageView.setLayoutParams(new LayoutParams(64, 64)); 
-		    
-		    mRefreshItem.setActionView(imageView);
-		}
-		
-		@Override
-		protected Void doInBackground(Void... params) {
-			try {
-				URL url = new URL("http://sfs.magnat.ru:8081/sm_get_outlets");
-				HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-	
-				for (Store store : new GetStoresHelper().readJsonStream(urlConnection.getInputStream())) {
-					MainDbHelper.getInstance(MyMapActivity.this).getStoreDao().createOrUpdate(store);
-				}
-
-				urlConnection.disconnect();
-				
-				try {
-					TimeUnit.SECONDS.sleep(15);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} 
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (SQLException e) {
-				e.printStackTrace();
+			if (stores.size() == 0) {
+				return;
 			}
-			
-			return null;
-		}
 		
-		@Override
-		protected void onPostExecute(Void result) {
-			//mProgressDialog.hide();
-
-			mRefreshItem.getActionView().clearAnimation();
-			mRefreshItem.setActionView(null);
-			
 			// Redraw the map
 			mMapView.invalidate();
 			
@@ -151,21 +97,18 @@ public class MyMapActivity extends MapActivity {
 			
 			mStoreOverlay = new StoreOverlay(mMapView.getResources().getDrawable(R.drawable.shop), mMapView);
 
-			try {
-				for (Store store : MainDbHelper.getInstance(mMapView.getContext()).getStoreDao().queryForAll()) {
-					mStoreOverlay.addOverlay(new OverlayItem(new GeoPoint((int) (store.getLatitude() * 1E6), (int) (store.getLongitude() * 1E6)), store.getName(), Text.prepareAddress(store.getAddress())));
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
+			for (Store store : stores) {
+				mStoreOverlay.addOverlay(new OverlayItem(new GeoPoint((int) (store.getLatitude() * 1E6), (int) (store.getLongitude() * 1E6)), store.getName(), Text.prepareAddress(store.getAddress())));
 			}
-
+			
 			// Add updated overlay to the map
 			mapOverlays.add(mStoreOverlay);
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-		
 	}
 	
-	private void addStoresOverlay() {
+	private void removeStoresOverlay() {
 		// Redraw the map
 		mMapView.invalidate();
 		
@@ -174,19 +117,6 @@ public class MyMapActivity extends MapActivity {
 		
 		// Remove store overlay from the map
 		mapOverlays.remove(mStoreOverlay);
-		
-		mStoreOverlay = new StoreOverlay(mMapView.getResources().getDrawable(R.drawable.shop), mMapView);
-
-		try {
-			for (Store store : MainDbHelper.getInstance(mMapView.getContext()).getStoreDao().queryForAll()) {
-				mStoreOverlay.addOverlay(new OverlayItem(new GeoPoint((int) (store.getLatitude() * 1E6), (int) (store.getLongitude() * 1E6)), store.getName(), Text.prepareAddress(store.getAddress())));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-
-		// Add updated overlay to the map
-		mapOverlays.add(mStoreOverlay);
 	}
 	
 	private StoreOverlay mStoreOverlay;
@@ -209,6 +139,20 @@ public class MyMapActivity extends MapActivity {
 	protected void onStart() {
 		super.onStart();
 		
+		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 
+	}
+	
+	@Override
+	protected void onStop() {
+		super.onStop();
+		
+		unregisterReceiver(mSyncReceiver); 
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		
 		mLocationHelper.startTracking();
 	}
 	
@@ -229,6 +173,8 @@ public class MyMapActivity extends MapActivity {
 		MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.main_menu, menu);
 	    
+	    mRefreshItem = menu.findItem(R.id.refresh);
+	    
 	    return true;
 	}
 	
@@ -241,18 +187,14 @@ public class MyMapActivity extends MapActivity {
 				mLocationHelper.showMyself(); 
 			} break;
 			case R.id.refresh: {
-				mRefreshItem = item;
-				
-				new UpdateStoresTask().execute();
-				
 				// Pass the settings flags by inserting them in a bundle
-		        //Bundle settingsBundle = new Bundle();
-		        //settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-		        //settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+		        Bundle settingsBundle = new Bundle();
+		        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+		        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
 		        
 		        // Request the sync for the default account, authority, and
 		        // manual sync settings
-		        //ContentResolver.requestSync(mAccount, AUTHORITY, settingsBundle);
+		        ContentResolver.requestSync(mAccount, AUTHORITY, settingsBundle);
 			} break;
 			case R.id.showObjects: {
 				startActivity(new Intent(this, ObjectsActivity.class)); 
@@ -275,5 +217,59 @@ public class MyMapActivity extends MapActivity {
 		
 		return super.onOptionsItemSelected(item);
 	}
+	
+	public static final String ACTION_SYNC = "ru.magnat.smnavigator.sync.ACTION_SYNC"; 
+	
+	private BroadcastReceiver mSyncReceiver = new BroadcastReceiver() {
+		
+	    @Override
+	    public void onReceive(Context context, Intent intent) {
+	        Log.d("", "Broadcast received: " + intent.getAction());
+	        
+	        if(intent.getAction().equals(ACTION_SYNC)){
+	            String action = intent.getStringExtra("action");
+	            
+	            if (action.equals("started")) {
+	            	Log.d("", "sync started");
+	            	
+	    			Animation rotate = AnimationUtils.loadAnimation(getBaseContext(), R.anim.rotate360);
+	    			
+	    			LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+	    			RelativeLayout imageView = (RelativeLayout) inflater.inflate(R.layout.animated_refresh_icon, null);
+
+	    		    imageView.startAnimation(rotate);
+	    		    imageView.setLayoutParams(new LayoutParams(64, 64)); 
+	    			
+	    		    if (mRefreshItem != null && mRefreshItem.getActionView() == null) {
+	    		    	mRefreshItem.setActionView(imageView);
+	    		    }
+	            }
+	            if (action.equals("completed")) {
+	            	Log.d("", "sync completed");
+	            	
+	            	if (mRefreshItem != null && mRefreshItem.getActionView() != null) {
+		    			mRefreshItem.getActionView().clearAnimation();
+		    			mRefreshItem.setActionView(null);
+		    			
+		    			SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy hh:mm:ss");
+		    			
+		    			mRefreshItem.setIcon(getResources().getDrawable(R.drawable.ic_action_refresh_ok));
+		    			mRefreshItem.setTitle("Последняя успешная синхронизация " + dateFormat.format(new Date(System.currentTimeMillis()))); 
+	            	}
+	            }
+	            if (action.equals("error")) {
+	            	Log.d("", "sync error");
+	            	
+	            	if (mRefreshItem != null && mRefreshItem.getActionView() != null) {
+		    			mRefreshItem.getActionView().clearAnimation();
+		    			mRefreshItem.setActionView(null);
+		    			 
+		    			mRefreshItem.setIcon(getResources().getDrawable(R.drawable.ic_action_refresh_error));
+		    		}
+	            }
+	        }
+	    }
+	    
+	};
 	
 }

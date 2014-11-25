@@ -43,14 +43,12 @@ public class StubProvider extends ContentProvider {
 	/*
 	 * update() always returns "no rows affected" (0)
 	 */
-	public int update(Uri uri, ContentValues values, String selection,
-			String[] selectionArgs) {
+	public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 		return 0;
 	}
 
 	@Override
 	public String getType(Uri uri) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 }

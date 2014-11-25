@@ -3,16 +3,14 @@ package ru.magnat.smnavigator.map;
 import ru.magnat.smnavigator.R;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 import com.google.android.maps.MapView;
 
-public class LocationHelper implements OnSharedPreferenceChangeListener {
+public class LocationHelper {
 	
 	private static LocationHelper sInstance;
 	
@@ -27,8 +25,7 @@ public class LocationHelper implements OnSharedPreferenceChangeListener {
 	
 	private LocationHelper(MapView mapView) {
 		mDefaultSharedPreferences = PreferenceManager.getDefaultSharedPreferences(mapView.getContext());
-		mDefaultSharedPreferences.registerOnSharedPreferenceChangeListener(this); 
-		
+
 		mLocationManager = (LocationManager) mapView.getContext().getSystemService(Context.LOCATION_SERVICE);
 
 		mBestProvider = mLocationManager.getBestProvider(new Criteria(), true);
@@ -69,19 +66,6 @@ public class LocationHelper implements OnSharedPreferenceChangeListener {
 		}
 		
 		return sInstance;
-	}
-
-	@Override
-	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-		Log.d("Shared", "Shared preference changed");
-		
-		if (key.equals(mMapView.getResources().getString(R.string.preference_location_update_interval))) {
-			mUpdateInterval = mDefaultSharedPreferences.getLong(mMapView.getResources().getString(R.string.preference_location_update_interval), 90);
-		} else if (key.equals(mMapView.getResources().getString(R.string.preference_location_accuracy))) {
-			mAccuracy = mDefaultSharedPreferences.getLong(mMapView.getResources().getString(R.string.preference_location_accuracy), 300);
-		}
-		
-		restartTracking();
 	}
 	
 }
