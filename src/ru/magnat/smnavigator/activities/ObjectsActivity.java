@@ -23,8 +23,8 @@ public class ObjectsActivity extends FragmentActivity {
 		mTabHost = (FragmentTabHost) findViewById(android.R.id.tabhost);
         mTabHost.setup(this, getSupportFragmentManager(), android.R.id.tabcontent);
 
-        mTabHost.addTab(mTabHost.newTabSpec("tab1").setIndicator("Торговые агенты", null), PsrListFragment.class, null);
-        mTabHost.addTab(mTabHost.newTabSpec("tab2").setIndicator("Магазины", null), StoreListFragment.class, null);
+        mTabHost.addTab(mTabHost.newTabSpec("tab1").setIndicator(getResources().getString(R.string.titlePsrs), null), PsrListFragment.class, null);
+        mTabHost.addTab(mTabHost.newTabSpec("tab2").setIndicator(getResources().getString(R.string.titleStores), null), StoreListFragment.class, null); 
 	}
 		
 }

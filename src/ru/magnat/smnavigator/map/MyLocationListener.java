@@ -55,7 +55,7 @@ public class MyLocationListener implements LocationListener {
 		mPsrOverlay = new PsrOverlay(mMapView.getResources().getDrawable(R.drawable.user_suit));
 
 		// Creating an item to represent a mark in the overlay
-		OverlayItem currentLocation = new OverlayItem(point, "Current Location", "Latitude : " + latitude + ", Longitude:" + longitude);
+		OverlayItem currentLocation = new OverlayItem(point, "Current location", "latitude : " + latitude + ", longitude:" + longitude);
 
 		// Adding the mark to the overlay
 		mPsrOverlay.addOverlay(currentLocation);
@@ -68,7 +68,7 @@ public class MyLocationListener implements LocationListener {
 		Location location = locationManager.getLastKnownLocation(bestProvider);
 		
 		if (location == null) {
-			Toast.makeText(mMapView.getContext(), "“екущее местоположение не определено", Toast.LENGTH_LONG).show();
+			Toast.makeText(mMapView.getContext(), mMapView.getContext().getResources().getString(R.string.locationUnknown), Toast.LENGTH_LONG).show(); 
 			return;
 		}
 		

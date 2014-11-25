@@ -1,6 +1,10 @@
 drop schema sm_navigator if exists;
 create schema sm_navigator;
 
+create table sm_navigator.sm (
+	id integer primary key,
+	name varchar(255)
+);
 create table sm_navigator.store (
 	id integer primary key,
 	name varchar (255),

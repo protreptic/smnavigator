@@ -114,7 +114,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 	    	
 	    	getContext().sendBroadcast(intent);
 	    	
-	    	Toast.makeText(getContext(), "Синхронизация успешно завершена", Toast.LENGTH_LONG).show();
+	    	Toast.makeText(getContext(), getContext().getResources().getString(R.string.syncSuccess), Toast.LENGTH_LONG).show(); 
 		}
 		
 		@Override
@@ -124,7 +124,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 	    	
 	    	getContext().sendBroadcast(intent);
 	    	
-	    	Toast.makeText(getContext(), "Синхронизация не выполненна", Toast.LENGTH_LONG).show();
+	    	Toast.makeText(getContext(), getContext().getResources().getString(R.string.syncError), Toast.LENGTH_LONG).show();
 		}
 		
 		@Override
@@ -134,7 +134,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 	    	
 	    	getContext().sendBroadcast(intent);
 	    	
-	    	Toast.makeText(getContext(), "Синхронизация не выполненна", Toast.LENGTH_LONG).show();
+	    	Toast.makeText(getContext(), getContext().getResources().getString(R.string.syncError), Toast.LENGTH_LONG).show(); 
 		}
 		
 	}

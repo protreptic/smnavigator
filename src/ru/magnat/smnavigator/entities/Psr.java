@@ -1,5 +1,7 @@
 package ru.magnat.smnavigator.entities;
 
+import java.util.List;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -70,6 +72,10 @@ public class Psr {
 
 	public void setDepartment(String department) {
 		this.department = department;
+	}
+	
+	public List<PsrRoute> getPsrRoutes() {
+		return null;
 	}
 	
 }

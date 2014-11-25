@@ -8,6 +8,8 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.preference.PreferenceManager;
 
+import com.google.android.maps.GeoPoint;
+import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
 
 public class LocationHelper {
@@ -58,6 +60,21 @@ public class LocationHelper {
 	
 	public void showMyself() {
 		mMyLocationListener.showMyself(mLocationManager, mBestProvider);
+	}
+	
+	public void moveToPoint(double latitude, double longitude) {
+		// Creating an instance of GeoPoint corresponding to latitude and
+		// longitude
+		GeoPoint point = new GeoPoint((int) (latitude * 1E6), (int) (longitude * 1E6));
+
+		// Getting MapController
+		MapController mapController = mMapView.getController();
+
+		// Locating the Geographical point in the Map
+		mapController.animateTo(point);
+
+		// Applying a zoom
+		mapController.setZoom(18);
 	}
 	
 	public static LocationHelper getInstance(MapView mapView) {

@@ -28,6 +28,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
 
@@ -50,10 +51,6 @@ public class MainActivity extends MapActivity {
     public static final long SECONDS_PER_MINUTE = 60L;
     public static final long SYNC_INTERVAL_IN_MINUTES = 45L;
     public static final long SYNC_INTERVAL = SYNC_INTERVAL_IN_MINUTES * SECONDS_PER_MINUTE;
-    
-    // Global variables
-    // A content resolver for accessing the provider
-    ContentResolver mResolver;
 	
     private Account mAccount;
     
@@ -65,10 +62,15 @@ public class MainActivity extends MapActivity {
 		super.onCreate(savedInstanceState);
 
 		init();
-
-		mLocationHelper.showMyself(); 
 		
-		mResolver = getContentResolver();
+		if (getIntent().getExtras() != null) {
+			double latitude = getIntent().getExtras().getDouble("latitude");
+			double longitude = getIntent().getExtras().getDouble("longitude");
+			
+			mLocationHelper.moveToPoint(latitude, longitude);
+		} else {
+			mLocationHelper.showMyself(); 
+		}
 		
 		mAccount = Application.addSyncAccount(this);
 		
@@ -106,17 +108,6 @@ public class MainActivity extends MapActivity {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	private void removeStoresOverlay() {
-		// Redraw the map
-		mMapView.invalidate();
-		
-		// Getting list of overlays available in the map
-		List<Overlay> mapOverlays = mMapView.getOverlays();
-		
-		// Remove store overlay from the map
-		mapOverlays.remove(mStoreOverlay);
 	}
 	
 	private StoreOverlay mStoreOverlay;
@@ -235,7 +226,7 @@ public class MainActivity extends MapActivity {
 	    			Animation rotate = AnimationUtils.loadAnimation(getBaseContext(), R.anim.rotate360);
 	    			
 	    			LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-	    			RelativeLayout imageView = (RelativeLayout) inflater.inflate(R.layout.animated_refresh_icon, null);
+	    			RelativeLayout imageView = (RelativeLayout) inflater.inflate(R.layout.animated_refresh_icon, new LinearLayout(getBaseContext()), false); 
 
 	    		    imageView.startAnimation(rotate);
 	    		    imageView.setLayoutParams(new LayoutParams(64, 64)); 
@@ -254,7 +245,7 @@ public class MainActivity extends MapActivity {
 		    			SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 		    			
 		    			mRefreshItem.setIcon(getResources().getDrawable(R.drawable.ic_action_refresh_ok));
-		    			mRefreshItem.setTitle("Последняя успешная синхронизация " + dateFormat.format(new Date(System.currentTimeMillis()))); 
+		    			mRefreshItem.setTitle(getResources().getString(R.string.syncLastSuccessAttempt) + dateFormat.format(new Date(System.currentTimeMillis()))); 
 	            	}
 	            }
 	            if (action.equals("error")) {
