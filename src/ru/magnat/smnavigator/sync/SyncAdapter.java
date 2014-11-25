@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.activities.MyMapActivity;
+import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.data.GetStoresHelper;
 import ru.magnat.smnavigator.data.db.MainDbHelper;
 import ru.magnat.smnavigator.entities.Store;
@@ -69,7 +69,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 				
     	@Override
     	protected void onPreExecute() {
-        	Intent intent = new Intent(MyMapActivity.ACTION_SYNC);
+        	Intent intent = new Intent(MainActivity.ACTION_SYNC);
         	intent.putExtra("action", "started");
         	
         	getContext().sendBroadcast(intent);
@@ -109,7 +109,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		@Override
 		protected void onPostExecute(Void result) {
-	    	Intent intent = new Intent(MyMapActivity.ACTION_SYNC);
+	    	Intent intent = new Intent(MainActivity.ACTION_SYNC);
 	    	intent.putExtra("action", "completed");
 	    	
 	    	getContext().sendBroadcast(intent);
@@ -119,7 +119,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		@Override
 		protected void onCancelled() {
-	    	Intent intent = new Intent(MyMapActivity.ACTION_SYNC);
+	    	Intent intent = new Intent(MainActivity.ACTION_SYNC);
 	    	intent.putExtra("action", "error");
 	    	
 	    	getContext().sendBroadcast(intent);
@@ -129,7 +129,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		@Override
 		protected void onCancelled(Void result) {
-	    	Intent intent = new Intent(MyMapActivity.ACTION_SYNC);
+	    	Intent intent = new Intent(MainActivity.ACTION_SYNC);
 	    	intent.putExtra("action", "error");
 	    	
 	    	getContext().sendBroadcast(intent);
