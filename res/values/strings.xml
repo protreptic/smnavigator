@@ -16,6 +16,7 @@
 	<string name="showObjects">Объекты управления</string>
     <string name="showMyself">Текущее местоположение</string>
     <string name="refresh">Синхронизировать данные</string>
+    <string name="search">Поиск</string>
     
     <!-- Preferrences -->
     <string name="preference_location_update_interval">preference_location_update_interval</string>
@@ -39,4 +40,5 @@
     <string name="syncLastSuccessAttempt">Последняя успешная синхронизация </string>
     
     <string name="emptyList">Нет элементов</string>
+    <string name="showOnMap">Показать на карте</string>
 </resources>

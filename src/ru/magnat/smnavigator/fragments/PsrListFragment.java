@@ -52,6 +52,8 @@ public class PsrListFragment extends ExpandableListFragment {
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		
+		getExpandableListView().setPadding(5, 5, 5, 5);
+		
 		mDbHelper = MainDbHelper.getInstance(getActivity());
 		
 		mAdapter = new MyAdapter();

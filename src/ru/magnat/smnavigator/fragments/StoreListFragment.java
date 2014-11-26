@@ -22,7 +22,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -57,6 +57,8 @@ public class StoreListFragment extends ExpandableListFragment {
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		
+		getExpandableListView().setPadding(5, 5, 5, 5);
+ 		
 		mDbHelper = MainDbHelper.getInstance(getActivity());
 		
 		mAdapter = new MyAdapter();
@@ -159,12 +161,13 @@ public class StoreListFragment extends ExpandableListFragment {
 			address.setText(Text.prepareAddress(store.getAddress())); 
 			address.setTextSize(15); 
 			
-			Button link = new Button(getActivity());
-			link.setText("Показать на карте"); 
+			ImageButton link = new ImageButton(getActivity());
+			link.setBackground(getResources().getDrawable(android.R.color.transparent));  
+			link.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_place));
 			link.setOnClickListener(new OnClickListener() {
 				
 				@Override
-				public void onClick(View v) {
+				public void onClick(View view) {				
 					Intent intent = new Intent(getActivity(), MainActivity.class);
 					
 					Bundle bundle = new Bundle();
@@ -177,6 +180,8 @@ public class StoreListFragment extends ExpandableListFragment {
 				}
 				
 			});
+			if (store.getLatitude() == 0 && store.getLongitude() == 0) 
+				link.setEnabled(false); 
 			
 			linearLayout.addView(name);
 			linearLayout.addView(address);

@@ -99,8 +99,12 @@ public class MainActivity extends MapActivity {
 			
 			mStoreOverlay = new StoreOverlay(mMapView.getResources().getDrawable(R.drawable.shop), mMapView);
 
+			int count = 0;
+			
 			for (Store store : stores) {
 				mStoreOverlay.addOverlay(new OverlayItem(new GeoPoint((int) (store.getLatitude() * 1E6), (int) (store.getLongitude() * 1E6)), store.getName(), Text.prepareAddress(store.getAddress())));
+				
+				if ((++count) > 150) break;
 			}
 			
 			// Add updated overlay to the map

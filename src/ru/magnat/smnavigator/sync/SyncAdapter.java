@@ -8,8 +8,10 @@ import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.activities.MainActivity;
+import ru.magnat.smnavigator.data.GetPsrsHelper;
 import ru.magnat.smnavigator.data.GetStoresHelper;
 import ru.magnat.smnavigator.data.db.MainDbHelper;
+import ru.magnat.smnavigator.entities.Psr;
 import ru.magnat.smnavigator.entities.Store;
 import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
@@ -67,6 +69,50 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     
     public class UpdateStoresTask extends AsyncTask<Void, Void, Void> {
 				
+    	private void loadStores() {
+			try {
+				URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_getStores");
+				HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
+
+				for (Store store : new GetStoresHelper().readJsonStream(urlConnection.getInputStream())) {
+					MainDbHelper.getInstance(getContext()).getStoreDao().createOrUpdate(store);
+				}
+
+				urlConnection.disconnect();
+			} catch (IOException e) {
+				e.printStackTrace();
+				cancel(true);
+			} catch (SQLException e) {
+				e.printStackTrace();
+				cancel(true);
+			} catch (Exception e) {
+				e.printStackTrace();
+				cancel(true);
+			}
+    	}
+    	
+    	private void loadPsrs() {
+			try {
+				URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_getPsrs");
+				HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
+
+				for (Psr psr : new GetPsrsHelper().readJsonStream(urlConnection.getInputStream())) {
+					MainDbHelper.getInstance(getContext()).getPsrDao().createOrUpdate(psr);
+				}
+
+				urlConnection.disconnect();;
+			} catch (IOException e) {
+				e.printStackTrace();
+				cancel(true);
+			} catch (SQLException e) {
+				e.printStackTrace();
+				cancel(true);
+			} catch (Exception e) {
+				e.printStackTrace();
+				cancel(true);
+			}
+    	}
+    	
     	@Override
     	protected void onPreExecute() {
         	Intent intent = new Intent(MainActivity.ACTION_SYNC);
@@ -80,30 +126,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			try {
 				TimeUnit.SECONDS.sleep(3);
 				
-				URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_get_outlets");
-				HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
-
-				for (Store store : new GetStoresHelper().readJsonStream(urlConnection.getInputStream())) {
-					MainDbHelper.getInstance(getContext()).getStoreDao().createOrUpdate(store);
-				}
-
-				urlConnection.disconnect();
+				loadStores();
+				loadPsrs();
 				
 				TimeUnit.SECONDS.sleep(3);
-			} catch (IOException e) {
-				e.printStackTrace();
-				cancel(true);
-			} catch (SQLException e) {
-				e.printStackTrace();
-				cancel(true);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 				cancel(true);
-			} catch (Exception e) {
-				e.printStackTrace();
-				cancel(true);
 			}
-			
 			return null;
 		}
 		

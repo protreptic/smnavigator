@@ -91,7 +91,27 @@ public class MyLocationListener implements LocationListener {
 		// Applying a zoom
 		mapController.setZoom(12);
 
-		addPsrOverlay(location); 
+		// Redraw the map
+		mMapView.invalidate();
+		
+		// Getting list of overlays available in the map
+		List<Overlay> mapOverlays = mMapView.getOverlays();
+
+		// Clear Existing overlays in the map
+		mapOverlays.remove(mPsrOverlay);
+		
+		// Creating an instance of ItemizedOverlay to mark the current location
+		// in the map
+		mPsrOverlay = new PsrOverlay(mMapView.getResources().getDrawable(R.drawable.user_suit));
+
+		// Creating an item to represent a mark in the overlay
+		OverlayItem currentLocation = new OverlayItem(point, "Current location", "latitude : " + latitude + ", longitude:" + longitude);
+
+		// Adding the mark to the overlay
+		mPsrOverlay.addOverlay(currentLocation);
+
+		// Adding new overlay to map overlay
+		mapOverlays.add(mPsrOverlay);
 	}
 	
 	@Override

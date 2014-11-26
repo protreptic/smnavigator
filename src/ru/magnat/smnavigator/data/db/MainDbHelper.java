@@ -13,7 +13,6 @@ import ru.magnat.smnavigator.entities.Store;
 import ru.magnat.smnavigator.entities.StoreStatistics;
 import ru.magnat.smnavigator.util.Apps;
 import android.content.Context;
-import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
@@ -94,8 +93,6 @@ public class MainDbHelper {
 			mStoreStatisticsDao = DaoManager.createDao(mConnectionSource, StoreStatistics.class);
 			mPsrDao = DaoManager.createDao(mConnectionSource, Psr.class);
 			mPsrRouteDao = DaoManager.createDao(mConnectionSource, PsrRoute.class);
-			
-			Log.d("SQL LOG", "size = " + mStoreDao.queryForAll().size());
 			
 	        mConnectionSource.close();
 	        mConnectionSource = null;
