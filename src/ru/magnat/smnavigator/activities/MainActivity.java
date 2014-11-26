@@ -76,8 +76,13 @@ public class MainActivity extends MapActivity {
 		
 	    //Turn on periodic syncing
 	    ContentResolver.addPeriodicSync(mAccount, AUTHORITY, new Bundle(), SYNC_INTERVAL);
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
 		
-		addStoresOverlay();
+		MainDbHelper.getInstance(this).release();
 	}
 	
 	private void addStoresOverlay() {
@@ -134,28 +139,17 @@ public class MainActivity extends MapActivity {
 	protected void onStart() {
 		super.onStart();
 		
+		mLocationHelper.startTracking();
 		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 
+		addStoresOverlay();
 	}
 	
 	@Override
 	protected void onStop() {
 		super.onStop();
 		
-		unregisterReceiver(mSyncReceiver); 
-	}
-	
-	@Override
-	protected void onResume() {
-		super.onResume();
-		
-		mLocationHelper.startTracking();
-	}
-	
-	@Override
-	protected void onPause() {
-		super.onPause();
-		
 		mLocationHelper.stopTracking();
+		unregisterReceiver(mSyncReceiver); 
 	}
 	
 	@Override
@@ -250,6 +244,8 @@ public class MainActivity extends MapActivity {
 		    			
 		    			mRefreshItem.setIcon(getResources().getDrawable(R.drawable.ic_action_refresh_ok));
 		    			mRefreshItem.setTitle(getResources().getString(R.string.syncLastSuccessAttempt) + dateFormat.format(new Date(System.currentTimeMillis()))); 
+		    			
+		    			addStoresOverlay();
 	            	}
 	            }
 	            if (action.equals("error")) {

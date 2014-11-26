@@ -51,7 +51,7 @@ public class MainDbHelper {
 		DB_PATH = context.getDir("data", Context.MODE_PRIVATE).getPath() + "/";
 		DB_NAME = context.getPackageName() + "-" + Apps.getVersionName(context);
 		DB_FULL_NAME = DB_PATH + DB_NAME;
-		DB_URL = "jdbc:h2:file:" + DB_FULL_NAME + ";file_lock=no;ifexists=true;ignorecase=true;page_size=1024;cache_size=8192;init=set schema sm_navigator";
+		DB_URL = "jdbc:h2:file:" + DB_FULL_NAME + ";file_lock=no;ifexists=true;ignorecase=true;page_size=1024;cache_size=8192;autocommit=on;init=set schema sm_navigator";
 		
 		initDb();
 	}
@@ -81,7 +81,7 @@ public class MainDbHelper {
 	private Dao<Psr, String> mPsrDao;
 	private Dao<PsrRoute, String> mPsrRouteDao;
 	
-	public void initDb() {
+	private void initDb() {
 		try {
 			if (!new File(DB_FULL_NAME + ".h2.db").exists()) {
 				deployDb();
@@ -94,8 +94,6 @@ public class MainDbHelper {
 			mPsrDao = DaoManager.createDao(mConnectionSource, Psr.class);
 			mPsrRouteDao = DaoManager.createDao(mConnectionSource, PsrRoute.class);
 			
-	        mConnectionSource.close();
-	        mConnectionSource = null;
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -103,6 +101,21 @@ public class MainDbHelper {
 		}
 	}
 
+	public ConnectionSource getConnectionSource() {
+		return mConnectionSource;
+	}
+	
+	public void release() {
+		try {
+			if (mConnectionSource != null) {
+		        mConnectionSource.close();
+		        mConnectionSource = null;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public Dao<Store, String> getStoreDao() {
 		return mStoreDao;
 	}
