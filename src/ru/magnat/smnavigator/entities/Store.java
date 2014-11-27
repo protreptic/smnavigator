@@ -30,17 +30,14 @@ public class Store {
 	@DatabaseField(columnName = "golden_status")
 	private String goldenStatus;
 	
-	@DatabaseField(columnName = "psr", foreign = true)
-	private Psr psr;
+	@DatabaseField(columnName = "psr")
+	private Integer psr;
 	
 	@DatabaseField(columnName = "latitude")
 	private Double latitude;
 	
 	@DatabaseField(columnName = "longitude")
 	private Double longitude;
-
-	@DatabaseField(columnName = "store_statistics", foreign = true)
-	private StoreStatistics storeStatistics;
 	
 	public Integer getId() {
 		return id;
@@ -106,11 +103,11 @@ public class Store {
 		this.goldenStatus = goldenStatus;
 	}
 
-	public Psr getPsr() {
+	public Integer getPsr() {
 		return psr;
 	}
 
-	public void setPsr(Psr psr) {
+	public void setPsr(Integer psr) {
 		this.psr = psr;
 	}
 
@@ -128,14 +125,6 @@ public class Store {
 
 	public void setLongitude(Double longitude) {
 		this.longitude = longitude;
-	}
-
-	public StoreStatistics getStoreStatistics() {
-		return storeStatistics;
-	}
-
-	public void setStoreStatistics(StoreStatistics storeStatistics) {
-		this.storeStatistics = storeStatistics;
 	}
 	
 }

@@ -5,24 +5,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.entities.Store;
 import ru.magnat.smnavigator.entities.StoreStatistics;
 import ru.magnat.smnavigator.util.Fonts;
 import ru.magnat.smnavigator.util.Text;
 import ru.magnat.smnavigator.widget.ExpandableListFragment;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -33,8 +29,9 @@ public class StoreListFragment extends ExpandableListFragment {
 	private MainDbHelper mDbHelper;
 	private MyAdapter mAdapter;
 	private Dao<Store, String> mStoreDao;
+	private Dao<StoreStatistics, String> mStoreStatisticsDao;
 	private List<Store> mGroupData = new ArrayList<Store>();
-	private List<StoreStatistics> mChildData = new ArrayList<StoreStatistics>();
+	private List<List<StoreStatistics>> mChildData = new ArrayList<List<StoreStatistics>>();
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -85,11 +82,14 @@ public class StoreListFragment extends ExpandableListFragment {
 				mGroupData.addAll(mStoreDao.queryForAll());
 				
 				for (Store store : mGroupData) {
-					StoreStatistics storeStatistics;
+					StoreStatistics storeStatistics = mStoreStatisticsDao.queryForId(store.getId().toString());
 					
-					if ((storeStatistics = store.getStoreStatistics()) != null) {
-						mChildData.add(storeStatistics);	
+					List<StoreStatistics> statistics = new ArrayList<StoreStatistics>();
+					if (storeStatistics != null) {
+						statistics.add(storeStatistics);
 					}
+					
+					mChildData.add(statistics);	
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -111,6 +111,7 @@ public class StoreListFragment extends ExpandableListFragment {
 		
 		public MyAdapter() {
 			mStoreDao = mDbHelper.getStoreDao();
+			mStoreStatisticsDao = mDbHelper.getStoreStatisticsDao();
 		}
 		
 		@Override
@@ -119,28 +120,28 @@ public class StoreListFragment extends ExpandableListFragment {
 		}
 
 		@Override
-		public int getChildrenCount(int groupPosition) {		
-			return mChildData.size();
+		public long getGroupId(int groupPosition) {
+			return ((Store) mGroupData.get(groupPosition)).getId();
 		}
-
+		
 		@Override
 		public Object getGroup(int groupPosition) {
 			return mGroupData.get(groupPosition); 
 		}
-
+		
 		@Override
-		public Object getChild(int groupPosition, int childPosition) {
-			return mChildData.get(groupPosition); 
-		}
-
-		@Override
-		public long getGroupId(int groupPosition) {
-			return ((Store) mGroupData.get(groupPosition)).getId();
+		public int getChildrenCount(int groupPosition) {		
+			return mChildData.get(groupPosition).size();
 		}
 
 		@Override
 		public long getChildId(int groupPosition, int childPosition) {
-			return ((StoreStatistics) mChildData.get(groupPosition)).getId();
+			return ((StoreStatistics) mChildData.get(groupPosition).get(childPosition)).getId();
+		}
+
+		@Override
+		public Object getChild(int groupPosition, int childPosition) {
+			return (StoreStatistics) mChildData.get(groupPosition).get(childPosition);
 		}
 
 		@Override
@@ -161,34 +162,83 @@ public class StoreListFragment extends ExpandableListFragment {
 			address.setText(Text.prepareAddress(store.getAddress())); 
 			address.setTextSize(15); 
 			
-			ImageButton link = new ImageButton(getActivity());
-			link.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_place));
-			link.setOnClickListener(new OnClickListener() {
-				
-				@Override
-				public void onClick(View view) {				
-					Intent intent = new Intent(MainActivity.ACTION_MOVE);
-
-					intent.putExtra("latitude", store.getLatitude()); 
-					intent.putExtra("longitude", store.getLongitude()); 
-					intent.putExtra("zoom", 15); 
-					
-					getActivity().sendBroadcast(intent); 
-					getActivity().finish();
-				}
-				
-			});
+//			ImageButton link = new ImageButton(getActivity());
+//			link.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_place));
+//			link.setOnClickListener(new OnClickListener() {
+//				
+//				@Override
+//				public void onClick(View view) {				
+//					Intent intent = new Intent(MainActivity.ACTION_MOVE);
+//
+//					intent.putExtra("latitude", store.getLatitude()); 
+//					intent.putExtra("longitude", store.getLongitude()); 
+//					intent.putExtra("zoom", 15); 
+//					
+//					getActivity().sendBroadcast(intent); 
+//					getActivity().finish();
+//				}
+//				
+//			});
 
 			linearLayout.addView(name);
 			linearLayout.addView(address);
-			linearLayout.addView(link);
+			//linearLayout.addView(link);
 			
 			return linearLayout;
 		}
 
 		@Override
 		public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-			return null;
+			StoreStatistics storeStatistics = (StoreStatistics) getChild(groupPosition, childPosition);
+			
+			LinearLayout linearLayout = new LinearLayout(getActivity());
+			linearLayout.setPadding(35, 5, 5, 5); 
+			linearLayout.setOrientation(LinearLayout.VERTICAL); 
+			
+			TextView totalDistribution = new TextView(getActivity()); 
+			totalDistribution.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
+			totalDistribution.setText("TotalDistribution: " + storeStatistics.getTotalDistribution());  
+			totalDistribution.setTextSize(16); 
+			totalDistribution.setTextColor(getResources().getColor(android.R.color.holo_blue_light));
+			 
+			TextView goldenDistribution = new TextView(getActivity()); 
+			goldenDistribution.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
+			goldenDistribution.setText("GoldenDistribution: " + storeStatistics.getGoldenDistribution());  
+			goldenDistribution.setTextSize(16); 
+			goldenDistribution.setTextColor(getResources().getColor(android.R.color.holo_blue_light));
+			
+			TextView turnoverCurrentMonth = new TextView(getActivity()); 
+			turnoverCurrentMonth.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
+			turnoverCurrentMonth.setText("TurnoverCurrentMonth: " + storeStatistics.getTurnoverCurrentMonth());  
+			turnoverCurrentMonth.setTextSize(16); 
+			turnoverCurrentMonth.setTextColor(getResources().getColor(android.R.color.holo_blue_light));
+			
+			TextView turnoverPreviousMonth = new TextView(getActivity()); 
+			turnoverPreviousMonth.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
+			turnoverPreviousMonth.setText("TurnoverPreviousMonth: " + storeStatistics.getTurnoverPreviousMonth());  
+			turnoverPreviousMonth.setTextSize(16); 
+			turnoverPreviousMonth.setTextColor(getResources().getColor(android.R.color.holo_blue_light));
+			
+			TextView lastVisit = new TextView(getActivity()); 
+			lastVisit.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
+			lastVisit.setText("LastVisit: " + storeStatistics.getLastVisit());  
+			lastVisit.setTextSize(16); 
+			lastVisit.setTextColor(getResources().getColor(android.R.color.holo_blue_light));
+			
+			TextView nextVisit = new TextView(getActivity()); 
+			nextVisit.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
+			nextVisit.setText("NextVisit: " + storeStatistics.getNextVisit());  
+			nextVisit.setTextSize(16); 
+			nextVisit.setTextColor(getResources().getColor(android.R.color.holo_blue_light));
+			
+			linearLayout.addView(totalDistribution);
+			linearLayout.addView(goldenDistribution);
+			linearLayout.addView(turnoverCurrentMonth);
+			linearLayout.addView(turnoverPreviousMonth);
+			linearLayout.addView(lastVisit);
+			linearLayout.addView(nextVisit);
+			
+			return linearLayout;
 		}
 
 		@Override
