@@ -6,7 +6,7 @@ import java.util.List;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.activities.MainActivity;
-import ru.magnat.smnavigator.data.db.MainDbHelper;
+import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.entities.Store;
 import ru.magnat.smnavigator.entities.StoreStatistics;
 import ru.magnat.smnavigator.util.Fonts;
@@ -162,27 +162,23 @@ public class StoreListFragment extends ExpandableListFragment {
 			address.setTextSize(15); 
 			
 			ImageButton link = new ImageButton(getActivity());
-			link.setBackground(getResources().getDrawable(android.R.color.transparent));  
 			link.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_place));
 			link.setOnClickListener(new OnClickListener() {
 				
 				@Override
 				public void onClick(View view) {				
-					Intent intent = new Intent(getActivity(), MainActivity.class);
+					Intent intent = new Intent(MainActivity.ACTION_MOVE);
+
+					intent.putExtra("latitude", store.getLatitude()); 
+					intent.putExtra("longitude", store.getLongitude()); 
+					intent.putExtra("zoom", 15); 
 					
-					Bundle bundle = new Bundle();
-					bundle.putDouble("latitude", store.getLatitude()); 
-					bundle.putDouble("longitude", store.getLongitude()); 
-					
-					intent.putExtras(bundle);
-					
-					getActivity().startActivity(intent); 
+					getActivity().sendBroadcast(intent); 
+					getActivity().finish();
 				}
 				
 			});
-			if (store.getLatitude() == 0 && store.getLongitude() == 0) 
-				link.setEnabled(false); 
-			
+
 			linearLayout.addView(name);
 			linearLayout.addView(address);
 			linearLayout.addView(link);
@@ -192,8 +188,6 @@ public class StoreListFragment extends ExpandableListFragment {
 
 		@Override
 		public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-			
-			
 			return null;
 		}
 

@@ -41,4 +41,6 @@
     
     <string name="emptyList">Нет элементов</string>
     <string name="showOnMap">Показать на карте</string>
+    <string name="locationUnavailable">Местополжение недоступно</string>
+    <string name="locationAvailable">Местополжение доступно</string>
 </resources>

@@ -1,20 +1,12 @@
 package ru.magnat.smnavigator.activities;
 
 import java.sql.Date;
-import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.List;
 
 import ru.magnat.smnavigator.Application;
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.data.db.MainDbHelper;
-import ru.magnat.smnavigator.entities.Store;
 import ru.magnat.smnavigator.map.LocationHelper;
-import ru.magnat.smnavigator.map.overlay.StoreOverlay;
-import ru.magnat.smnavigator.util.Apps;
-import ru.magnat.smnavigator.util.Text;
 import android.accounts.Account;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -32,11 +24,8 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
 
-import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapView;
-import com.google.android.maps.Overlay;
-import com.google.android.maps.OverlayItem;
 
 public class MainActivity extends MapActivity {
 
@@ -49,7 +38,7 @@ public class MainActivity extends MapActivity {
     
     // Sync interval constants
     public static final long SECONDS_PER_MINUTE = 60L;
-    public static final long SYNC_INTERVAL_IN_MINUTES = 45L;
+    public static final long SYNC_INTERVAL_IN_MINUTES = 30L;
     public static final long SYNC_INTERVAL = SYNC_INTERVAL_IN_MINUTES * SECONDS_PER_MINUTE;
 	
     private Account mAccount;
@@ -59,67 +48,20 @@ public class MainActivity extends MapActivity {
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+		super.onCreate(savedInstanceState); init();
 
-		init();
+		// register receivers
+		registerReceiver(mLocationReceiver, new IntentFilter(ACTION_LOCATION));
+		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 
+		registerReceiver(mMoveReceiver, new IntentFilter(ACTION_MOVE));
 		
-		if (getIntent().getExtras() != null) {
-			double latitude = getIntent().getExtras().getDouble("latitude");
-			double longitude = getIntent().getExtras().getDouble("longitude");
-			
-			mLocationHelper.moveToPoint(latitude, longitude);
-		} else {
-			mLocationHelper.showMyself(); 
-		}
+		// request current location
+		mLocationHelper.requestLocation();
+		mLocationHelper.updateOverlays();
 		
-		mAccount = Application.addSyncAccount(this);
-		
-	    //Turn on periodic syncing
+	    // turn on periodic sync
 	    ContentResolver.addPeriodicSync(mAccount, AUTHORITY, new Bundle(), SYNC_INTERVAL);
 	}
-	
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		
-		MainDbHelper.getInstance(this).release();
-	}
-	
-	private void addStoresOverlay() {
-		try {
-			List<Store> stores = MainDbHelper.getInstance(this).getStoreDao().queryForAll();
-		
-			if (stores.size() == 0) {
-				return;
-			}
-		
-			// Redraw the map
-			mMapView.invalidate();
-			
-			// Getting list of overlays available in the map
-			List<Overlay> mapOverlays = mMapView.getOverlays();
-			
-			// Remove store overlay from the map
-			mapOverlays.remove(mStoreOverlay);
-			
-			mStoreOverlay = new StoreOverlay(mMapView.getResources().getDrawable(R.drawable.shop), mMapView);
-
-			int count = 0;
-			
-			for (Store store : stores) {
-				mStoreOverlay.addOverlay(new OverlayItem(new GeoPoint((int) (store.getLatitude() * 1E6), (int) (store.getLongitude() * 1E6)), store.getName(), Text.prepareAddress(store.getAddress())));
-				
-				if ((++count) > 150) break;
-			}
-			
-			// Add updated overlay to the map
-			mapOverlays.add(mStoreOverlay);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private StoreOverlay mStoreOverlay;
 	
 	private void init() {
 		getActionBar().setTitle(""); 
@@ -133,23 +75,36 @@ public class MainActivity extends MapActivity {
 		setContentView(mMapView);
 		
 		mLocationHelper = LocationHelper.getInstance(mMapView);
+		mAccount = Application.addSyncAccount(this);
 	}
 	
 	@Override
 	protected void onStart() {
 		super.onStart();
 		
+		// start tracking
 		mLocationHelper.startTracking();
-		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 
-		addStoresOverlay();
 	}
 	
 	@Override
 	protected void onStop() {
 		super.onStop();
 		
+		// stop tracking
 		mLocationHelper.stopTracking();
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		
+		// unregister receivers
+		unregisterReceiver(mLocationReceiver);
 		unregisterReceiver(mSyncReceiver); 
+		unregisterReceiver(mMoveReceiver); 
+		
+		// turn off periodic sync
+		ContentResolver.removePeriodicSync(mAccount, AUTHORITY, new Bundle());
 	}
 	
 	@Override
@@ -162,20 +117,22 @@ public class MainActivity extends MapActivity {
 		MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.main_menu, menu);
 	    
-	    mRefreshItem = menu.findItem(R.id.refresh);
+	    mSyncItem = menu.findItem(R.id.actionSync);
+	    mLocationItem = menu.findItem(R.id.actionLocation);
 	    
 	    return true;
 	}
 	
-	private MenuItem mRefreshItem;
+	private MenuItem mSyncItem;
+	private MenuItem mLocationItem;
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-			case R.id.showMyself: {
-				mLocationHelper.showMyself(); 
+			case R.id.actionLocation: {
+				mLocationHelper.requestLocation();
 			} break;
-			case R.id.refresh: {
+			case R.id.actionSync: {
 				// Pass the settings flags by inserting them in a bundle
 		        Bundle settingsBundle = new Bundle();
 		        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
@@ -185,20 +142,20 @@ public class MainActivity extends MapActivity {
 		        // manual sync settings
 		        ContentResolver.requestSync(mAccount, AUTHORITY, settingsBundle);
 			} break;
-			case R.id.showObjects: {
+			case R.id.actionObjects: {
 				startActivity(new Intent(this, ObjectsActivity.class)); 
 			} break;
-			case R.id.about: {
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setMessage(Apps.getVersionName(this)); 
-				builder.setCancelable(true);
-				builder.create().show();
-			} break;
-			case R.id.settings: {
-				Intent intent = new Intent(this, SettingsActivity.class);
-				
-				startActivity(intent); 
-			} break;
+//			case R.id.actionAbout: {
+//				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//				builder.setMessage(Apps.getVersionName(this)); 
+//				builder.setCancelable(true);
+//				builder.create().show();
+//			} break;
+//			case R.id.actionSettings: {
+//				Intent intent = new Intent(this, SettingsActivity.class);
+//				
+//				startActivity(intent); 
+//			} break;
 			default: {
 				return super.onOptionsItemSelected(item);
 			}
@@ -207,56 +164,90 @@ public class MainActivity extends MapActivity {
 		return super.onOptionsItemSelected(item);
 	}
 	
+	public static final String ACTION_MOVE = "ru.magnat.smnavigator.sync.ACTION_MOVE";
+	public static final String ACTION_LOCATION = "ru.magnat.smnavigator.sync.ACTION_LOCATION"; 
 	public static final String ACTION_SYNC = "ru.magnat.smnavigator.sync.ACTION_SYNC"; 
+	
+	private BroadcastReceiver mLocationReceiver = new BroadcastReceiver() {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+	        if(intent.getAction().equals(ACTION_LOCATION)) {	        	
+	            String action = intent.getStringExtra("provider");
+	            
+	            if (action.equals("disabled") && mLocationItem != null) {
+	            	Log.d("", "location disabled");
+	            	
+	            	mLocationItem.setIcon(getResources().getDrawable(R.drawable.ic_action_location_found_error));
+	            }
+	            if (action.equals("enabled") && mLocationItem != null) {
+	            	Log.d("", "location enabled");
+
+	            	mLocationItem.setIcon(getResources().getDrawable(R.drawable.ic_action_location_found_ok));
+	            }
+	        }
+		}
+		
+	};
+	
+	private BroadcastReceiver mMoveReceiver = new BroadcastReceiver() {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+	        if(intent.getAction().equals(ACTION_MOVE)) {	        	
+	        	double latitude = intent.getDoubleExtra("latitude", 0);
+	        	double longitude = intent.getDoubleExtra("longitude", 0);
+	        	
+	        	int zoom = intent.getIntExtra("zoom", 15);
+	        	
+	        	Log.d("", "move " + latitude + " " + longitude + " " + zoom);
+	        	
+	            mLocationHelper.moveToPoint(latitude, longitude, zoom);
+	        }
+		}
+		
+	};
 	
 	private BroadcastReceiver mSyncReceiver = new BroadcastReceiver() {
 		
 	    @Override
 	    public void onReceive(Context context, Intent intent) {
-	        Log.d("", "Broadcast received: " + intent.getAction());
-	        
-	        if(intent.getAction().equals(ACTION_SYNC)){
+	        if(intent.getAction().equals(ACTION_SYNC)) {
 	            String action = intent.getStringExtra("action");
 	            
-	            if (action.equals("started")) {
+	            if (action.equals("started") && mSyncItem != null) {
 	            	Log.d("", "sync started");
 	            	
 	    			Animation rotate = AnimationUtils.loadAnimation(getBaseContext(), R.anim.rotate360);
 	    			
 	    			LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-	    			RelativeLayout imageView = (RelativeLayout) inflater.inflate(R.layout.animated_refresh_icon, new LinearLayout(getBaseContext()), false); 
+	    			RelativeLayout view = (RelativeLayout) inflater.inflate(R.layout.animated_refresh_icon, new LinearLayout(getBaseContext()), false); 
 
-	    		    imageView.startAnimation(rotate);
-	    		    imageView.setLayoutParams(new LayoutParams(64, 64)); 
+	    		    view.startAnimation(rotate);
+	    		    view.setLayoutParams(new LayoutParams(64, 64)); 
 	    			
-	    		    if (mRefreshItem != null && mRefreshItem.getActionView() == null) {
-	    		    	mRefreshItem.setActionView(imageView);
-	    		    }
+	    		    mSyncItem.setActionView(view);
 	            }
-	            if (action.equals("completed")) {
+	            if (action.equals("completed") && mSyncItem != null && mSyncItem.getActionView() != null) {
 	            	Log.d("", "sync completed");
 	            	
-	            	if (mRefreshItem != null && mRefreshItem.getActionView() != null) {
-		    			mRefreshItem.getActionView().clearAnimation();
-		    			mRefreshItem.setActionView(null);
-		    			
-		    			SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-		    			
-		    			mRefreshItem.setIcon(getResources().getDrawable(R.drawable.ic_action_refresh_ok));
-		    			mRefreshItem.setTitle(getResources().getString(R.string.syncLastSuccessAttempt) + dateFormat.format(new Date(System.currentTimeMillis()))); 
-		    			
-		    			addStoresOverlay();
-	            	}
+	    			mSyncItem.getActionView().clearAnimation();
+	    			mSyncItem.setActionView(null);
+	    			
+	    			SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+	    			
+	    			mSyncItem.setIcon(getResources().getDrawable(R.drawable.ic_action_refresh_ok));
+	    			mSyncItem.setTitle(getResources().getString(R.string.syncLastSuccessAttempt) + " " + dateFormat.format(new Date(System.currentTimeMillis()))); 
+	    			
+	    			mLocationHelper.updateOverlays();
 	            }
-	            if (action.equals("error")) {
+	            if (action.equals("error") && mSyncItem != null && mSyncItem.getActionView() != null) {
 	            	Log.d("", "sync error");
 	            	
-	            	if (mRefreshItem != null && mRefreshItem.getActionView() != null) {
-		    			mRefreshItem.getActionView().clearAnimation();
-		    			mRefreshItem.setActionView(null);
-		    			 
-		    			mRefreshItem.setIcon(getResources().getDrawable(R.drawable.ic_action_refresh_error));
-		    		}
+	    			mSyncItem.getActionView().clearAnimation();
+	    			mSyncItem.setActionView(null);
+	    			 
+	    			mSyncItem.setIcon(getResources().getDrawable(R.drawable.ic_action_refresh_error));
 	            }
 	        }
 	    }

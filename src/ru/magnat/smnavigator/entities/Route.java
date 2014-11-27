@@ -6,7 +6,7 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "psr_route")
-public class PsrRoute {
+public class Route {
 
 	@DatabaseField(columnName = "id", id = true)
 	private Integer id;
@@ -17,8 +17,8 @@ public class PsrRoute {
 	@DatabaseField(columnName = "psr")
 	private Integer psr;
 	
-	@DatabaseField(columnName = "store", foreign = true)
-	private Store store;
+	@DatabaseField(columnName = "store")
+	private Integer store;
 
 	public Integer getId() {
 		return id;
@@ -44,11 +44,11 @@ public class PsrRoute {
 		this.psr = psr;
 	}
 
-	public Store getStore() {
+	public Integer getStore() {
 		return store;
 	}
 
-	public void setStore(Store store) {
+	public void setStore(Integer store) {
 		this.store = store;
 	}
 	

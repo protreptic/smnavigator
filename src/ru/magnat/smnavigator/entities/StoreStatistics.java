@@ -18,16 +18,16 @@ public class StoreStatistics {
 	private Date nextVisit;
 	
 	@DatabaseField(columnName = "turnover_previous_month")
-	private Float turnoverPreviousMonth;
+	private Double turnoverPreviousMonth;
 	
 	@DatabaseField(columnName = "turnover_current_month")
-	private Float turnoverCurrentMonth;
+	private Double turnoverCurrentMonth;
 	
 	@DatabaseField(columnName = "total_distribution")
-	private Float totalDistribution;
+	private Double totalDistribution;
 	
 	@DatabaseField(columnName = "golden_distribution")
-	private Float goldenDistribution;
+	private Double goldenDistribution;
 
 	public Integer getId() {
 		return id;
@@ -53,35 +53,35 @@ public class StoreStatistics {
 		this.nextVisit = nextVisit;
 	}
 
-	public Float getTurnoverPreviousMonth() {
+	public Double getTurnoverPreviousMonth() {
 		return turnoverPreviousMonth;
 	}
 
-	public void setTurnoverPreviousMonth(Float turnoverPreviousMonth) {
+	public void setTurnoverPreviousMonth(Double turnoverPreviousMonth) {
 		this.turnoverPreviousMonth = turnoverPreviousMonth;
 	}
 
-	public Float getTurnoverCurrentMonth() {
+	public Double getTurnoverCurrentMonth() {
 		return turnoverCurrentMonth;
 	}
 
-	public void setTurnoverCurrentMonth(Float turnoverCurrentMonth) {
+	public void setTurnoverCurrentMonth(Double turnoverCurrentMonth) {
 		this.turnoverCurrentMonth = turnoverCurrentMonth;
 	}
 
-	public Float getTotalDistribution() {
+	public Double getTotalDistribution() {
 		return totalDistribution;
 	}
 
-	public void setTotalDistribution(Float totalDistribution) {
+	public void setTotalDistribution(Double totalDistribution) {
 		this.totalDistribution = totalDistribution;
 	}
 
-	public Float getGoldenDistribution() {
+	public Double getGoldenDistribution() {
 		return goldenDistribution;
 	}
 
-	public void setGoldenDistribution(Float goldenDistribution) {
+	public void setGoldenDistribution(Double goldenDistribution) {
 		this.goldenDistribution = goldenDistribution;
 	}
 	

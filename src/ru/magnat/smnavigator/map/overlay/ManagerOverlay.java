@@ -7,11 +7,11 @@ import android.graphics.drawable.Drawable;
 import com.google.android.maps.ItemizedOverlay;
 import com.google.android.maps.OverlayItem;
 
-public class SmOverlay extends ItemizedOverlay<OverlayItem> {
+public class ManagerOverlay extends ItemizedOverlay<OverlayItem> {
 	
 	private ArrayList<OverlayItem> mOverlays = new ArrayList<OverlayItem>();
 
-	public SmOverlay(Drawable defaultMarker) {
+	public ManagerOverlay(Drawable defaultMarker) {
 		super(boundCenterBottom(defaultMarker));
 	}
 

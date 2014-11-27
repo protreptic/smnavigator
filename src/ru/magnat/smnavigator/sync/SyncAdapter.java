@@ -9,10 +9,14 @@ import java.util.concurrent.TimeUnit;
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.data.GetPsrsHelper;
+import ru.magnat.smnavigator.data.GetRoutesHelper;
+import ru.magnat.smnavigator.data.GetStoreStatisticsHelper;
 import ru.magnat.smnavigator.data.GetStoresHelper;
-import ru.magnat.smnavigator.data.db.MainDbHelper;
+import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.entities.Psr;
+import ru.magnat.smnavigator.entities.Route;
 import ru.magnat.smnavigator.entities.Store;
+import ru.magnat.smnavigator.entities.StoreStatistics;
 import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
@@ -91,6 +95,28 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			}
     	}
     	
+    	private void loadStoreStatistics() {
+			try {
+				URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_getStoreStatistics");
+				HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
+
+				for (StoreStatistics storeStatistics : new GetStoreStatisticsHelper().readJsonStream(urlConnection.getInputStream())) {
+					MainDbHelper.getInstance(getContext()).getStoreStatisticsDao().createOrUpdate(storeStatistics);
+				}
+
+				urlConnection.disconnect();
+			} catch (IOException e) {
+				e.printStackTrace();
+				cancel(true);
+			} catch (SQLException e) {
+				e.printStackTrace();
+				cancel(true);
+			} catch (Exception e) {
+				e.printStackTrace();
+				cancel(true);
+			}
+    	}
+    	
     	private void loadPsrs() {
 			try {
 				URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_getPsrs");
@@ -98,6 +124,28 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
 				for (Psr psr : new GetPsrsHelper().readJsonStream(urlConnection.getInputStream())) {
 					MainDbHelper.getInstance(getContext()).getPsrDao().createOrUpdate(psr);
+				}
+
+				urlConnection.disconnect();;
+			} catch (IOException e) {
+				e.printStackTrace();
+				cancel(true);
+			} catch (SQLException e) {
+				e.printStackTrace();
+				cancel(true);
+			} catch (Exception e) {
+				e.printStackTrace();
+				cancel(true);
+			}
+    	}
+    	
+    	private void loadRoutes() {
+			try {
+				URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_getRoutes");
+				HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
+
+				for (Route route : new GetRoutesHelper().readJsonStream(urlConnection.getInputStream())) {
+					MainDbHelper.getInstance(getContext()).getRouteDao().createOrUpdate(route);
 				}
 
 				urlConnection.disconnect();;
@@ -127,7 +175,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 				TimeUnit.SECONDS.sleep(3);
 				
 				loadStores();
+				loadStoreStatistics();
 				loadPsrs();
+				loadRoutes();
 				
 				TimeUnit.SECONDS.sleep(3);
 			} catch (InterruptedException e) {

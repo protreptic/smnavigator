@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
 
-    <item
-        android:id="@+id/settings"
+<!--     <item
+        android:id="@+id/actionSettings"
         android:showAsAction="never"
-        android:title="@string/settings"/>
+        android:title="@string/settings"/> -->
     <item
-        android:id="@+id/showMyself"
+        android:id="@+id/actionLocation"
         android:icon="@drawable/ic_action_location_found"
         android:showAsAction="ifRoom"
         android:title="@string/showMyself"/>
     <item
-        android:id="@+id/showObjects"
+        android:id="@+id/actionObjects"
         android:icon="@drawable/ic_action_group"
         android:showAsAction="ifRoom"
         android:title="@string/showObjects"/>
     <item
-        android:id="@+id/refresh"
+        android:id="@+id/actionSync"
         android:icon="@drawable/ic_action_refresh"
         android:showAsAction="ifRoom"
         android:title="@string/refresh"/>
-    <item
-        android:id="@+id/about"
+<!--     <item
+        android:id="@+id/actionAbout"
         android:showAsAction="never"
-        android:title="@string/about"/>
+        android:title="@string/about"/> -->
 
 </menu>

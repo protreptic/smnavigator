@@ -26,6 +26,12 @@ public class Psr {
 	@DatabaseField(columnName = "department")
 	private String department;
 	
+	@DatabaseField(columnName = "latitude")
+	private Double latitude;
+	
+	@DatabaseField(columnName = "longitude")
+	private Double longitude;
+	
 	public Integer getId() {
 		return id;
 	}
@@ -74,8 +80,24 @@ public class Psr {
 		this.department = department;
 	}
 	
-	public List<PsrRoute> getPsrRoutes() {
+	public List<Route> getPsrRoutes() {
 		return null;
+	}
+
+	public Double getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(Double latitude) {
+		this.latitude = latitude;
+	}
+
+	public Double getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(Double longitude) {
+		this.longitude = longitude;
 	}
 	
 }

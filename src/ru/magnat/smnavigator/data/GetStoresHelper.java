@@ -31,7 +31,7 @@ public class GetStoresHelper {
 	    }
 	    reader.endArray();
 	    
-	    Log.d("", "stores = " + stores.size()); 
+	    Log.d("", "Store = " + stores.size()); 
 	    
 	    return stores;
 	}

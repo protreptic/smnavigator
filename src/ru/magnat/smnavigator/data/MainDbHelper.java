@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.data.db;
+package ru.magnat.smnavigator.data;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -8,7 +8,7 @@ import java.io.OutputStream;
 import java.sql.SQLException;
 
 import ru.magnat.smnavigator.entities.Psr;
-import ru.magnat.smnavigator.entities.PsrRoute;
+import ru.magnat.smnavigator.entities.Route;
 import ru.magnat.smnavigator.entities.Store;
 import ru.magnat.smnavigator.entities.StoreStatistics;
 import ru.magnat.smnavigator.util.Apps;
@@ -79,7 +79,7 @@ public class MainDbHelper {
 	private Dao<Store, String> mStoreDao;
 	private Dao<StoreStatistics, String> mStoreStatisticsDao;
 	private Dao<Psr, String> mPsrDao;
-	private Dao<PsrRoute, String> mPsrRouteDao;
+	private Dao<Route, String> mRouteDao;
 	
 	private void initDb() {
 		try {
@@ -92,7 +92,7 @@ public class MainDbHelper {
 			mStoreDao = DaoManager.createDao(mConnectionSource, Store.class);
 			mStoreStatisticsDao = DaoManager.createDao(mConnectionSource, StoreStatistics.class);
 			mPsrDao = DaoManager.createDao(mConnectionSource, Psr.class);
-			mPsrRouteDao = DaoManager.createDao(mConnectionSource, PsrRoute.class);
+			mRouteDao = DaoManager.createDao(mConnectionSource, Route.class);
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -103,17 +103,6 @@ public class MainDbHelper {
 
 	public ConnectionSource getConnectionSource() {
 		return mConnectionSource;
-	}
-	
-	public void release() {
-		try {
-			if (mConnectionSource != null) {
-		        mConnectionSource.close();
-		        mConnectionSource = null;
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	public Dao<Store, String> getStoreDao() {
@@ -128,8 +117,8 @@ public class MainDbHelper {
 		return mPsrDao;
 	}
 
-	public Dao<PsrRoute, String> getPsrRouteDao() {
-		return mPsrRouteDao;
+	public Dao<Route, String> getRouteDao() {
+		return mRouteDao;
 	}
 	
 }

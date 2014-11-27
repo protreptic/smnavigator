@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.data.db.MainDbHelper;
+import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.entities.Psr;
-import ru.magnat.smnavigator.entities.PsrRoute;
+import ru.magnat.smnavigator.entities.Route;
 import ru.magnat.smnavigator.util.Fonts;
 import ru.magnat.smnavigator.widget.ExpandableListFragment;
 import android.os.AsyncTask;
@@ -29,7 +29,7 @@ public class PsrListFragment extends ExpandableListFragment {
 	private MyAdapter mAdapter;
 	private Dao<Psr, String> mPsrDao;
 	private List<Psr> mGroupData = new ArrayList<Psr>();
-	private List<List<PsrRoute>> mChildData = new ArrayList<List<PsrRoute>>();
+	private List<List<Route>> mChildData = new ArrayList<List<Route>>();
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -127,7 +127,7 @@ public class PsrListFragment extends ExpandableListFragment {
 
 		@Override
 		public long getChildId(int groupPosition, int childPosition) {
-			return ((PsrRoute) mChildData.get(groupPosition)).getId();
+			return ((Route) mChildData.get(groupPosition)).getId();
 		}
 
 		@Override

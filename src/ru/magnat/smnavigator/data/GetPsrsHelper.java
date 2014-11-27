@@ -31,7 +31,7 @@ public class GetPsrsHelper {
 	    }
 	    reader.endArray();
 	    
-	    Log.d("", "Psrs = " + psrs.size()); 
+	    Log.d("", "Psr = " + psrs.size()); 
 	    
 	    return psrs;
 	}
@@ -55,6 +55,10 @@ public class GetPsrsHelper {
 	    		psr.setBranch(reader.nextString()); 
 	    	} else if (name.equals("department")) {
 	    		psr.setDepartment(reader.nextString()); 
+	    	} else if (name.equals("latitude")) {
+	    		psr.setLatitude(reader.nextDouble()); 
+	    	} else if (name.equals("longitude")) {
+	    		psr.setLongitude(reader.nextDouble()); 
 	    	} else {
 	    		reader.skipValue();
 	    	}

@@ -3,7 +3,7 @@ package ru.magnat.smnavigator;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.Context;
-import ru.magnat.smnavigator.data.db.MainDbHelper;
+import ru.magnat.smnavigator.data.MainDbHelper;
 
 public class Application extends android.app.Application {
 	

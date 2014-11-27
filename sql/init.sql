@@ -1,9 +1,11 @@
 drop schema sm_navigator if exists;
 create schema sm_navigator;
 
-create table sm_navigator.sm (
+create table sm_navigator.manager (
 	id integer primary key,
-	name varchar(255)
+	name varchar(255),
+	latitude double,
+	longitude double,
 );
 create table sm_navigator.store (
 	id integer primary key,
@@ -35,7 +37,9 @@ create table sm_navigator.psr (
 	project varchar (255),
 	tel varchar (255),
 	branch varchar (255),
-	department varchar (255)
+	department varchar (255),
+	latitude double,
+	longitude double,
 );
 create table sm_navigator.psr_route (
 	id integer primary key,
