@@ -22,6 +22,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 import android.widget.RelativeLayout.LayoutParams;
 
 import com.google.android.maps.MapActivity;
@@ -38,7 +39,7 @@ public class MainActivity extends MapActivity {
     
     // Sync interval constants
     public static final long SECONDS_PER_MINUTE = 60L;
-    public static final long SYNC_INTERVAL_IN_MINUTES = 30L;
+    public static final long SYNC_INTERVAL_IN_MINUTES = 10L;
     public static final long SYNC_INTERVAL = SYNC_INTERVAL_IN_MINUTES * SECONDS_PER_MINUTE;
 	
     private Account mAccount;
@@ -66,6 +67,7 @@ public class MainActivity extends MapActivity {
 	private void init() {
 		getActionBar().setTitle(""); 
 		getActionBar().setIcon(getResources().getDrawable(R.drawable.logotype_small)); 
+		getActionBar().setHomeButtonEnabled(true); 
 		
 		// Getting reference to MapView
 		mMapView = new MapView(this, getResources().getString(R.string.google_maps_api_key)); 
@@ -227,9 +229,11 @@ public class MainActivity extends MapActivity {
 	    		    view.setLayoutParams(new LayoutParams(64, 64)); 
 	    			
 	    		    mSyncItem.setActionView(view);
+	    		    
+	    		    
 	            }
 	            if (action.equals("completed") && mSyncItem != null && mSyncItem.getActionView() != null) {
-	            	Log.d("", "sync completed");
+	            	Log.d("", "sync completed"); Toast.makeText(getBaseContext(), getResources().getString(R.string.syncSuccess), Toast.LENGTH_LONG).show(); 
 	            	
 	    			mSyncItem.getActionView().clearAnimation();
 	    			mSyncItem.setActionView(null);
@@ -238,11 +242,9 @@ public class MainActivity extends MapActivity {
 	    			
 	    			mSyncItem.setIcon(getResources().getDrawable(R.drawable.ic_action_refresh_ok));
 	    			mSyncItem.setTitle(getResources().getString(R.string.syncLastSuccessAttempt) + " " + dateFormat.format(new Date(System.currentTimeMillis()))); 
-	    			
-	    			mLocationHelper.updateOverlays();
 	            }
 	            if (action.equals("error") && mSyncItem != null && mSyncItem.getActionView() != null) {
-	            	Log.d("", "sync error");
+	            	Log.d("", "sync error"); Toast.makeText(getBaseContext(), getResources().getString(R.string.syncError), Toast.LENGTH_LONG).show();	
 	            	
 	    			mSyncItem.getActionView().clearAnimation();
 	    			mSyncItem.setActionView(null);
@@ -252,6 +254,11 @@ public class MainActivity extends MapActivity {
 	        }
 	    }
 	    
+	};
+	
+	@Override
+	public void onBackPressed() {
+		Runtime.getRuntime().exit(1); 
 	};
 	
 }

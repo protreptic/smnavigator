@@ -3,6 +3,6 @@
     android:accountType="ru.magnat.smnavigator"
     android:allowParallelSyncs="false"
     android:contentAuthority="ru.magnat.smnavigator.auth"
-    android:isAlwaysSyncable="true"
+    android:isAlwaysSyncable="false"
     android:supportsUploading="true"
-    android:userVisible="true" />
+    android:userVisible="false" />

@@ -3,31 +3,28 @@ package ru.magnat.smnavigator.map.overlay;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.content.Context;
-import android.graphics.drawable.Drawable;
-import android.widget.Toast;
+import ru.magnat.smnavigator.R;
+import ru.magnat.smnavigator.entities.Store;
 
 import com.google.android.maps.MapView;
-import com.google.android.maps.OverlayItem;
 import com.readystatesoftware.mapviewballoons.BalloonItemizedOverlay;
 
-public class StoreOverlay extends BalloonItemizedOverlay<OverlayItem> {
+public class StoreOverlay extends BalloonItemizedOverlay<StoreOverlayItem> {
 
-	private List<OverlayItem> mOverlays = new ArrayList<OverlayItem>();
-	private Context mContext;
-	
-	public StoreOverlay(Drawable defaultMarker, MapView mapView) {
-		super(boundCenter(defaultMarker), mapView);
-		mContext = mapView.getContext();
-	}
+	private List<StoreOverlayItem> mOverlays = new ArrayList<StoreOverlayItem>();
 
-	public void addOverlay(OverlayItem overlay) {
-	    mOverlays.add(overlay);
-	    populate();
+	public StoreOverlay(MapView mapView, List<Store> stores) {
+		super(boundCenter(mapView.getResources().getDrawable(R.drawable.shop)), mapView);
+		
+		for (Store store : stores) {
+			mOverlays.add(new StoreOverlayItem(store)); 
+		}
+		
+		populate();
 	}
 
 	@Override
-	protected OverlayItem createItem(int i) {
+	protected StoreOverlayItem createItem(int i) {
 		return mOverlays.get(i);
 	}
 
@@ -37,8 +34,7 @@ public class StoreOverlay extends BalloonItemizedOverlay<OverlayItem> {
 	}
 
 	@Override
-	protected boolean onBalloonTap(int index, OverlayItem item) {
-		Toast.makeText(mContext, "onBalloonTap for overlay index " + index, Toast.LENGTH_LONG).show();
+	protected boolean onBalloonTap(int index, StoreOverlayItem item) {
 		return true;
 	}
 	

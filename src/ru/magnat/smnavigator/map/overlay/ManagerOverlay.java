@@ -1,33 +1,31 @@
 package ru.magnat.smnavigator.map.overlay;
 
-import java.util.ArrayList;
+import ru.magnat.smnavigator.R;
+import ru.magnat.smnavigator.entities.Manager;
 
-import android.graphics.drawable.Drawable;
+import com.google.android.maps.MapView;
+import com.readystatesoftware.mapviewballoons.BalloonItemizedOverlay;
 
-import com.google.android.maps.ItemizedOverlay;
-import com.google.android.maps.OverlayItem;
-
-public class ManagerOverlay extends ItemizedOverlay<OverlayItem> {
+public class ManagerOverlay extends BalloonItemizedOverlay<ManagerOverlayItem> {
 	
-	private ArrayList<OverlayItem> mOverlays = new ArrayList<OverlayItem>();
-
-	public ManagerOverlay(Drawable defaultMarker) {
-		super(boundCenterBottom(defaultMarker));
+	private Manager mManager;
+	
+	public ManagerOverlay(MapView mapView, Manager manager) {
+		super(boundCenter(mapView.getResources().getDrawable(R.drawable.manager)), mapView);
+		
+		mManager = manager;
+		
+		populate();
 	}
 
 	@Override
-	protected OverlayItem createItem(int arg0) {
-		return mOverlays.get(arg0);
+	protected ManagerOverlayItem createItem(int arg0) {
+		return new ManagerOverlayItem(mManager); 
 	}
 
 	@Override
 	public int size() {
-		return mOverlays.size();
-	}
-
-	public void addOverlay(OverlayItem overlay) {
-		mOverlays.add(overlay);
-		populate();
+		return 1;
 	}
 	
 }

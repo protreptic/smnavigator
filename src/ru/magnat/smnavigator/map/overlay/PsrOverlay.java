@@ -3,31 +3,28 @@ package ru.magnat.smnavigator.map.overlay;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.content.Context;
-import android.graphics.drawable.Drawable;
-import android.widget.Toast;
+import ru.magnat.smnavigator.R;
+import ru.magnat.smnavigator.entities.Psr;
 
 import com.google.android.maps.MapView;
-import com.google.android.maps.OverlayItem;
 import com.readystatesoftware.mapviewballoons.BalloonItemizedOverlay;
 
-public class PsrOverlay extends BalloonItemizedOverlay<OverlayItem> {
+public class PsrOverlay extends BalloonItemizedOverlay<PsrOverlayItem> {
 
-	private List<OverlayItem> mOverlays = new ArrayList<OverlayItem>();
-	private Context mContext;
+	private List<PsrOverlayItem> mOverlays = new ArrayList<PsrOverlayItem>();
 	
-	public PsrOverlay(Drawable defaultMarker, MapView mapView) {
-		super(boundCenter(defaultMarker), mapView);
-		mContext = mapView.getContext();
-	}
-
-	public void addOverlay(OverlayItem overlay) {
-	    mOverlays.add(overlay);
-	    populate();
+	public PsrOverlay(MapView mapView, List<Psr> psrs) {
+		super(boundCenter(mapView.getResources().getDrawable(R.drawable.psr)), mapView);
+		
+		for (Psr psr : psrs) {
+			mOverlays.add(new PsrOverlayItem(psr)); 
+		}
+		
+		populate();
 	}
 
 	@Override
-	protected OverlayItem createItem(int i) {
+	protected PsrOverlayItem createItem(int i) {
 		return mOverlays.get(i);
 	}
 
@@ -37,8 +34,7 @@ public class PsrOverlay extends BalloonItemizedOverlay<OverlayItem> {
 	}
 
 	@Override
-	protected boolean onBalloonTap(int index, OverlayItem item) {
-		Toast.makeText(mContext, "onBalloonTap for overlay index " + index, Toast.LENGTH_LONG).show();
+	protected boolean onBalloonTap(int index, PsrOverlayItem item) {
 		return true;
 	}
 	
