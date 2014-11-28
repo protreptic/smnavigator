@@ -10,8 +10,10 @@ import ru.magnat.smnavigator.entities.Manager;
 import ru.magnat.smnavigator.entities.Psr;
 import ru.magnat.smnavigator.entities.Store;
 import ru.magnat.smnavigator.map.overlay.ManagerOverlay;
+import ru.magnat.smnavigator.map.overlay.PotentialStoreOverlay;
 import ru.magnat.smnavigator.map.overlay.PsrOverlay;
 import ru.magnat.smnavigator.map.overlay.StoreOverlay;
+import ru.magnat.smnavigator.map.overlay.VisitedStoreOverlay;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Criteria;
@@ -46,6 +48,12 @@ public class LocationHelper {
 		return sInstance;
 	}
 	
+	public static void destroy() {
+		if (sInstance != null) {
+			sInstance = null;
+		}
+	}
+	
 	private LocationHelper(MapView mapView) {
 		mLocationManager = (LocationManager) mapView.getContext().getSystemService(Context.LOCATION_SERVICE);
 		
@@ -56,8 +64,8 @@ public class LocationHelper {
 	}
 	
 	public void startTracking() {
+		mBestProvider = mLocationManager.getBestProvider(new Criteria(), true);
 		mLocationManager.requestLocationUpdates(mBestProvider, 60 * 1000, mAccuracy, mMyLocationListener);
-		updateOverlays();
 	}
 	
 	public void stopTracking() {
@@ -78,6 +86,22 @@ public class LocationHelper {
 	}
 	
 	public void requestLocation() {
+		if (!mLocationManager.isProviderEnabled(mBestProvider)) {
+			Toast.makeText(mMapView.getContext(), mMapView.getResources().getString(R.string.locationUnavailable), Toast.LENGTH_LONG).show();
+			
+	    	Intent intent = new Intent(MainActivity.ACTION_LOCATION);
+	    	intent.putExtra("provider", "disabled");
+	    	
+	    	mMapView.getContext().sendBroadcast(intent);
+		} else {
+			Toast.makeText(mMapView.getContext(), mMapView.getResources().getString(R.string.locationAvailable), Toast.LENGTH_LONG).show();
+			
+			Intent intent = new Intent(MainActivity.ACTION_LOCATION);
+	    	intent.putExtra("provider", "enabled");
+	    	
+	    	mMapView.getContext().sendBroadcast(intent);
+		}
+		
 		Location location = mLocationManager.getLastKnownLocation(mBestProvider);
 		
 		if (location == null) {
@@ -114,13 +138,23 @@ public class LocationHelper {
 		// Getting list of overlays available in the map
 		List<Overlay> mapOverlays = mMapView.getOverlays();
 
+		if (mapOverlays.contains(mPotentialStoreOverlay)) {
+			mapOverlays.remove(mPotentialStoreOverlay);
+		} mPotentialStoreOverlay = getPotentialStoreOverlay();
+		mapOverlays.add(mPotentialStoreOverlay);
+		
+		if (mapOverlays.contains(mVisitedStoreOverlay)) {
+			mapOverlays.remove(mVisitedStoreOverlay);
+		} mVisitedStoreOverlay = getVisitedStoreOverlay();
+		mapOverlays.add(mVisitedStoreOverlay);
+		
 		if (mapOverlays.contains(mStoreOverlay)) {
 			mapOverlays.remove(mStoreOverlay);
 		} mStoreOverlay = getStoreOverlay();
 		mapOverlays.add(mStoreOverlay);
 		
 		if (mapOverlays.contains(mPsrOverlay)) {
-			mapOverlays.remove(mStoreOverlay);
+			mapOverlays.remove(mPsrOverlay);
 		} mPsrOverlay = getPsrOverlay();
 		mapOverlays.add(mPsrOverlay);
 		
@@ -131,6 +165,8 @@ public class LocationHelper {
 	private ManagerOverlay mManagerOverlay;
 	private PsrOverlay mPsrOverlay;
 	private StoreOverlay mStoreOverlay;
+	private PotentialStoreOverlay mPotentialStoreOverlay;
+	private VisitedStoreOverlay mVisitedStoreOverlay;
 	
 	private ManagerOverlay getManagerOverlay(Location location) {
 		// Getting latitude
@@ -141,7 +177,7 @@ public class LocationHelper {
 		
 		Manager manager = new Manager();
 		manager.setId(0);
-		manager.setName("Мобильный менеджер");
+		manager.setName(mMapView.getResources().getString(R.string.manager)); 
 		manager.setLatitude(latitude); 
 		manager.setLongitude(longitude); 
 			
@@ -151,27 +187,75 @@ public class LocationHelper {
 	private PsrOverlay getPsrOverlay() {
 		PsrOverlay psrOverlay = null;
 		
+		MainDbHelper dbHelper = MainDbHelper.getInstance(mMapView.getContext());
+		dbHelper.log();
+		
 		try {
-			List<Psr> psrs = MainDbHelper.getInstance(mMapView.getContext()).getPsrDao().queryForAll();
+			List<Psr> psrs = dbHelper.getPsrDao().queryForAll();
 			
 			psrOverlay = new PsrOverlay(mMapView, psrs);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		
+		MainDbHelper.close();
+		
 		return psrOverlay;
+	}
+	
+	private PotentialStoreOverlay getPotentialStoreOverlay() {
+		PotentialStoreOverlay storeOverlay = null;
+		
+		MainDbHelper dbHelper = MainDbHelper.getInstance(mMapView.getContext());
+		dbHelper.log();
+		
+		try {
+			List<Store> stores = dbHelper.getStoreDao().queryForAll();
+			
+			storeOverlay = new PotentialStoreOverlay(mMapView, stores.subList(33, 45));
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		MainDbHelper.close();
+		
+		return storeOverlay;
+	}
+	
+	private VisitedStoreOverlay getVisitedStoreOverlay() {
+		VisitedStoreOverlay storeOverlay = null;
+		
+		MainDbHelper dbHelper = MainDbHelper.getInstance(mMapView.getContext());
+		dbHelper.log();
+		
+		try {
+			List<Store> stores = dbHelper.getStoreDao().queryForAll();
+			
+			storeOverlay = new VisitedStoreOverlay(mMapView, stores.subList(26, 32));
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		MainDbHelper.close();
+		
+		return storeOverlay;
 	}
 	
 	private StoreOverlay getStoreOverlay() {
 		StoreOverlay storeOverlay = null;
 		
+		MainDbHelper dbHelper = MainDbHelper.getInstance(mMapView.getContext());
+		dbHelper.log();
+		
 		try {
-			List<Store> stores = MainDbHelper.getInstance(mMapView.getContext()).getStoreDao().queryForAll();
-			
-			storeOverlay = new StoreOverlay(mMapView, stores);
+			List<Store> stores = dbHelper.getStoreDao().queryForAll();
+		
+			storeOverlay = new StoreOverlay(mMapView, stores.subList(0, 25));
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		
+		MainDbHelper.close();
 		
 		return storeOverlay;
 	}

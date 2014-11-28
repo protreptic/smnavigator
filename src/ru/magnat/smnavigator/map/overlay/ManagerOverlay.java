@@ -14,7 +14,6 @@ public class ManagerOverlay extends BalloonItemizedOverlay<ManagerOverlayItem> {
 		super(boundCenter(mapView.getResources().getDrawable(R.drawable.manager)), mapView);
 		
 		mManager = manager;
-		
 		populate();
 	}
 

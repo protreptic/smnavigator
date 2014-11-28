@@ -5,10 +5,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-
-import com.j256.ormlite.dao.Dao;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.activities.MainActivity;
@@ -30,6 +27,8 @@ import android.content.Intent;
 import android.content.SyncResult;
 import android.content.res.Resources.NotFoundException;
 import android.os.Bundle;
+
+import com.j256.ormlite.dao.Dao;
 
 public class SyncAdapter extends AbstractThreadedSyncAdapter {
     
@@ -64,6 +63,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         mContentResolver = context.getContentResolver();
     }
     
+    private MainDbHelper mMainDbHelper;
+    
     /*
      * Specify the code you want to run in the sync adapter. The entire
      * sync adapter runs in a background thread, so you don't have to set
@@ -75,11 +76,15 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     	
 		try {
 			TimeUnit.SECONDS.sleep(3);
+		
+			mMainDbHelper = MainDbHelper.getInstance(getContext());
 			
 			loadStores();
 			loadStoreStatistics();
 			loadPsrs();
 			loadRoutes();
+			
+			MainDbHelper.close();
 			
 			TimeUnit.SECONDS.sleep(3);
 		} catch (SQLException e) {
@@ -127,43 +132,60 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_getStores");
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 
-		final List<Store> stores = new GetStoresHelper().readJsonStream(urlConnection.getInputStream());
+		List<Store> stores = new GetStoresHelper().readJsonStream(urlConnection.getInputStream());
 
 		urlConnection.disconnect();
 		
-		final Dao<Store, String> storeDao = MainDbHelper.getInstance(getContext()).getStoreDao();
-		storeDao.callBatchTasks(new Callable<Void>() {
-			
-			public Void call() throws Exception {
-				for (Store store : stores) {
-					storeDao.createOrUpdate(store);
-				}
-				
-				return null;
-			}
-		});
+		Dao<Store, String> storeDao = mMainDbHelper.getStoreDao();
+		storeDao.setObjectCache(false); 
+		
+		storeDao.delete(storeDao.queryForAll());
+		
+		for (Store store : stores) {
+			storeDao.createOrUpdate(store);
+
+			//Log.d("SQL LOG", "id = " + store.getId() + " name = " + store.getName() + " address = " + store.getAddress() + " status = " + status);
+		}
 	}
 	
 	private void loadStoreStatistics() throws NotFoundException, IOException, SQLException {   
 		URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_getStoreStatistics");
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 
-		for (StoreStatistics storeStatistics : new GetStoreStatisticsHelper().readJsonStream(urlConnection.getInputStream())) {
-			MainDbHelper.getInstance(getContext()).getStoreStatisticsDao().createOrUpdate(storeStatistics);
-		}
-
+		List<StoreStatistics> storeStatistics = new GetStoreStatisticsHelper().readJsonStream(urlConnection.getInputStream());
+		
 		urlConnection.disconnect();
+		
+		Dao<StoreStatistics, String> storeStatisticDao = mMainDbHelper.getStoreStatisticsDao();
+		storeStatisticDao.setObjectCache(false); 
+		
+		storeStatisticDao.delete(storeStatisticDao.queryForAll());
+		
+		for (StoreStatistics storeStatistic : storeStatistics) {
+			storeStatisticDao.createOrUpdate(storeStatistic);
+			
+			//Log.d("SQL LOG", "id = " + storeStatistic.getId() + " status = " + status);
+		}
 	}
 	
 	private void loadPsrs() throws NotFoundException, IOException, SQLException { 
 		URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_getPsrs");
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 
-		for (Psr psr : new GetPsrsHelper().readJsonStream(urlConnection.getInputStream())) {
-			MainDbHelper.getInstance(getContext()).getPsrDao().createOrUpdate(psr);
-		}
-
+		List<Psr> psrs = new GetPsrsHelper().readJsonStream(urlConnection.getInputStream());
+		
 		urlConnection.disconnect();
+		
+		Dao<Psr, String> psrDao = mMainDbHelper.getPsrDao();
+		psrDao.setObjectCache(false); 
+		
+		psrDao.delete(psrDao.queryForAll());
+		
+		for (Psr psr : psrs) {
+			psrDao.createOrUpdate(psr);
+			
+			//Log.d("SQL LOG", "id = " + psr.getId() + " status = " + status);
+		}
 	}
 	
 	private void loadRoutes() throws NotFoundException, IOException, SQLException { 
@@ -171,7 +193,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 
 		for (Route route : new GetRoutesHelper().readJsonStream(urlConnection.getInputStream())) {
-			MainDbHelper.getInstance(getContext()).getRouteDao().createOrUpdate(route);
+			mMainDbHelper.getRouteDao().createOrUpdate(route);
 		}
 
 		urlConnection.disconnect();

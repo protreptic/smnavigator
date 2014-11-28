@@ -8,6 +8,7 @@ import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.entities.Store;
 import ru.magnat.smnavigator.entities.StoreStatistics;
+import ru.magnat.smnavigator.util.DateUtils;
 import ru.magnat.smnavigator.util.Fonts;
 import ru.magnat.smnavigator.util.Text;
 import ru.magnat.smnavigator.widget.ExpandableListFragment;
@@ -197,39 +198,39 @@ public class StoreListFragment extends ExpandableListFragment {
 			
 			TextView totalDistribution = new TextView(getActivity()); 
 			totalDistribution.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-			totalDistribution.setText("TotalDistribution: " + storeStatistics.getTotalDistribution());  
+			totalDistribution.setText("Общая дистрибьюция (ОПД): \t\t\t\t" + storeStatistics.getTotalDistribution());  
 			totalDistribution.setTextSize(16); 
-			totalDistribution.setTextColor(getResources().getColor(android.R.color.holo_blue_light));
+			totalDistribution.setTextColor(getResources().getColor(R.color.gray));
 			 
 			TextView goldenDistribution = new TextView(getActivity()); 
 			goldenDistribution.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-			goldenDistribution.setText("GoldenDistribution: " + storeStatistics.getGoldenDistribution());  
+			goldenDistribution.setText("Золотая дистрибьюция: \t\t\t\t\t" + storeStatistics.getGoldenDistribution());  
 			goldenDistribution.setTextSize(16); 
-			goldenDistribution.setTextColor(getResources().getColor(android.R.color.holo_blue_light));
+			goldenDistribution.setTextColor(getResources().getColor(R.color.gray));
 			
 			TextView turnoverCurrentMonth = new TextView(getActivity()); 
 			turnoverCurrentMonth.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-			turnoverCurrentMonth.setText("TurnoverCurrentMonth: " + storeStatistics.getTurnoverCurrentMonth());  
+			turnoverCurrentMonth.setText("Товарооборот за текущий месяц: \t\t" + storeStatistics.getTurnoverCurrentMonth());  
 			turnoverCurrentMonth.setTextSize(16); 
-			turnoverCurrentMonth.setTextColor(getResources().getColor(android.R.color.holo_blue_light));
+			turnoverCurrentMonth.setTextColor(getResources().getColor(R.color.gray));
 			
 			TextView turnoverPreviousMonth = new TextView(getActivity()); 
 			turnoverPreviousMonth.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-			turnoverPreviousMonth.setText("TurnoverPreviousMonth: " + storeStatistics.getTurnoverPreviousMonth());  
+			turnoverPreviousMonth.setText("Товарооборот за предыдущий месяц: \t" + storeStatistics.getTurnoverPreviousMonth());  
 			turnoverPreviousMonth.setTextSize(16); 
-			turnoverPreviousMonth.setTextColor(getResources().getColor(android.R.color.holo_blue_light));
+			turnoverPreviousMonth.setTextColor(getResources().getColor(R.color.gray));
 			
 			TextView lastVisit = new TextView(getActivity()); 
 			lastVisit.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-			lastVisit.setText("LastVisit: " + storeStatistics.getLastVisit());  
+			lastVisit.setText("Дата прошлого посещения: \t\t\t\t" + DateUtils.format(storeStatistics.getLastVisit()));  
 			lastVisit.setTextSize(16); 
-			lastVisit.setTextColor(getResources().getColor(android.R.color.holo_blue_light));
+			lastVisit.setTextColor(getResources().getColor(R.color.gray));
 			
 			TextView nextVisit = new TextView(getActivity()); 
 			nextVisit.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-			nextVisit.setText("NextVisit: " + storeStatistics.getNextVisit());  
+			nextVisit.setText("Дата следующего посещения: \t\t\t\t" + DateUtils.format(storeStatistics.getNextVisit()));  
 			nextVisit.setTextSize(16); 
-			nextVisit.setTextColor(getResources().getColor(android.R.color.holo_blue_light));
+			nextVisit.setTextColor(getResources().getColor(R.color.gray));
 			
 			linearLayout.addView(totalDistribution);
 			linearLayout.addView(goldenDistribution);

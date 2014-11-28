@@ -13,11 +13,11 @@ import ru.magnat.smnavigator.entities.Store;
 import ru.magnat.smnavigator.entities.StoreStatistics;
 import ru.magnat.smnavigator.util.Apps;
 import android.content.Context;
+import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
-import com.j256.ormlite.jdbc.JdbcConnectionSource;
-import com.j256.ormlite.support.ConnectionSource;
+import com.j256.ormlite.jdbc.JdbcPooledConnectionSource;
 
 public class MainDbHelper {
 	
@@ -43,15 +43,15 @@ public class MainDbHelper {
 //	private static final long DB_OPTION_PAGE_SIZE = 1024;
 //	private static final long DB_OPTION_CACHE_SIZE = 8192;
 	
-	private ConnectionSource mConnectionSource;
-	
+	private JdbcPooledConnectionSource mConnectionSource;
+	 
 	private MainDbHelper(Context context) {
 		mContext = context;
 		
 		DB_PATH = context.getDir("data", Context.MODE_PRIVATE).getPath() + "/";
 		DB_NAME = context.getPackageName() + "-" + Apps.getVersionName(context);
 		DB_FULL_NAME = DB_PATH + DB_NAME;
-		DB_URL = "jdbc:h2:file:" + DB_FULL_NAME + ";file_lock=no;ifexists=true;ignorecase=true;page_size=1024;cache_size=8192;autocommit=on;init=set schema sm_navigator";
+		DB_URL = "jdbc:h2:file:" + DB_FULL_NAME + ";file_lock=no;ifexists=true;ignorecase=true;page_size=1024;cache_size=1024;autocommit=on;init=set schema sm_navigator";
 		
 		initDb();
 	}
@@ -86,14 +86,13 @@ public class MainDbHelper {
 			if (!new File(DB_FULL_NAME + ".h2.db").exists()) {
 				deployDb();
 			}
-
-			mConnectionSource = new JdbcConnectionSource(DB_URL);
+			
+			mConnectionSource = new JdbcPooledConnectionSource(DB_URL); 
 			
 			mStoreDao = DaoManager.createDao(mConnectionSource, Store.class);
 			mStoreStatisticsDao = DaoManager.createDao(mConnectionSource, StoreStatistics.class);
 			mPsrDao = DaoManager.createDao(mConnectionSource, Psr.class);
 			mRouteDao = DaoManager.createDao(mConnectionSource, Route.class);
-			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -101,8 +100,26 @@ public class MainDbHelper {
 		}
 	}
 
-	public ConnectionSource getConnectionSource() {
-		return mConnectionSource;
+	public static void close() {
+		if (sInstance != null) {
+			try {
+				sInstance.mConnectionSource.close();
+				sInstance = null;
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public void log() {
+		try {
+			Log.d("SQL LOG", "count of stores " + mStoreDao.countOf());
+			Log.d("SQL LOG", "count of stores statistics " + mStoreStatisticsDao.countOf());
+			Log.d("SQL LOG", "count of psrs " + mPsrDao.countOf());
+			Log.d("SQL LOG", "count of routes " + mRouteDao.countOf());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public Dao<Store, String> getStoreDao() {

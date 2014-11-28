@@ -9,12 +9,12 @@ import ru.magnat.smnavigator.entities.Store;
 import com.google.android.maps.MapView;
 import com.readystatesoftware.mapviewballoons.BalloonItemizedOverlay;
 
-public class StoreOverlay extends BalloonItemizedOverlay<StoreOverlayItem> {
+public class VisitedStoreOverlay extends BalloonItemizedOverlay<StoreOverlayItem> {
 
 	private List<StoreOverlayItem> mOverlays = new ArrayList<StoreOverlayItem>();
 
-	public StoreOverlay(MapView mapView, List<Store> stores) {
-		super(boundCenter(mapView.getResources().getDrawable(R.drawable.shop)), mapView);
+	public VisitedStoreOverlay(MapView mapView, List<Store> stores) {
+		super(boundCenter(mapView.getResources().getDrawable(R.drawable.visited)), mapView);
 		
 		for (Store store : stores) {
 			mOverlays.add(new StoreOverlayItem(store)); 

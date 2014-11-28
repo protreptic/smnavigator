@@ -7,6 +7,7 @@ import ru.magnat.smnavigator.Application;
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.map.LocationHelper;
 import android.accounts.Account;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -22,8 +23,8 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 import android.widget.RelativeLayout.LayoutParams;
+import android.widget.Toast;
 
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapView;
@@ -39,7 +40,7 @@ public class MainActivity extends MapActivity {
     
     // Sync interval constants
     public static final long SECONDS_PER_MINUTE = 60L;
-    public static final long SYNC_INTERVAL_IN_MINUTES = 10L;
+    public static final long SYNC_INTERVAL_IN_MINUTES = 45L;
     public static final long SYNC_INTERVAL = SYNC_INTERVAL_IN_MINUTES * SECONDS_PER_MINUTE;
 	
     private Account mAccount;
@@ -49,16 +50,15 @@ public class MainActivity extends MapActivity {
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState); init();
+		super.onCreate(savedInstanceState); init(); Log.d("", "MainActivity.onCreate");
 
 		// register receivers
 		registerReceiver(mLocationReceiver, new IntentFilter(ACTION_LOCATION));
 		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 
 		registerReceiver(mMoveReceiver, new IntentFilter(ACTION_MOVE));
 		
-		// request current location
-		mLocationHelper.requestLocation();
-		mLocationHelper.updateOverlays();
+		// start tracking
+		mLocationHelper.startTracking();
 		
 	    // turn on periodic sync
 	    ContentResolver.addPeriodicSync(mAccount, AUTHORITY, new Bundle(), SYNC_INTERVAL);
@@ -73,6 +73,7 @@ public class MainActivity extends MapActivity {
 		mMapView = new MapView(this, getResources().getString(R.string.google_maps_api_key)); 
 		mMapView.setClickable(true);
 		mMapView.setBuiltInZoomControls(true);
+		mMapView.getZoomButtonsController().setAutoDismissed(false); 
 		
 		setContentView(mMapView);
 		
@@ -82,28 +83,29 @@ public class MainActivity extends MapActivity {
 	
 	@Override
 	protected void onStart() {
-		super.onStart();
+		super.onStart(); Log.d("", "MainActivity.onStart");
 		
-		// start tracking
-		mLocationHelper.startTracking();
+		// request current location
+		mLocationHelper.requestLocation();
+		mLocationHelper.updateOverlays();
 	}
 	
 	@Override
 	protected void onStop() {
-		super.onStop();
-		
-		// stop tracking
-		mLocationHelper.stopTracking();
+		super.onStop(); Log.d("", "MainActivity.onStop");
 	}
 	
 	@Override
 	protected void onDestroy() {
-		super.onDestroy();
+		super.onDestroy(); Log.d("", "MainActivity.onDestroy");
 		
 		// unregister receivers
 		unregisterReceiver(mLocationReceiver);
 		unregisterReceiver(mSyncReceiver); 
 		unregisterReceiver(mMoveReceiver); 
+		
+		// stop tracking
+		LocationHelper.destroy();
 		
 		// turn off periodic sync
 		ContentResolver.removePeriodicSync(mAccount, AUTHORITY, new Bundle());
@@ -133,6 +135,11 @@ public class MainActivity extends MapActivity {
 		switch (item.getItemId()) {
 			case R.id.actionLocation: {
 				mLocationHelper.requestLocation();
+			} break;
+			case R.id.actionLegend: {			
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setView(LayoutInflater.from(this).inflate(R.layout.legend_layout, null, false)); 
+				builder.show();
 			} break;
 			case R.id.actionSync: {
 				// Pass the settings flags by inserting them in a bundle
@@ -242,6 +249,8 @@ public class MainActivity extends MapActivity {
 	    			
 	    			mSyncItem.setIcon(getResources().getDrawable(R.drawable.ic_action_refresh_ok));
 	    			mSyncItem.setTitle(getResources().getString(R.string.syncLastSuccessAttempt) + " " + dateFormat.format(new Date(System.currentTimeMillis()))); 
+	            
+	    			mLocationHelper.updateOverlays();
 	            }
 	            if (action.equals("error") && mSyncItem != null && mSyncItem.getActionView() != null) {
 	            	Log.d("", "sync error"); Toast.makeText(getBaseContext(), getResources().getString(R.string.syncError), Toast.LENGTH_LONG).show();	
@@ -254,11 +263,6 @@ public class MainActivity extends MapActivity {
 	        }
 	    }
 	    
-	};
-	
-	@Override
-	public void onBackPressed() {
-		Runtime.getRuntime().exit(1); 
 	};
 	
 }

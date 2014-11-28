@@ -18,9 +18,8 @@ public class PsrOverlay extends BalloonItemizedOverlay<PsrOverlayItem> {
 		
 		for (Psr psr : psrs) {
 			mOverlays.add(new PsrOverlayItem(psr)); 
+			populate();
 		}
-		
-		populate();
 	}
 
 	@Override
