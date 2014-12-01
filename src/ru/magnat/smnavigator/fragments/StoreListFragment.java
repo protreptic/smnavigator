@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.magnat.smnavigator.R;
+import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.entities.Store;
 import ru.magnat.smnavigator.entities.StoreStatistics;
@@ -12,15 +13,21 @@ import ru.magnat.smnavigator.util.DateUtils;
 import ru.magnat.smnavigator.util.Fonts;
 import ru.magnat.smnavigator.util.Text;
 import ru.magnat.smnavigator.widget.ExpandableListFragment;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.SearchView;
+import android.widget.SearchView.OnQueryTextListener;
 import android.widget.TextView;
 
 import com.j256.ormlite.dao.Dao;
@@ -41,9 +48,29 @@ public class StoreListFragment extends ExpandableListFragment {
 		setHasOptionsMenu(true); 
 	}
 	
+	private String mQueryText = "%%";
+	
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		inflater.inflate(R.menu.store_fragment_menu, menu);
+		
+	    SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+	    searchView.setOnQueryTextListener(new OnQueryTextListener() {
+			
+			@Override
+			public boolean onQueryTextSubmit(String query) {
+				return true;
+			}
+			
+			@Override
+			public boolean onQueryTextChange(String newText) {
+				mQueryText = "%" + newText + "%";
+				
+				new LoadData().execute();
+				
+				return true;
+			}
+		});
 	}
 	
 	@Override
@@ -80,7 +107,9 @@ public class StoreListFragment extends ExpandableListFragment {
 			mChildData.clear();
 
 			try {
-				mGroupData.addAll(mStoreDao.queryForAll());
+				List<Store> stores = mStoreDao.queryBuilder().where().like("name", mQueryText).or().like("address", mQueryText).query(); 
+				
+				mGroupData.addAll(stores);
 				
 				for (Store store : mGroupData) {
 					StoreStatistics storeStatistics = mStoreStatisticsDao.queryForId(store.getId().toString());
@@ -163,27 +192,29 @@ public class StoreListFragment extends ExpandableListFragment {
 			address.setText(Text.prepareAddress(store.getAddress())); 
 			address.setTextSize(15); 
 			
-//			ImageButton link = new ImageButton(getActivity());
-//			link.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_place));
-//			link.setOnClickListener(new OnClickListener() {
-//				
-//				@Override
-//				public void onClick(View view) {				
-//					Intent intent = new Intent(MainActivity.ACTION_MOVE);
-//
-//					intent.putExtra("latitude", store.getLatitude()); 
-//					intent.putExtra("longitude", store.getLongitude()); 
-//					intent.putExtra("zoom", 15); 
-//					
-//					getActivity().sendBroadcast(intent); 
-//					getActivity().finish();
-//				}
-//				
-//			});
+			ImageView location = new ImageView(getActivity());
+			location.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_place));
+			location.setLayoutParams(new LayoutParams(48, 48)); 
+			location.setBackground(getResources().getDrawable(R.drawable.button_selector));
+			location.setOnClickListener(new OnClickListener() {
+				
+				@Override
+				public void onClick(View view) {				
+					Intent intent = new Intent(MainActivity.ACTION_MOVE);
+
+					intent.putExtra("latitude", store.getLatitude()); 
+					intent.putExtra("longitude", store.getLongitude()); 
+					intent.putExtra("zoom", 15); 
+					
+					getActivity().sendBroadcast(intent); 
+					getActivity().finish();
+				}
+				
+			});
 
 			linearLayout.addView(name);
 			linearLayout.addView(address);
-			//linearLayout.addView(link);
+			linearLayout.addView(location);
 			
 			return linearLayout;
 		}

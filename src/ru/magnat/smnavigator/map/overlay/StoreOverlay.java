@@ -14,7 +14,7 @@ public class StoreOverlay extends BalloonItemizedOverlay<StoreOverlayItem> {
 	private List<StoreOverlayItem> mOverlays = new ArrayList<StoreOverlayItem>();
 
 	public StoreOverlay(MapView mapView, List<Store> stores) {
-		super(boundCenter(mapView.getResources().getDrawable(R.drawable.shop)), mapView);
+		super(boundCenter(mapView.getResources().getDrawable(R.drawable.information)), mapView);
 		
 		for (Store store : stores) {
 			mOverlays.add(new StoreOverlayItem(store)); 

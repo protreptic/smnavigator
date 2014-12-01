@@ -36,4 +36,24 @@
         android:gravity="center_vertical"
         android:text=" Рабочий магазин" />
 
+    <TextView
+        android:id="@+id/TextView03"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/TextView02"
+        android:layout_below="@+id/TextView02"
+        android:drawableLeft="@drawable/psr"
+        android:gravity="center_vertical"
+        android:text=" Торговый агент" />
+
+    <TextView
+        android:id="@+id/TextView04"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/TextView03"
+        android:layout_below="@+id/TextView03"
+        android:drawableLeft="@drawable/manager"
+        android:gravity="center_vertical"
+        android:text=" Мобильный менеджер" />
+
 </RelativeLayout>

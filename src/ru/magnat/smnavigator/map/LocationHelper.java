@@ -77,6 +77,10 @@ public class LocationHelper {
 		startTracking();
 	}
 	
+	public void openBalloon() {
+		
+	}
+	
 	public void moveToPoint(double latitude, double longitude, int zoom) {
 		GeoPoint point = new GeoPoint((int) (latitude * 1E6), (int) (longitude * 1E6));
 
@@ -138,15 +142,15 @@ public class LocationHelper {
 		// Getting list of overlays available in the map
 		List<Overlay> mapOverlays = mMapView.getOverlays();
 
-		if (mapOverlays.contains(mPotentialStoreOverlay)) {
-			mapOverlays.remove(mPotentialStoreOverlay);
-		} mPotentialStoreOverlay = getPotentialStoreOverlay();
-		mapOverlays.add(mPotentialStoreOverlay);
-		
-		if (mapOverlays.contains(mVisitedStoreOverlay)) {
-			mapOverlays.remove(mVisitedStoreOverlay);
-		} mVisitedStoreOverlay = getVisitedStoreOverlay();
-		mapOverlays.add(mVisitedStoreOverlay);
+//		if (mapOverlays.contains(mPotentialStoreOverlay)) {
+//			mapOverlays.remove(mPotentialStoreOverlay);
+//		} mPotentialStoreOverlay = getPotentialStoreOverlay();
+//		mapOverlays.add(mPotentialStoreOverlay);
+//		
+//		if (mapOverlays.contains(mVisitedStoreOverlay)) {
+//			mapOverlays.remove(mVisitedStoreOverlay);
+//		} mVisitedStoreOverlay = getVisitedStoreOverlay();
+//		mapOverlays.add(mVisitedStoreOverlay);
 		
 		if (mapOverlays.contains(mStoreOverlay)) {
 			mapOverlays.remove(mStoreOverlay);
@@ -250,7 +254,7 @@ public class LocationHelper {
 		try {
 			List<Store> stores = dbHelper.getStoreDao().queryForAll();
 		
-			storeOverlay = new StoreOverlay(mMapView, stores.subList(0, 25));
+			storeOverlay = new StoreOverlay(mMapView, stores);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

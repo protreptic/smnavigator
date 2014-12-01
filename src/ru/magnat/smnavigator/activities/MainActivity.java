@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import ru.magnat.smnavigator.Application;
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.map.LocationHelper;
+import ru.magnat.smnavigator.util.Apps;
 import android.accounts.Account;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -60,6 +61,10 @@ public class MainActivity extends MapActivity {
 		// start tracking
 		mLocationHelper.startTracking();
 		
+		// request current location
+		mLocationHelper.requestLocation();
+		mLocationHelper.updateOverlays();
+		
 	    // turn on periodic sync
 	    ContentResolver.addPeriodicSync(mAccount, AUTHORITY, new Bundle(), SYNC_INTERVAL);
 	}
@@ -84,10 +89,6 @@ public class MainActivity extends MapActivity {
 	@Override
 	protected void onStart() {
 		super.onStart(); Log.d("", "MainActivity.onStart");
-		
-		// request current location
-		mLocationHelper.requestLocation();
-		mLocationHelper.updateOverlays();
 	}
 	
 	@Override
@@ -138,7 +139,7 @@ public class MainActivity extends MapActivity {
 			} break;
 			case R.id.actionLegend: {			
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setView(LayoutInflater.from(this).inflate(R.layout.legend_layout, null, false)); 
+				builder.setView(LayoutInflater.from(this).inflate(R.layout.legend_layout, new LinearLayout(this), false)); 
 				builder.show();
 			} break;
 			case R.id.actionSync: {
@@ -154,17 +155,17 @@ public class MainActivity extends MapActivity {
 			case R.id.actionObjects: {
 				startActivity(new Intent(this, ObjectsActivity.class)); 
 			} break;
-//			case R.id.actionAbout: {
-//				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//				builder.setMessage(Apps.getVersionName(this)); 
-//				builder.setCancelable(true);
-//				builder.create().show();
-//			} break;
-//			case R.id.actionSettings: {
-//				Intent intent = new Intent(this, SettingsActivity.class);
-//				
-//				startActivity(intent); 
-//			} break;
+			case R.id.actionAbout: {
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setMessage(Apps.getVersionName(this)); 
+				builder.setCancelable(true);
+				builder.create().show();
+			} break;
+			case R.id.actionSettings: {
+				Intent intent = new Intent(this, SettingsActivity.class);
+				
+				startActivity(intent); 
+			} break;
 			default: {
 				return super.onOptionsItemSelected(item);
 			}
@@ -236,8 +237,6 @@ public class MainActivity extends MapActivity {
 	    		    view.setLayoutParams(new LayoutParams(64, 64)); 
 	    			
 	    		    mSyncItem.setActionView(view);
-	    		    
-	    		    
 	            }
 	            if (action.equals("completed") && mSyncItem != null && mSyncItem.getActionView() != null) {
 	            	Log.d("", "sync completed"); Toast.makeText(getBaseContext(), getResources().getString(R.string.syncSuccess), Toast.LENGTH_LONG).show(); 

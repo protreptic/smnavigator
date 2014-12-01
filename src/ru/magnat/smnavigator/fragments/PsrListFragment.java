@@ -21,11 +21,15 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.SearchView;
 import android.widget.TextView;
+import android.widget.SearchView.OnQueryTextListener;
 
 import com.j256.ormlite.dao.Dao;
 
@@ -46,9 +50,29 @@ public class PsrListFragment extends ExpandableListFragment {
 		setHasOptionsMenu(true); 
 	}
 	
+	private String mQueryText = "%%";
+	
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		inflater.inflate(R.menu.psr_fragment_menu, menu);
+		
+	    SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+	    searchView.setOnQueryTextListener(new OnQueryTextListener() {
+			
+			@Override
+			public boolean onQueryTextSubmit(String query) {
+				return true;
+			}
+			
+			@Override
+			public boolean onQueryTextChange(String newText) {
+				mQueryText = "%" + newText + "%";
+				
+				new LoadData().execute();
+				
+				return true;
+			}
+		});
 	}
 	
 	@Override
@@ -85,14 +109,16 @@ public class PsrListFragment extends ExpandableListFragment {
 			mChildData.clear();
 
 			try {
-				mGroupData.addAll(mPsrDao.queryForAll());
+				List<Psr> psrs = mPsrDao.queryBuilder().where().like("name", mQueryText).or().like("project", mQueryText).query(); 
+
+				mGroupData.addAll(psrs);
 				
-				for (Psr psr : mGroupData) {
-					List<Route> routes = mRouteDao.queryForEq("psr", psr.getId().toString());
-					if (!routes.isEmpty()) {
-						mChildData.add(routes);
-					}
-				}
+//				for (Psr psr : mGroupData) {
+//					List<Route> routes = mRouteDao.queryForEq("psr", psr.getId().toString());
+//					if (!routes.isEmpty()) {
+//						mChildData.add(routes);
+//					}
+//				}
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -165,8 +191,29 @@ public class PsrListFragment extends ExpandableListFragment {
 			project.setText(psr.getProject()); 
 			project.setTextSize(15); 
 			
+			ImageView location = new ImageView(getActivity());
+			location.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_place));
+			location.setLayoutParams(new LayoutParams(48, 48)); 
+			location.setBackground(getResources().getDrawable(R.drawable.button_selector));
+			location.setOnClickListener(new OnClickListener() {
+				
+				@Override
+				public void onClick(View view) {				
+					Intent intent = new Intent(MainActivity.ACTION_MOVE);
+
+					intent.putExtra("latitude", psr.getLatitude()); 
+					intent.putExtra("longitude", psr.getLongitude()); 
+					intent.putExtra("zoom", 15); 
+					
+					getActivity().sendBroadcast(intent); 
+					getActivity().finish();
+				}
+				
+			});
+			
 			linearLayout.addView(name);
 			linearLayout.addView(project);
+			linearLayout.addView(location);
 			
 			return linearLayout;
 		}
