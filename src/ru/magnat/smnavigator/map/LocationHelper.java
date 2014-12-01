@@ -9,11 +9,7 @@ import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.entities.Manager;
 import ru.magnat.smnavigator.entities.Psr;
 import ru.magnat.smnavigator.entities.Store;
-import ru.magnat.smnavigator.map.overlay.ManagerOverlay;
-import ru.magnat.smnavigator.map.overlay.PotentialStoreOverlay;
-import ru.magnat.smnavigator.map.overlay.PsrOverlay;
-import ru.magnat.smnavigator.map.overlay.StoreOverlay;
-import ru.magnat.smnavigator.map.overlay.VisitedStoreOverlay;
+import ru.magnat.smnavigator.util.Text;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Criteria;
@@ -25,24 +21,26 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.android.maps.GeoPoint;
-import com.google.android.maps.MapController;
-import com.google.android.maps.MapView;
-import com.google.android.maps.Overlay;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 public class LocationHelper {
 	
 	private static LocationHelper sInstance;
 	
-	private MapView mMapView;
+	private Context mContext;
+	private GoogleMap mMap;
 	private LocationManager mLocationManager;
 	private MyLocationListener mMyLocationListener; 
 	private String mBestProvider;
 	private long mAccuracy;
 
-	public static LocationHelper getInstance(MapView mapView) {
+	public static LocationHelper getInstance(Context context, GoogleMap map) {
 		if (sInstance == null) {
-			sInstance = new LocationHelper(mapView);
+			sInstance = new LocationHelper(context, map);
 		}
 		
 		return sInstance;
@@ -54,12 +52,11 @@ public class LocationHelper {
 		}
 	}
 	
-	private LocationHelper(MapView mapView) {
-		mLocationManager = (LocationManager) mapView.getContext().getSystemService(Context.LOCATION_SERVICE);
+	private LocationHelper(Context context, GoogleMap map) {
+		mContext = context; mMap = map;
 		
+		mLocationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		mBestProvider = mLocationManager.getBestProvider(new Criteria(), true);
-
-		mMapView = mapView;
 		mMyLocationListener = new MyLocationListener(); 
 	}
 	
@@ -72,44 +69,32 @@ public class LocationHelper {
 		mLocationManager.removeUpdates(mMyLocationListener); 
 	}
 	
-	public void restartTracking() {
-		stopTracking();
-		startTracking();
-	}
-	
-	public void openBalloon() {
-		
-	}
-	
 	public void moveToPoint(double latitude, double longitude, int zoom) {
-		GeoPoint point = new GeoPoint((int) (latitude * 1E6), (int) (longitude * 1E6));
-
-		MapController mapController = mMapView.getController();
-		mapController.animateTo(point);
-		mapController.setZoom(zoom);
+		mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude, longitude)));
+		mMap.moveCamera(CameraUpdateFactory.zoomBy(zoom));
 	}
 	
 	public void requestLocation() {
 		if (!mLocationManager.isProviderEnabled(mBestProvider)) {
-			Toast.makeText(mMapView.getContext(), mMapView.getResources().getString(R.string.locationUnavailable), Toast.LENGTH_LONG).show();
+			Toast.makeText(mContext, mContext.getString(R.string.locationUnavailable), Toast.LENGTH_LONG).show();
 			
 	    	Intent intent = new Intent(MainActivity.ACTION_LOCATION);
 	    	intent.putExtra("provider", "disabled");
 	    	
-	    	mMapView.getContext().sendBroadcast(intent);
+	    	mContext.sendBroadcast(intent);
 		} else {
-			Toast.makeText(mMapView.getContext(), mMapView.getResources().getString(R.string.locationAvailable), Toast.LENGTH_LONG).show();
+			Toast.makeText(mContext, mContext.getString(R.string.locationAvailable), Toast.LENGTH_LONG).show();
 			
 			Intent intent = new Intent(MainActivity.ACTION_LOCATION);
 	    	intent.putExtra("provider", "enabled");
 	    	
-	    	mMapView.getContext().sendBroadcast(intent);
+	    	mContext.sendBroadcast(intent);
 		}
 		
 		Location location = mLocationManager.getLastKnownLocation(mBestProvider);
 		
 		if (location == null) {
-			Toast.makeText(mMapView.getContext(), mMapView.getResources().getString(R.string.locationUnavailable), Toast.LENGTH_LONG).show(); return;
+			Toast.makeText(mContext, mContext.getString(R.string.locationUnavailable), Toast.LENGTH_LONG).show(); return;
 		}  
 
 		updateLocation(location);
@@ -124,55 +109,6 @@ public class LocationHelper {
 	}
 	
 	public void updateLocation(Location location) {	
-		// Getting list of overlays available in the map
-		List<Overlay> mapOverlays = mMapView.getOverlays();
-
-		if (mapOverlays.contains(mManagerOverlay))
-			mapOverlays.remove(mManagerOverlay);
-		
-		mManagerOverlay = getManagerOverlay(location);
-		
-		mapOverlays.add(mManagerOverlay);
-		
-		// Redraw the map
-		mMapView.invalidate();
-	}
-	
-	public void updateOverlays() {	
-		// Getting list of overlays available in the map
-		List<Overlay> mapOverlays = mMapView.getOverlays();
-
-//		if (mapOverlays.contains(mPotentialStoreOverlay)) {
-//			mapOverlays.remove(mPotentialStoreOverlay);
-//		} mPotentialStoreOverlay = getPotentialStoreOverlay();
-//		mapOverlays.add(mPotentialStoreOverlay);
-//		
-//		if (mapOverlays.contains(mVisitedStoreOverlay)) {
-//			mapOverlays.remove(mVisitedStoreOverlay);
-//		} mVisitedStoreOverlay = getVisitedStoreOverlay();
-//		mapOverlays.add(mVisitedStoreOverlay);
-		
-		if (mapOverlays.contains(mStoreOverlay)) {
-			mapOverlays.remove(mStoreOverlay);
-		} mStoreOverlay = getStoreOverlay();
-		mapOverlays.add(mStoreOverlay);
-		
-		if (mapOverlays.contains(mPsrOverlay)) {
-			mapOverlays.remove(mPsrOverlay);
-		} mPsrOverlay = getPsrOverlay();
-		mapOverlays.add(mPsrOverlay);
-		
-		// Redraw the map
-		mMapView.invalidate();
-	}
-	
-	private ManagerOverlay mManagerOverlay;
-	private PsrOverlay mPsrOverlay;
-	private StoreOverlay mStoreOverlay;
-	private PotentialStoreOverlay mPotentialStoreOverlay;
-	private VisitedStoreOverlay mVisitedStoreOverlay;
-	
-	private ManagerOverlay getManagerOverlay(Location location) {
 		// Getting latitude
 		double latitude = location.getLatitude();
 
@@ -181,87 +117,59 @@ public class LocationHelper {
 		
 		Manager manager = new Manager();
 		manager.setId(0);
-		manager.setName(mMapView.getResources().getString(R.string.manager)); 
+		manager.setName(mContext.getString(R.string.manager)); 
 		manager.setLatitude(latitude); 
 		manager.setLongitude(longitude); 
-			
-		return new ManagerOverlay(mMapView, manager);
+		
+		mMap.addMarker(new MarkerOptions()
+        .position(new LatLng(manager.getLatitude(), manager.getLongitude())) 
+        .title(manager.getName()) 
+        .icon(BitmapDescriptorFactory.fromResource(R.drawable.manager)));
 	}
 	
-	private PsrOverlay getPsrOverlay() {
-		PsrOverlay psrOverlay = null;
-		
-		MainDbHelper dbHelper = MainDbHelper.getInstance(mMapView.getContext());
-		dbHelper.log();
+	public void updateOverlays() {	
+		addPsrMarkers();
+		addStoreMarkers();
+	}
+	
+	private void addPsrMarkers() {
+		MainDbHelper dbHelper = MainDbHelper.getInstance(mContext);
 		
 		try {
 			List<Psr> psrs = dbHelper.getPsrDao().queryForAll();
 			
-			psrOverlay = new PsrOverlay(mMapView, psrs);
+			for (Psr psr : psrs) {
+				mMap.addMarker(new MarkerOptions()
+		        .position(new LatLng(psr.getLatitude(), psr.getLongitude())) 
+		        .title(psr.getName()) 
+		        .snippet(psr.getProject())
+ 		        .icon(BitmapDescriptorFactory.fromResource(R.drawable.psr)));
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		
 		MainDbHelper.close();
-		
-		return psrOverlay;
 	}
 	
-	private PotentialStoreOverlay getPotentialStoreOverlay() {
-		PotentialStoreOverlay storeOverlay = null;
-		
-		MainDbHelper dbHelper = MainDbHelper.getInstance(mMapView.getContext());
-		dbHelper.log();
+	private void addStoreMarkers() {
+		MainDbHelper dbHelper = MainDbHelper.getInstance(mContext);
 		
 		try {
 			List<Store> stores = dbHelper.getStoreDao().queryForAll();
 			
-			storeOverlay = new PotentialStoreOverlay(mMapView, stores.subList(33, 45));
+			for (Store store : stores) {
+				mMap.addMarker(new MarkerOptions()
+		        .position(new LatLng(store.getLatitude(), store.getLongitude())) 
+		        .title(Text.prepareAddress(store.getName()))  
+		        .snippet(Text.prepareAddress(store.getAddress()))
+		        .icon(BitmapDescriptorFactory.fromResource(R.drawable.shop)));
+			} 
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		
 		MainDbHelper.close();
-		
-		return storeOverlay;
-	}
-	
-	private VisitedStoreOverlay getVisitedStoreOverlay() {
-		VisitedStoreOverlay storeOverlay = null;
-		
-		MainDbHelper dbHelper = MainDbHelper.getInstance(mMapView.getContext());
-		dbHelper.log();
-		
-		try {
-			List<Store> stores = dbHelper.getStoreDao().queryForAll();
-			
-			storeOverlay = new VisitedStoreOverlay(mMapView, stores.subList(26, 32));
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		MainDbHelper.close();
-		
-		return storeOverlay;
-	}
-	
-	private StoreOverlay getStoreOverlay() {
-		StoreOverlay storeOverlay = null;
-		
-		MainDbHelper dbHelper = MainDbHelper.getInstance(mMapView.getContext());
-		dbHelper.log();
-		
-		try {
-			List<Store> stores = dbHelper.getStoreDao().queryForAll();
-		
-			storeOverlay = new StoreOverlay(mMapView, stores);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		MainDbHelper.close();
-		
-		return storeOverlay;
 	}
 	
 	public class MyLocationListener implements LocationListener {
@@ -273,22 +181,22 @@ public class LocationHelper {
 		
 		@Override
 		public void onProviderDisabled(String provider) {
-			Toast.makeText(mMapView.getContext(), mMapView.getResources().getString(R.string.locationUnavailable), Toast.LENGTH_LONG).show();
+			Toast.makeText(mContext, mContext.getString(R.string.locationUnavailable), Toast.LENGTH_LONG).show();
 			
 	    	Intent intent = new Intent(MainActivity.ACTION_LOCATION);
 	    	intent.putExtra("provider", "disabled");
 	    	
-	    	mMapView.getContext().sendBroadcast(intent);
+	    	mContext.sendBroadcast(intent);
 		}
 
 		@Override
 		public void onProviderEnabled(String provider) {
-			Toast.makeText(mMapView.getContext(), mMapView.getResources().getString(R.string.locationAvailable), Toast.LENGTH_LONG).show();
+			Toast.makeText(mContext, mContext.getString(R.string.locationAvailable), Toast.LENGTH_LONG).show();
 			
 			Intent intent = new Intent(MainActivity.ACTION_LOCATION);
 	    	intent.putExtra("provider", "enabled");
 	    	
-	    	mMapView.getContext().sendBroadcast(intent);
+	    	mContext.sendBroadcast(intent);
 		}
 
 		@Override

@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ru.magnat.smnavigator"
-    android:versionCode="2"
-    android:versionName="0.3.0" >
+    android:versionCode="004000"
+    android:versionName="0.4.0" >
 
     <uses-sdk
         android:minSdkVersion="15"
         android:targetSdkVersion="21" />
-
-    <uses-feature
-        android:glEsVersion="0x00020000"
-        android:required="true" />
 
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
@@ -82,7 +78,7 @@
             android:value="AIzaSyDaiQYJGdfcYuqBruqjaVLKNTKwlTZ86mc" />
         <meta-data
             android:name="com.google.android.gms.version"
-            android:value="34" />
+            android:value="@integer/google_play_services_version" />
     </application>
 
 </manifest>

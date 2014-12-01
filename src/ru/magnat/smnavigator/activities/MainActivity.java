@@ -8,6 +8,7 @@ import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.map.LocationHelper;
 import ru.magnat.smnavigator.util.Apps;
 import android.accounts.Account;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -27,10 +28,10 @@ import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
 import android.widget.Toast;
 
-import com.google.android.maps.MapActivity;
-import com.google.android.maps.MapView;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
 
-public class MainActivity extends MapActivity {
+public class MainActivity extends Activity {
 
 	// Constants
     // Content provider authority
@@ -45,8 +46,6 @@ public class MainActivity extends MapActivity {
     public static final long SYNC_INTERVAL = SYNC_INTERVAL_IN_MINUTES * SECONDS_PER_MINUTE;
 	
     private Account mAccount;
-    
-	private MapView mMapView;
 	private LocationHelper mLocationHelper;
 	
 	@Override
@@ -70,19 +69,15 @@ public class MainActivity extends MapActivity {
 	}
 	
 	private void init() {
+		setContentView(R.layout.activity_main); 
+		
 		getActionBar().setTitle(""); 
 		getActionBar().setIcon(getResources().getDrawable(R.drawable.logotype_small)); 
 		getActionBar().setHomeButtonEnabled(true); 
 		
-		// Getting reference to MapView
-		mMapView = new MapView(this, getResources().getString(R.string.google_maps_api_key)); 
-		mMapView.setClickable(true);
-		mMapView.setBuiltInZoomControls(true);
-		mMapView.getZoomButtonsController().setAutoDismissed(false); 
+		GoogleMap map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
 		
-		setContentView(mMapView);
-		
-		mLocationHelper = LocationHelper.getInstance(mMapView);
+		mLocationHelper = LocationHelper.getInstance(this, map);
 		mAccount = Application.addSyncAccount(this);
 	}
 	
@@ -110,11 +105,6 @@ public class MainActivity extends MapActivity {
 		
 		// turn off periodic sync
 		ContentResolver.removePeriodicSync(mAccount, AUTHORITY, new Bundle());
-	}
-	
-	@Override
-	protected boolean isRouteDisplayed() {
-		return false;
 	}
 
 	@Override

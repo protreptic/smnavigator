@@ -13,19 +13,21 @@ import ru.magnat.smnavigator.util.DateUtils;
 import ru.magnat.smnavigator.util.Fonts;
 import ru.magnat.smnavigator.util.Text;
 import ru.magnat.smnavigator.widget.ExpandableListFragment;
+import ru.magnat.smnavigator.widget.StaticMapView;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
 import android.widget.TextView;
@@ -83,7 +85,8 @@ public class StoreListFragment extends ExpandableListFragment {
 		super.onActivityCreated(savedInstanceState);
 		
 		getExpandableListView().setPadding(5, 5, 5, 5);
- 		
+ 		getExpandableListView().setGroupIndicator(null); 
+		
 		mDbHelper = MainDbHelper.getInstance(getActivity());
 		
 		mAdapter = new MyAdapter();
@@ -177,25 +180,18 @@ public class StoreListFragment extends ExpandableListFragment {
 		@Override
 		public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
 			final Store store = (Store) getGroup(groupPosition);
+						
+			RelativeLayout relativeLayout = (RelativeLayout) LayoutInflater.from(getActivity()).inflate(R.layout.store_view, parent, false);
 			
-			LinearLayout linearLayout = new LinearLayout(getActivity());
-			linearLayout.setPadding(35, 5, 5, 5); 
-			linearLayout.setOrientation(LinearLayout.VERTICAL); 
-			
-			TextView name = new TextView(getActivity()); 
+			TextView name = (TextView) relativeLayout.findViewById(R.id.name); 
 			name.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
 			name.setText(store.getName());  
-			name.setTextSize(18); 
 			
-			TextView address = new TextView(getActivity()); 
+			TextView address = (TextView) relativeLayout.findViewById(R.id.address); 
 			address.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
 			address.setText(Text.prepareAddress(store.getAddress())); 
-			address.setTextSize(15); 
 			
-			ImageView location = new ImageView(getActivity());
-			location.setImageDrawable(getResources().getDrawable(R.drawable.ic_action_place));
-			location.setLayoutParams(new LayoutParams(48, 48)); 
-			location.setBackground(getResources().getDrawable(R.drawable.button_selector));
+			ImageView location = (ImageView) relativeLayout.findViewById(R.id.imageView1); 
 			location.setOnClickListener(new OnClickListener() {
 				
 				@Override
@@ -211,12 +207,8 @@ public class StoreListFragment extends ExpandableListFragment {
 				}
 				
 			});
-
-			linearLayout.addView(name);
-			linearLayout.addView(address);
-			linearLayout.addView(location);
 			
-			return linearLayout;
+			return new StaticMapView(getActivity(), store);
 		}
 
 		@Override
