@@ -31,6 +31,8 @@ public class StaticMapView extends RelativeLayout {
 			imageView.setImageDrawable(StoreListFragment.drawables.get(store.getId()));  
 			
 			addView(imageView); 
+			
+			Log.d("static map loader", "map loaded from cache");
 		} else {
 			new StaticMapLoader().execute();
 		}
