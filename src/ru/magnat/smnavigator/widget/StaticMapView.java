@@ -7,6 +7,7 @@ import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.entities.Store;
+import ru.magnat.smnavigator.fragments.StoreListFragment;
 import ru.magnat.smnavigator.util.Crypto;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
@@ -23,13 +24,16 @@ public class StaticMapView extends RelativeLayout {
 	public StaticMapView(Context context, Store store) { 
 		super(context); this.store = store;
 		
-//		LayoutParams layoutParams = new LayoutParams(100, 100);
-//		layoutParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-//		layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP); 
-//		
-//		setLayoutParams(layoutParams); 
+		setPadding(5, 5, 5, 5); 
 		
-		new StaticMapLoader().execute();
+		if ((StoreListFragment.drawables.get(store.getId())) != null) {
+			ImageView imageView = new ImageView(getContext());
+			imageView.setImageDrawable(StoreListFragment.drawables.get(store.getId()));  
+			
+			addView(imageView); 
+		} else {
+			new StaticMapLoader().execute();
+		}
 	}
 	
 	private class StaticMapLoader extends AsyncTask<Void, Void, Drawable> {
@@ -50,12 +54,6 @@ public class StaticMapView extends RelativeLayout {
 		
 		@Override
 		protected Drawable doInBackground(Void... params) {
-			try {
-				TimeUnit.MILLISECONDS.sleep(350);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} 
-			
 			Drawable drawable = null;
 			
 			StringBuilder urlBuilder = new StringBuilder();
@@ -69,20 +67,31 @@ public class StaticMapView extends RelativeLayout {
 			urlBuilder.append("&region=RU");
 			urlBuilder.append("&language=ru");
 			
+			String hash = Crypto.getMd5HashFromString(urlBuilder.toString());
+			
 			Log.d("static map loader", "url: " + urlBuilder.toString());
-			Log.d("static map loader", "hash: " + Crypto.getMd5HashString(urlBuilder.toString())); 
+			Log.d("static map loader", "hash: " + hash); 
 			
 			try {
+				TimeUnit.MILLISECONDS.sleep(150);
+				
 				URL url = new URL(urlBuilder.toString());
 				
 				HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 				
 				drawable = Drawable.createFromStream(urlConnection.getInputStream(), "");
-
+				
 				urlConnection.disconnect();
+				urlConnection = null;
+				
+				if (StoreListFragment.drawables.indexOfKey(store.getId()) < 0) {
+					StoreListFragment.drawables.put(store.getId(), drawable);  
+				}
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			
@@ -94,7 +103,7 @@ public class StaticMapView extends RelativeLayout {
 			removeAllViews();
 			
 			ImageView imageView = new ImageView(getContext());
-			imageView.setImageDrawable(result); 
+			imageView.setImageDrawable(result);  
 			  
 			addView(imageView); 
 		}

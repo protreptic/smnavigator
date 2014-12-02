@@ -60,6 +60,23 @@ public class Crypto {
 	    return hexString.toString();
 	}
 
+	public static String getMd5HashFromString(String string) {
+		String result = null;
+		
+		try {
+			MessageDigest messageDigest = MessageDigest.getInstance("md5");
+			
+			byte[] digest = messageDigest.digest(string.getBytes());
+			
+			result = getMd5HashString(digest);
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return result;
+	}
+	
 	public static String getMd5HashString(final String file) {
 		
 		File temp = new File(file);

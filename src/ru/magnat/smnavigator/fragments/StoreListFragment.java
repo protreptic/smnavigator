@@ -15,8 +15,10 @@ import ru.magnat.smnavigator.util.Text;
 import ru.magnat.smnavigator.widget.ExpandableListFragment;
 import ru.magnat.smnavigator.widget.StaticMapView;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -42,6 +44,7 @@ public class StoreListFragment extends ExpandableListFragment {
 	private Dao<StoreStatistics, String> mStoreStatisticsDao;
 	private List<Store> mGroupData = new ArrayList<Store>();
 	private List<List<StoreStatistics>> mChildData = new ArrayList<List<StoreStatistics>>();
+	public static final SparseArray<Drawable> drawables = new SparseArray<Drawable>();
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -221,37 +224,37 @@ public class StoreListFragment extends ExpandableListFragment {
 			
 			TextView totalDistribution = new TextView(getActivity()); 
 			totalDistribution.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-			totalDistribution.setText("Общая дистрибьюция (ОПД): \t\t\t\t" + storeStatistics.getTotalDistribution());  
+			totalDistribution.setText("пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (пїЅпїЅпїЅ): \t\t\t\t" + storeStatistics.getTotalDistribution());  
 			totalDistribution.setTextSize(16); 
 			totalDistribution.setTextColor(getResources().getColor(R.color.gray));
 			 
 			TextView goldenDistribution = new TextView(getActivity()); 
 			goldenDistribution.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-			goldenDistribution.setText("Золотая дистрибьюция: \t\t\t\t\t" + storeStatistics.getGoldenDistribution());  
+			goldenDistribution.setText("пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: \t\t\t\t\t" + storeStatistics.getGoldenDistribution());  
 			goldenDistribution.setTextSize(16); 
 			goldenDistribution.setTextColor(getResources().getColor(R.color.gray));
 			
 			TextView turnoverCurrentMonth = new TextView(getActivity()); 
 			turnoverCurrentMonth.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-			turnoverCurrentMonth.setText("Товарооборот за текущий месяц: \t\t" + storeStatistics.getTurnoverCurrentMonth());  
+			turnoverCurrentMonth.setText("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: \t\t" + storeStatistics.getTurnoverCurrentMonth());  
 			turnoverCurrentMonth.setTextSize(16); 
 			turnoverCurrentMonth.setTextColor(getResources().getColor(R.color.gray));
 			
 			TextView turnoverPreviousMonth = new TextView(getActivity()); 
 			turnoverPreviousMonth.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-			turnoverPreviousMonth.setText("Товарооборот за предыдущий месяц: \t" + storeStatistics.getTurnoverPreviousMonth());  
+			turnoverPreviousMonth.setText("пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ: \t" + storeStatistics.getTurnoverPreviousMonth());  
 			turnoverPreviousMonth.setTextSize(16); 
 			turnoverPreviousMonth.setTextColor(getResources().getColor(R.color.gray));
 			
 			TextView lastVisit = new TextView(getActivity()); 
 			lastVisit.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-			lastVisit.setText("Дата прошлого посещения: \t\t\t\t" + DateUtils.format(storeStatistics.getLastVisit()));  
+			lastVisit.setText("пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: \t\t\t\t" + DateUtils.format(storeStatistics.getLastVisit()));  
 			lastVisit.setTextSize(16); 
 			lastVisit.setTextColor(getResources().getColor(R.color.gray));
 			
 			TextView nextVisit = new TextView(getActivity()); 
 			nextVisit.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-			nextVisit.setText("Дата следующего посещения: \t\t\t\t" + DateUtils.format(storeStatistics.getNextVisit()));  
+			nextVisit.setText("пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: \t\t\t\t" + DateUtils.format(storeStatistics.getNextVisit()));  
 			nextVisit.setTextSize(16); 
 			nextVisit.setTextColor(getResources().getColor(R.color.gray));
 			
