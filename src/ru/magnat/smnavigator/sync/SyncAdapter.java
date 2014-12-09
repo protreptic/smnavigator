@@ -8,12 +8,12 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.data.GetPsrsHelper;
 import ru.magnat.smnavigator.data.GetRoutesHelper;
 import ru.magnat.smnavigator.data.GetStoreStatisticsHelper;
 import ru.magnat.smnavigator.data.GetStoresHelper;
 import ru.magnat.smnavigator.data.MainDbHelper;
+import ru.magnat.smnavigator.fragments.MapFragment;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.model.Store;
@@ -108,28 +108,28 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
     
     private void sendStarted() {
-    	Intent intentStarted = new Intent(MainActivity.ACTION_SYNC);
+    	Intent intentStarted = new Intent(MapFragment.ACTION_SYNC);
     	intentStarted.putExtra("action", "started");
     	
     	getContext().sendBroadcast(intentStarted);
     }
     
     private void sendCompleted() {
-    	Intent intentCompleted = new Intent(MainActivity.ACTION_SYNC);
+    	Intent intentCompleted = new Intent(MapFragment.ACTION_SYNC);
     	intentCompleted.putExtra("action", "completed");
     	
     	getContext().sendBroadcast(intentCompleted);
     }
     
     private void sendError() {
-    	Intent intentError = new Intent(MainActivity.ACTION_SYNC);
+    	Intent intentError = new Intent(MapFragment.ACTION_SYNC);
     	intentError.putExtra("action", "error");
     	
     	getContext().sendBroadcast(intentError);
     }
     
 	private void loadStores() throws Exception { 
-		URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_getAllStores");
+		URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_getStores");
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 
 		List<Store> stores = new GetStoresHelper().readJsonStream(urlConnection.getInputStream());
@@ -143,8 +143,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		for (Store store : stores) {
 			storeDao.createOrUpdate(store);
-
-			//Log.d("SQL LOG", "id = " + store.getId() + " name = " + store.getName() + " address = " + store.getAddress() + " status = " + status);
 		}
 	}
 	

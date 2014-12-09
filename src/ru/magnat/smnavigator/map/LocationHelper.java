@@ -53,6 +53,7 @@ public class LocationHelper {
 	private static final int DISTRIBUTOR_BRANCH_STROKE_COLOR = Color.argb(55, 255, 0, 0);
 	private static final int DISTRIBUTOR_BRANCH_STROKE_WIDTH = 5;
 	
+	@SuppressWarnings("unused")
 	private void addRegion() {
 		MainDbHelper dbHelper = MainDbHelper.getInstance(mContext);
 		
@@ -464,6 +465,7 @@ public class LocationHelper {
 		mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude, longitude)));
 	}
 	
+	@SuppressWarnings("unused")
 	private void addHeatMap() {
 		MainDbHelper dbHelper = MainDbHelper.getInstance(mContext);
 		
@@ -491,6 +493,8 @@ public class LocationHelper {
 	}
 	
 	public void updateOverlays() {	
+		mMap.clear();
+		
 		addPsrMarkers();
 		addStoreMarkers();
 		//addRegion();

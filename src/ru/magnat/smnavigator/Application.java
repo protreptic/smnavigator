@@ -46,7 +46,7 @@ public class Application extends android.app.Application {
 		sAccount = addSyncAccount(this);
 		
 	    // turn on periodic sync
-	    ContentResolver.addPeriodicSync(sAccount, Application.AUTHORITY, new Bundle(), SYNC_INTERVAL);
+	    //ContentResolver.addPeriodicSync(sAccount, Application.AUTHORITY, new Bundle(), SYNC_INTERVAL);
 	}
 	
 	@Override
@@ -54,7 +54,7 @@ public class Application extends android.app.Application {
 		super.onTerminate();
 		
 		// turn off periodic sync
-		ContentResolver.removePeriodicSync(sAccount, Application.AUTHORITY, new Bundle());
+		//ContentResolver.removePeriodicSync(sAccount, Application.AUTHORITY, new Bundle());
 	}
 	
 	private void initAcra() {
