@@ -22,7 +22,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
 
 	// Don't add additional accounts
 	@Override
-	public Bundle addAccount(AccountAuthenticatorResponse response, String accountType, String authTokenType, String[] strings, Bundle bundle) throws NetworkErrorException {
+	public Bundle addAccount(AccountAuthenticatorResponse response, String accountType, String authTokenType, String[] features, Bundle bundle) throws NetworkErrorException {
 		return null;
 	}
 

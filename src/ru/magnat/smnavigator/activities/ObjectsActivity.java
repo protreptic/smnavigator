@@ -1,5 +1,7 @@
 package ru.magnat.smnavigator.activities;
 
+import com.google.android.gms.maps.SupportMapFragment;
+
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.fragments.PsrListFragment;
 import ru.magnat.smnavigator.fragments.StoreListFragment;
@@ -19,11 +21,11 @@ public class ObjectsActivity extends FragmentActivity {
 		
 		getActionBar().setTitle(""); 
 		getActionBar().setIcon(getResources().getDrawable(R.drawable.logotype_small)); 
-		//getActionBar().setBackgroundDrawable(getResources().getDrawable(R.drawable.endless_list_background)); 
 		
 		mTabHost = (FragmentTabHost) findViewById(android.R.id.tabhost);
         mTabHost.setup(this, getSupportFragmentManager(), android.R.id.tabcontent);
-
+        
+        mTabHost.addTab(mTabHost.newTabSpec("map").setIndicator("Карта", null), SupportMapFragment.class, null);
         mTabHost.addTab(mTabHost.newTabSpec("psrs").setIndicator(getResources().getString(R.string.titlePsrs), null), PsrListFragment.class, null);
         mTabHost.addTab(mTabHost.newTabSpec("stores").setIndicator(getResources().getString(R.string.titleStores), null), StoreListFragment.class, null); 
 	}

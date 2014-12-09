@@ -5,11 +5,11 @@
         android:id="@+id/actionSettings"
         android:showAsAction="never"
         android:title="@string/settings"/>
-    <item
+<!--     <item
         android:id="@+id/actionLocation"
         android:icon="@drawable/ic_action_location_found"
         android:showAsAction="ifRoom"
-        android:title="@string/showMyself"/>
+        android:title="@string/showMyself"/> -->
     <item
         android:id="@+id/actionObjects"
         android:icon="@drawable/ic_action_group"

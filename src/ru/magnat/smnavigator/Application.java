@@ -6,7 +6,9 @@ import org.acra.ReportingInteractionMode;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.os.Bundle;
 import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.util.Device;
 import ru.magnat.smnavigator.util.Network;
@@ -20,6 +22,11 @@ import ru.magnat.smnavigator.util.Network;
 	)
 public class Application extends android.app.Application {
 	
+    // Sync interval constants
+    public static final long SECONDS_PER_MINUTE = 60L;
+    public static final long SYNC_INTERVAL_IN_MINUTES = 45L;
+    public static final long SYNC_INTERVAL = SYNC_INTERVAL_IN_MINUTES * SECONDS_PER_MINUTE;
+	
 	// Constants
     // The authority for the sync adapter's content provider
     public static final String AUTHORITY = "ru.magnat.smnavigator.auth";
@@ -28,7 +35,7 @@ public class Application extends android.app.Application {
     // The account name
     public static final String ACCOUNT = "syncAccount";
     // Instance fields
-    Account mAccount;
+    private static Account sAccount;
 	
 	@Override
 	public void onCreate() {
@@ -36,7 +43,18 @@ public class Application extends android.app.Application {
 		
 		MainDbHelper.getInstance(getBaseContext());
 		
-		mAccount = addSyncAccount(this);
+		sAccount = addSyncAccount(this);
+		
+	    // turn on periodic sync
+	    ContentResolver.addPeriodicSync(sAccount, Application.AUTHORITY, new Bundle(), SYNC_INTERVAL);
+	}
+	
+	@Override
+	public void onTerminate() {
+		super.onTerminate();
+		
+		// turn off periodic sync
+		ContentResolver.removePeriodicSync(sAccount, Application.AUTHORITY, new Bundle());
 	}
 	
 	private void initAcra() {
@@ -46,6 +64,17 @@ public class Application extends android.app.Application {
         ACRA.getErrorReporter().putCustomData("mac_eth0", Network.getMACAddress("eth0"));
         ACRA.getErrorReporter().putCustomData("ip_v4", Network.getIPAddress(true));
         ACRA.getErrorReporter().putCustomData("ip_v6", Network.getIPAddress(false));
+	}
+	
+	public static void sync() {
+		// Pass the settings flags by inserting them in a bundle
+        Bundle settingsBundle = new Bundle();
+        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+        
+        // Request the sync for the default account, authority, and
+        // manual sync settings
+        ContentResolver.requestSync(sAccount, Application.AUTHORITY, settingsBundle);
 	}
 	
 	public static Account addSyncAccount(Context context) {

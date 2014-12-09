@@ -7,15 +7,13 @@ import ru.magnat.smnavigator.Application;
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.map.LocationHelper;
 import ru.magnat.smnavigator.util.Apps;
-import android.accounts.Account;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -29,23 +27,10 @@ import android.widget.RelativeLayout.LayoutParams;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.SupportMapFragment;
 
-public class MainActivity extends Activity {
-
-	// Constants
-    // Content provider authority
-    public static final String AUTHORITY = "ru.magnat.smnavigator.auth";
-    
-    // Account
-    public static final String ACCOUNT = "syncAccount";
-    
-    // Sync interval constants
-    public static final long SECONDS_PER_MINUTE = 60L;
-    public static final long SYNC_INTERVAL_IN_MINUTES = 45L;
-    public static final long SYNC_INTERVAL = SYNC_INTERVAL_IN_MINUTES * SECONDS_PER_MINUTE;
+public class MainActivity extends FragmentActivity {
 	
-    private Account mAccount;
 	private LocationHelper mLocationHelper;
 	
 	@Override
@@ -53,58 +38,30 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState); init(); Log.d("", "MainActivity.onCreate");
 
 		// register receivers
-		registerReceiver(mLocationReceiver, new IntentFilter(ACTION_LOCATION));
 		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 
-		registerReceiver(mMoveReceiver, new IntentFilter(ACTION_MOVE));
 		
-		// start tracking
-		mLocationHelper.startTracking();
-		
-		// request current location
-		mLocationHelper.requestLocation();
 		mLocationHelper.updateOverlays();
-		
-	    // turn on periodic sync
-	    ContentResolver.addPeriodicSync(mAccount, AUTHORITY, new Bundle(), SYNC_INTERVAL);
 	}
 	
 	private void init() {
 		setContentView(R.layout.activity_main); 
 		
 		getActionBar().setTitle(""); 
-		getActionBar().setIcon(getResources().getDrawable(R.drawable.logotype_small)); 
+		getActionBar().setIcon(getResources().getDrawable(R.drawable.ic_action_view_as_grid)); 
 		getActionBar().setHomeButtonEnabled(true); 
 		
-		GoogleMap map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
+		GoogleMap map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
+		map.setMyLocationEnabled(true);
 		
 		mLocationHelper = LocationHelper.getInstance(this, map);
-		mAccount = Application.addSyncAccount(this);
-	}
-	
-	@Override
-	protected void onStart() {
-		super.onStart(); Log.d("", "MainActivity.onStart");
-	}
-	
-	@Override
-	protected void onStop() {
-		super.onStop(); Log.d("", "MainActivity.onStop");
 	}
 	
 	@Override
 	protected void onDestroy() {
-		super.onDestroy(); Log.d("", "MainActivity.onDestroy");
+		super.onDestroy();
 		
 		// unregister receivers
-		unregisterReceiver(mLocationReceiver);
 		unregisterReceiver(mSyncReceiver); 
-		unregisterReceiver(mMoveReceiver); 
-		
-		// stop tracking
-		LocationHelper.destroy();
-		
-		// turn off periodic sync
-		ContentResolver.removePeriodicSync(mAccount, AUTHORITY, new Bundle());
 	}
 
 	@Override
@@ -113,34 +70,22 @@ public class MainActivity extends Activity {
 	    inflater.inflate(R.menu.main_menu, menu);
 	    
 	    mSyncItem = menu.findItem(R.id.actionSync);
-	    mLocationItem = menu.findItem(R.id.actionLocation);
 	    
 	    return true;
 	}
 	
 	private MenuItem mSyncItem;
-	private MenuItem mLocationItem;
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-			case R.id.actionLocation: {
-				mLocationHelper.requestLocation();
-			} break;
 			case R.id.actionLegend: {			
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
 				builder.setView(LayoutInflater.from(this).inflate(R.layout.legend_layout, new LinearLayout(this), false)); 
 				builder.show();
 			} break;
 			case R.id.actionSync: {
-				// Pass the settings flags by inserting them in a bundle
-		        Bundle settingsBundle = new Bundle();
-		        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-		        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
-		        
-		        // Request the sync for the default account, authority, and
-		        // manual sync settings
-		        ContentResolver.requestSync(mAccount, AUTHORITY, settingsBundle);
+				Application.sync();
 			} break;
 			case R.id.actionObjects: {
 				startActivity(new Intent(this, ObjectsActivity.class)); 
@@ -164,49 +109,7 @@ public class MainActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 	
-	public static final String ACTION_MOVE = "ru.magnat.smnavigator.sync.ACTION_MOVE";
-	public static final String ACTION_LOCATION = "ru.magnat.smnavigator.sync.ACTION_LOCATION"; 
 	public static final String ACTION_SYNC = "ru.magnat.smnavigator.sync.ACTION_SYNC"; 
-	
-	private BroadcastReceiver mLocationReceiver = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-	        if(intent.getAction().equals(ACTION_LOCATION)) {	        	
-	            String action = intent.getStringExtra("provider");
-	            
-	            if (action.equals("disabled") && mLocationItem != null) {
-	            	Log.d("", "location disabled");
-	            	
-	            	mLocationItem.setIcon(getResources().getDrawable(R.drawable.ic_action_location_found_error));
-	            }
-	            if (action.equals("enabled") && mLocationItem != null) {
-	            	Log.d("", "location enabled");
-
-	            	mLocationItem.setIcon(getResources().getDrawable(R.drawable.ic_action_location_found_ok));
-	            }
-	        }
-		}
-		
-	};
-	
-	private BroadcastReceiver mMoveReceiver = new BroadcastReceiver() {
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-	        if(intent.getAction().equals(ACTION_MOVE)) {	        	
-	        	double latitude = intent.getDoubleExtra("latitude", 0);
-	        	double longitude = intent.getDoubleExtra("longitude", 0);
-	        	
-	        	int zoom = intent.getIntExtra("zoom", 15);
-	        	
-	        	Log.d("", "move " + latitude + " " + longitude + " " + zoom);
-	        	
-	            mLocationHelper.moveToPoint(latitude, longitude);
-	        }
-		}
-		
-	};
 	
 	private BroadcastReceiver mSyncReceiver = new BroadcastReceiver() {
 		
