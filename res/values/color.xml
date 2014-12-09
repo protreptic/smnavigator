@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="selected_caption1">#797a79</color>
+    <color name="selected_caption">#cccdcc</color>
+    <color name="not_selected_caption">#FFFFFF</color>
+    <color name="blue">#0000FF</color>
+    <color name="red">#ff0000</color>
+    <color name="green">#00ff00</color>
+    <color name="gold">#ffbf00</color>
+    <color name="light_grey">#eeeeee</color>
+    <color name="light_blue">#e6e6ff</color>
+    <color name="light_yellow">#ffff80</color>
+    <color name="bright_yellow">#ffffe9</color>
+    <color name="bright_blue">#f9f9ff</color>
+    <color name="bright_green">#d0ffd0</color>
+    <color name="bright_red">#ffd0d0</color>
+    <color name="sky_blue">#0080ff</color>
+    <color name="yellow">#ffff00</color>
+    <color name="black">#000000</color>
+    <color name="pressed_color">#00ff00</color>
+    <color name="default_color">#ffffff</color>
+    <color name="magnat_color">#000070</color>
+    <color name="md__transparent">#00000000</color>
+    <color name="md__defaultBackground">#FF555555</color>
+    <color name="gray">#dbdbdb</color>
+    <color name="white">#ffffff</color>
+
+</resources>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp" >
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:drawableLeft="@drawable/exclamation"
+        android:gravity="center_vertical"
+        android:paddingBottom="5dp"
+        android:text=" Потенциальный магазин" />
+
+    <TextView
+        android:id="@+id/subtitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/title"
+        android:layout_below="@+id/title"
+        android:drawableLeft="@drawable/visited"
+        android:gravity="center_vertical"
+        android:paddingBottom="5dp"
+        android:text=" Посещенный магазин" />
+
+    <TextView
+        android:id="@+id/TextView03"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/subtitle"
+        android:layout_below="@+id/subtitle"
+        android:drawableLeft="@drawable/psr"
+        android:gravity="center_vertical"
+        android:text=" Торговый агент" />
+
+    <TextView
+        android:id="@+id/TextView02"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/TextView04"
+        android:layout_below="@+id/TextView04"
+        android:drawableLeft="@drawable/shop"
+        android:gravity="center_vertical"
+        android:text=" Рабочий магазин" />
+
+    <TextView
+        android:id="@+id/TextView04"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/TextView03"
+        android:layout_below="@+id/TextView03"
+        android:drawableLeft="@drawable/manager"
+        android:gravity="center_vertical"
+        android:text=" Мобильный менеджер" />
+
+</RelativeLayout>
