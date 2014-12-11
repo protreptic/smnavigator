@@ -19,7 +19,6 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -88,12 +87,7 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 			}
 		});
 	}
-	 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		return super.onOptionsItemSelected(item);
-	}
-	
+
 	private ProgressBar progressBar;
 	
 	@Override

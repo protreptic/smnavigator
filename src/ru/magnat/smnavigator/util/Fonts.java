@@ -28,7 +28,7 @@ public class Fonts {
 	private Fonts(Context context) {
 		mContext = context;
 
-		mDefaultTypeface = Typeface.createFromAsset(context.getAssets(), "font/RobotoCondensed-Regular.ttf");
+		mDefaultTypeface = Typeface.createFromAsset(context.getAssets(), "font/RobotoCondensed-Light.ttf");
 		
 //		mTypefaces.put("Roboto-Black", Typeface.createFromAsset(context.getAssets(), "fonts/Roboto-Black.ttf"));
 //		mTypefaces.put("Roboto-BlackItalic", Typeface.createFromAsset(context.getAssets(), "fonts/Roboto-BlackItalic.ttf"));

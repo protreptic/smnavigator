@@ -5,15 +5,17 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.data.GetPsrsHelper;
 import ru.magnat.smnavigator.data.GetRoutesHelper;
 import ru.magnat.smnavigator.data.GetStoreStatisticsHelper;
 import ru.magnat.smnavigator.data.GetStoresHelper;
 import ru.magnat.smnavigator.data.MainDbHelper;
+import ru.magnat.smnavigator.fragments.MapFragment;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.model.Store;
@@ -74,6 +76,15 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
     	sendStarted();
     	
+    	Timer timer = new Timer("askSender");
+    	timer.schedule(new TimerTask() {
+			
+			@Override
+			public void run() {
+				sendAsk();
+			}
+		}, 0, 1000);
+    	
 		try {
 			TimeUnit.SECONDS.sleep(3);
 		
@@ -104,32 +115,41 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			sendError();	
 	    }
 		
+		timer.cancel();
+		
 		sendCompleted();
     }
     
     private void sendStarted() {
-    	Intent intentStarted = new Intent(MainActivity.ACTION_SYNC);
+    	Intent intentStarted = new Intent(MapFragment.ACTION_SYNC);
     	intentStarted.putExtra("action", "started");
     	
     	getContext().sendBroadcast(intentStarted);
     }
     
+    private void sendAsk() {
+    	Intent intentStarted = new Intent(MapFragment.ACTION_SYNC);
+    	intentStarted.putExtra("action", "ask");
+    	
+    	getContext().sendBroadcast(intentStarted);
+    }
+    
     private void sendCompleted() {
-    	Intent intentCompleted = new Intent(MainActivity.ACTION_SYNC);
+    	Intent intentCompleted = new Intent(MapFragment.ACTION_SYNC);
     	intentCompleted.putExtra("action", "completed");
     	
     	getContext().sendBroadcast(intentCompleted);
     }
     
     private void sendError() {
-    	Intent intentError = new Intent(MainActivity.ACTION_SYNC);
+    	Intent intentError = new Intent(MapFragment.ACTION_SYNC);
     	intentError.putExtra("action", "error");
     	
     	getContext().sendBroadcast(intentError);
     }
     
 	private void loadStores() throws Exception { 
-		URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_getAllStores");
+		URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_getStores");
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 
 		List<Store> stores = new GetStoresHelper().readJsonStream(urlConnection.getInputStream());
@@ -143,8 +163,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		for (Store store : stores) {
 			storeDao.createOrUpdate(store);
-
-			//Log.d("SQL LOG", "id = " + store.getId() + " name = " + store.getName() + " address = " + store.getAddress() + " status = " + status);
 		}
 	}
 	

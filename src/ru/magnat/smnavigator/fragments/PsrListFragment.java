@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
@@ -16,7 +15,6 @@ import ru.magnat.smnavigator.util.Text;
 import ru.magnat.smnavigator.view.StoreView;
 import ru.magnat.smnavigator.widget.ExpandableListFragment;
 import ru.magnat.smnavigator.widget.StaticMapView;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -214,14 +212,6 @@ public class PsrListFragment extends ExpandableListFragment {
 				
 				@Override
 				public void onClick(View view) {				
-					Intent intent = new Intent(MainActivity.ACTION_MOVE);
-
-					intent.putExtra("latitude", psr.getLatitude()); 
-					intent.putExtra("longitude", psr.getLongitude()); 
-					intent.putExtra("zoom", 10); 
-					
-					getActivity().sendBroadcast(intent); 
-					getActivity().finish();
 				}
 				
 			});

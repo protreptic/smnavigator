@@ -1,8 +1,8 @@
 <resources>
 
     <string name="app_name">Мобильный менеджер</string>
-    <string name="label_login">Логин:</string>
-    <string name="label_password">Пароль:</string>
+    <string name="label_login">логин</string>
+    <string name="label_password">пароль</string>
     <string name="button_login">Войти</string>
     <string name="please_wait">Выполняется операция</string>
     <string name="i_got_it">Я понял</string>
@@ -35,6 +35,7 @@
     
     <string name="locationUnknown">Местоположение не задано</string>
     
+    <string name="titleMap">Карта</string>
     <string name="titlePsrs">Торговые агенты</string>
     <string name="titleStores">Магазины</string>
     
@@ -68,5 +69,7 @@
     <string name="turnoverPreviousMonth">Товарооборот за предыдущий месяц</string>
     <string name="lastVisit">Дата следующего посещения</string>
     <string name="nextVisit">Дата прошлого посещения</string>
+    
+    <string name="chooseAccount">Выберите учетную запись:</string>
     
 </resources>
