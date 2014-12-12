@@ -9,10 +9,9 @@ import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
-import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.util.Fonts;
 import ru.magnat.smnavigator.util.Text;
-import ru.magnat.smnavigator.view.StoreView;
+import ru.magnat.smnavigator.view.RouteView;
 import ru.magnat.smnavigator.widget.ExpandableListFragment;
 import ru.magnat.smnavigator.widget.StaticMapView;
 import android.os.AsyncTask;
@@ -20,7 +19,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -39,7 +37,6 @@ public class PsrListFragment extends ExpandableListFragment {
 	private MyAdapter mAdapter;
 	private Dao<Psr, String> mPsrDao;
 	private Dao<Route, String> mRouteDao;
-	private Dao<Store, String> mStoreDao;
 	private List<Psr> mGroupData = new ArrayList<Psr>();
 	private List<List<Route>> mChildData = new ArrayList<List<Route>>();
 
@@ -73,11 +70,6 @@ public class PsrListFragment extends ExpandableListFragment {
 				return true;
 			}
 		});
-	}
-	
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		return super.onOptionsItemSelected(item);
 	}
 	
 	@Override
@@ -151,7 +143,6 @@ public class PsrListFragment extends ExpandableListFragment {
 		public MyAdapter() {
 			mPsrDao = mDbHelper.getPsrDao();
 			mRouteDao = mDbHelper.getRouteDao();
-			mStoreDao = mDbHelper.getStoreDao();
 		}
 		
 		@Override
@@ -230,32 +221,7 @@ public class PsrListFragment extends ExpandableListFragment {
 
 		@Override
 		public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-			Route route = (Route) getChild(groupPosition, childPosition);
-			
-			Store store = null;  
-			
-			try {
-				store = mStoreDao.queryForId(route.getStore().toString());  
-			} catch (SQLException e) {
-				
-			}
-			
-//			LinearLayout linearLayout = new LinearLayout(getActivity());
-//			linearLayout.setPadding(5, 5, 5, 5); 
-//			linearLayout.setOrientation(LinearLayout.VERTICAL); 
-//			
-//			TextView name = new TextView(getActivity()); 
-//			name.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-//			name.setText(route.getVisitDate().toString());  
-//			name.setTextSize(18); 
-
-//			linearLayout.addView(name);
-		
-			if (store != null) {
-				return new StoreView(getActivity(), store); 
-			}
-			
-			return new RelativeLayout(getActivity());
+			return new RouteView(getActivity(), (Route) getChild(groupPosition, childPosition)); 
 		}
 
 		@Override

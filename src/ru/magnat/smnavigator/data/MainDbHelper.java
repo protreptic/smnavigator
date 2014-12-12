@@ -7,12 +7,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
 
+import ru.magnat.smnavigator.account.AccountHelper;
 import ru.magnat.smnavigator.map.geofence.Geofenceable;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.model.StoreStatistics;
 import ru.magnat.smnavigator.util.Apps;
+import android.accounts.Account;
 import android.content.Context;
 import android.util.Log;
 
@@ -49,7 +51,20 @@ public class MainDbHelper {
 	private MainDbHelper(Context context) {
 		mContext = context;
 		
-		DB_PATH = context.getDir("data", Context.MODE_PRIVATE).getPath() + "/";
+		AccountHelper accountHelper = AccountHelper.getInstance(context);
+		
+		Account account = accountHelper.getCurrentAccount();
+		
+		DB_PATH = context.getDir("data", Context.MODE_PRIVATE).getPath() + "/" + account.name + "/";
+		DB_NAME = context.getPackageName() + "-" + Apps.getVersionName(context);
+		DB_FULL_NAME = DB_PATH + DB_NAME;
+		DB_URL = "jdbc:h2:file:" + DB_FULL_NAME + ";file_lock=no;ifexists=true;ignorecase=true;page_size=1024;cache_size=1024;autocommit=on;init=set schema sm_navigator";
+		
+		initDb();
+	}
+	
+	private MainDbHelper(Context context, Account account) {
+		DB_PATH = context.getDir("data", Context.MODE_PRIVATE).getPath() + "/" + account.name + "/";
 		DB_NAME = context.getPackageName() + "-" + Apps.getVersionName(context);
 		DB_FULL_NAME = DB_PATH + DB_NAME;
 		DB_URL = "jdbc:h2:file:" + DB_FULL_NAME + ";file_lock=no;ifexists=true;ignorecase=true;page_size=1024;cache_size=1024;autocommit=on;init=set schema sm_navigator";
@@ -65,7 +80,21 @@ public class MainDbHelper {
 		return sInstance;
 	}
 	
+	public static MainDbHelper getInstance(Context context, Account account) {
+		if (sInstance == null) {
+			sInstance = new MainDbHelper(context, account);
+		}
+		
+		return sInstance;
+	}
+	
 	public void deployDb() throws IOException {
+		File accountDirectory = new File(DB_PATH);
+		
+		if (!accountDirectory.exists()) {
+			accountDirectory.mkdirs();
+		}
+		
 		InputStream is = mContext.getAssets().open("storage.h2.db");
 		OutputStream os = new FileOutputStream(DB_FULL_NAME + ".h2.db"); 
 		byte[] buffer = new byte[1024];

@@ -17,7 +17,9 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 
 public class LauncherActivity extends Activity {
 	
@@ -37,14 +39,59 @@ public class LauncherActivity extends Activity {
 					try {
 						Bundle bundle = future.getResult();
 						
-						if (!accountHelper.getAccounts().isEmpty()) {
-							Account account = new Account(bundle.getString(AccountManager.KEY_ACCOUNT_NAME), AccountManager.KEY_ACCOUNT_TYPE); 
+						String accountName = bundle.getString(AccountManager.KEY_ACCOUNT_NAME);
+						String accountType = bundle.getString(AccountManager.KEY_ACCOUNT_TYPE);
+						
+						final Account account = new Account(accountName, accountType);
+						
+						AccountManager accountManager = AccountManager.get(getBaseContext());
+						accountManager.invalidateAuthToken(AccountWrapper.ACCOUNT_TYPE, null); 
+						accountManager.getAuthToken(account, AccountWrapper.ACCOUNT_TYPE, null, getParent(), new AccountManagerCallback<Bundle>() {
 							
-							launchApplication(account);
-						}
+							@Override
+							public void run(AccountManagerFuture<Bundle> future) {
+								try {
+									Bundle bundle = future.getResult();
+									
+									Log.d("", "" + bundle);
+									
+									launchApplication(account); 
+								} catch (OperationCanceledException e) {
+									e.printStackTrace();
+								} catch (AuthenticatorException e) {
+									e.printStackTrace();
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+							}
+						}, null);
 					} catch (OperationCanceledException e) {
 						e.printStackTrace();
 						finish();
+					} catch (AuthenticatorException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}, null);
+        } else if (accountHelper.getAccounts().size() == 1) {
+			final Account account = accountHelper.getAccount(0);
+			
+			AccountManager accountManager = AccountManager.get(getBaseContext());
+			accountManager.invalidateAuthToken(AccountWrapper.ACCOUNT_TYPE, null); 
+			accountManager.getAuthToken(account, AccountWrapper.ACCOUNT_TYPE, null, getParent(), new AccountManagerCallback<Bundle>() {
+				
+				@Override
+				public void run(AccountManagerFuture<Bundle> future) {
+					try {
+						Bundle bundle = future.getResult();
+						
+						Log.d("", "" + bundle);
+						
+						launchApplication(account); 
+					} catch (OperationCanceledException e) {
+						e.printStackTrace();
 					} catch (AuthenticatorException e) {
 						e.printStackTrace();
 					} catch (IOException e) {
@@ -62,9 +109,29 @@ public class LauncherActivity extends Activity {
 					public void onClick(DialogInterface dialog, int which) {
 						dialog.dismiss();
 						
-						Account account = accountHelper.getAccounts().get(which);
-						 
-						launchApplication(account);
+						final Account account = accountHelper.getAccounts().get(which);
+						
+						AccountManager accountManager = AccountManager.get(getBaseContext());
+						accountManager.invalidateAuthToken(AccountWrapper.ACCOUNT_TYPE, null); 
+						accountManager.getAuthToken(account, AccountWrapper.ACCOUNT_TYPE, null, getParent(), new AccountManagerCallback<Bundle>() {
+							
+							@Override
+							public void run(AccountManagerFuture<Bundle> future) {
+								try {
+									Bundle bundle = future.getResult();
+									
+									Log.d("", "" + bundle);
+									
+									launchApplication(account); 
+								} catch (OperationCanceledException e) {
+									e.printStackTrace();
+								} catch (AuthenticatorException e) {
+									e.printStackTrace();
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+							}
+						}, null);
 					}
 				})
 				.setOnCancelListener(new OnCancelListener() {
@@ -79,14 +146,24 @@ public class LauncherActivity extends Activity {
 	}
 	
 	private void launchApplication(Account account) {
-		Intent intent = new Intent(getBaseContext(), MainActivity.class);
-		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); 
-		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); 
+		AccountHelper accountHelper = AccountHelper.getInstance(this);
+		accountHelper.setCurrentAccount(account);
 		
-		intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, account.name);
-		intent.putExtra(AccountManager.KEY_ACCOUNT_TYPE, account.type);
+		Intent intent = new Intent(getBaseContext(), MainActivity.class);
 		
 		startActivity(intent); 
+	}
+	
+	@SuppressWarnings("unused")
+	private void saveDefaultAccount(Account account) {
+		SharedPreferences settings = getSharedPreferences("global", 0);
+		
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString("defaultAccountName", account.name);
+		editor.putString("defaultAccountType", account.type);
+		
+		// Commit the edits!
+		editor.commit();
 	}
 	
 }

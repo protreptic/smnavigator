@@ -10,12 +10,12 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
+import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.data.GetPsrsHelper;
 import ru.magnat.smnavigator.data.GetRoutesHelper;
 import ru.magnat.smnavigator.data.GetStoreStatisticsHelper;
 import ru.magnat.smnavigator.data.GetStoresHelper;
 import ru.magnat.smnavigator.data.MainDbHelper;
-import ru.magnat.smnavigator.fragments.MapFragment;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.model.Store;
@@ -73,22 +73,22 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      * up your own background processing.
      */
     @Override
-    public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
-    	sendStarted();
+    public void onPerformSync(final Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
+    	sendNotification("started", account.name);
     	
     	Timer timer = new Timer("askSender");
     	timer.schedule(new TimerTask() {
 			
 			@Override
 			public void run() {
-				sendAsk();
+				sendNotification("ask", account.name);
 			}
 		}, 0, 1000);
     	
 		try {
 			TimeUnit.SECONDS.sleep(3);
 		
-			mMainDbHelper = MainDbHelper.getInstance(getContext());
+			mMainDbHelper = MainDbHelper.getInstance(getContext(), account);
 			
 			loadStores();
 			loadStoreStatistics();
@@ -98,54 +98,22 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			MainDbHelper.close();
 			
 			TimeUnit.SECONDS.sleep(3);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			sendError();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			sendError();
-		} catch (NotFoundException e) {
-			e.printStackTrace();
-			sendError();
-		} catch (IOException e) {
-			e.printStackTrace();
-			sendError();
 		} catch (Exception e) {
 			e.printStackTrace();
-			sendError();	
+			sendNotification("error", account.name);	
 	    }
 		
 		timer.cancel();
 		
-		sendCompleted();
+		sendNotification("completed", account.name);
     }
     
-    private void sendStarted() {
-    	Intent intentStarted = new Intent(MapFragment.ACTION_SYNC);
-    	intentStarted.putExtra("action", "started");
+    private void sendNotification(String action, String account) {
+    	Intent intentStarted = new Intent(MainActivity.ACTION_SYNC);
+    	intentStarted.putExtra("action", action);
+    	intentStarted.putExtra("account", account);
     	
     	getContext().sendBroadcast(intentStarted);
-    }
-    
-    private void sendAsk() {
-    	Intent intentStarted = new Intent(MapFragment.ACTION_SYNC);
-    	intentStarted.putExtra("action", "ask");
-    	
-    	getContext().sendBroadcast(intentStarted);
-    }
-    
-    private void sendCompleted() {
-    	Intent intentCompleted = new Intent(MapFragment.ACTION_SYNC);
-    	intentCompleted.putExtra("action", "completed");
-    	
-    	getContext().sendBroadcast(intentCompleted);
-    }
-    
-    private void sendError() {
-    	Intent intentError = new Intent(MapFragment.ACTION_SYNC);
-    	intentError.putExtra("action", "error");
-    	
-    	getContext().sendBroadcast(intentError);
     }
     
 	private void loadStores() throws Exception { 

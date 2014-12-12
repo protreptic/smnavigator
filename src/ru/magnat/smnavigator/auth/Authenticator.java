@@ -1,6 +1,14 @@
 package ru.magnat.smnavigator.auth;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.List;
+
+import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.account.AccountWrapper;
+import ru.magnat.smnavigator.data.GetAccountHelper;
 import android.accounts.AbstractAccountAuthenticator;
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
@@ -34,6 +42,30 @@ public class Authenticator extends AbstractAccountAuthenticator {
         return bundle;
 	}
 
+    private String authenticate(String login, String password) {
+    	String token = null;
+    	
+    	try {
+    		URL url = new URL("http://" + mContext.getString(R.string.syncServer) + "/sm_Auth?login=" + login + "&password=" + password);
+    		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
+
+    		List<ru.magnat.smnavigator.account.AccountWrapper> accounts = new GetAccountHelper().readJsonStream(urlConnection.getInputStream());
+    		
+    		for (ru.magnat.smnavigator.account.AccountWrapper account : accounts) {
+				token = account.getToken();
+			}
+    		
+    		urlConnection.disconnect();
+    		urlConnection = null;
+    	} catch (MalformedURLException e) { 
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	
+		return token;
+    }
+	
 	@Override
 	public Bundle getAuthToken(AccountAuthenticatorResponse response, Account account, String authTokenType, Bundle options) throws NetworkErrorException {
         // If the caller requested an authToken type we don't support, then
@@ -48,7 +80,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
         // the server for an appropriate AuthToken.
         final String password = mAccountManager.getPassword(account);
         if (password != null) {
-            final String authToken = "";
+            final String authToken = authenticate(account.name, password); 
             if (!TextUtils.isEmpty(authToken)) {
                 final Bundle result = new Bundle();
                 result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
