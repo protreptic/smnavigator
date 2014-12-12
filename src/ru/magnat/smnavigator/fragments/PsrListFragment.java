@@ -12,6 +12,7 @@ import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.util.Fonts;
 import ru.magnat.smnavigator.util.Text;
+import ru.magnat.smnavigator.view.RouteView;
 import ru.magnat.smnavigator.view.StoreView;
 import ru.magnat.smnavigator.widget.ExpandableListFragment;
 import ru.magnat.smnavigator.widget.StaticMapView;
@@ -230,32 +231,7 @@ public class PsrListFragment extends ExpandableListFragment {
 
 		@Override
 		public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-			Route route = (Route) getChild(groupPosition, childPosition);
-			
-			Store store = null;  
-			
-			try {
-				store = mStoreDao.queryForId(route.getStore().toString());  
-			} catch (SQLException e) {
-				
-			}
-			
-//			LinearLayout linearLayout = new LinearLayout(getActivity());
-//			linearLayout.setPadding(5, 5, 5, 5); 
-//			linearLayout.setOrientation(LinearLayout.VERTICAL); 
-//			
-//			TextView name = new TextView(getActivity()); 
-//			name.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-//			name.setText(route.getVisitDate().toString());  
-//			name.setTextSize(18); 
-
-//			linearLayout.addView(name);
-		
-			if (store != null) {
-				return new StoreView(getActivity(), store); 
-			}
-			
-			return new RelativeLayout(getActivity());
+			return new RouteView(getActivity(), (Route) getChild(groupPosition, childPosition)); 
 		}
 
 		@Override

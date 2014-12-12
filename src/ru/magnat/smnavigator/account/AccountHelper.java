@@ -21,6 +21,7 @@ public class AccountHelper {
 	private AccountManager mAccountManager;
 	
 	private List<Account> mAccounts = new ArrayList<Account>();
+	private Account mAccount;
 	
 	private AccountHelper() {}
 	
@@ -31,6 +32,14 @@ public class AccountHelper {
 		mAccounts = getAccounts();
 	}
 
+	public Account getCurrentAccount() {
+		return mAccount;
+	}
+	
+	public void setCurrentAccount(Account account) {
+		mAccount = account;
+	}
+	
 	public Account getAccount(int position) {
 		return mAccounts.get(position);
 	}

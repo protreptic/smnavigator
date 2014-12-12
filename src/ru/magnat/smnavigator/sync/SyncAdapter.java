@@ -73,15 +73,15 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      * up your own background processing.
      */
     @Override
-    public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
-    	sendStarted();
+    public void onPerformSync(final Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
+    	sendNotification("started", account.name);
     	
     	Timer timer = new Timer("askSender");
     	timer.schedule(new TimerTask() {
 			
 			@Override
 			public void run() {
-				sendAsk();
+				sendNotification("ask", account.name);
 			}
 		}, 0, 1000);
     	
@@ -117,28 +117,15 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		timer.cancel();
 		
-		sendCompleted();
+		sendNotification("completed", account.name);
     }
     
-    private void sendStarted() {
+    private void sendNotification(String action, String account) {
     	Intent intentStarted = new Intent(MapFragment.ACTION_SYNC);
-    	intentStarted.putExtra("action", "started");
+    	intentStarted.putExtra("action", action);
+    	intentStarted.putExtra("account", account);
     	
     	getContext().sendBroadcast(intentStarted);
-    }
-    
-    private void sendAsk() {
-    	Intent intentStarted = new Intent(MapFragment.ACTION_SYNC);
-    	intentStarted.putExtra("action", "ask");
-    	
-    	getContext().sendBroadcast(intentStarted);
-    }
-    
-    private void sendCompleted() {
-    	Intent intentCompleted = new Intent(MapFragment.ACTION_SYNC);
-    	intentCompleted.putExtra("action", "completed");
-    	
-    	getContext().sendBroadcast(intentCompleted);
     }
     
     private void sendError() {

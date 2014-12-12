@@ -4,7 +4,7 @@ public class AccountWrapper {
 	
 	// Constants
     // The authority for the sync adapter's content provider
-    public static final String AUTHORITY = "ru.magnat.smnavigator.auth";
+    public static final String ACCOUNT_AUTHORITY = "ru.magnat.smnavigator.auth";
     // An account type, in the form of a domain name
     public static final String ACCOUNT_TYPE = "ru.magnat.smnavigator";
 	

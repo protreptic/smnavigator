@@ -3,12 +3,15 @@ package ru.magnat.smnavigator.fragments;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 
-import ru.magnat.smnavigator.Application;
 import ru.magnat.smnavigator.R;
+import ru.magnat.smnavigator.account.AccountHelper;
+import ru.magnat.smnavigator.account.AccountWrapper;
 import ru.magnat.smnavigator.map.LocationHelper;
 import ru.magnat.smnavigator.util.Apps;
+import android.accounts.Account;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -22,8 +25,8 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 import android.widget.RelativeLayout.LayoutParams;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -77,7 +80,18 @@ public class MapFragment extends SupportMapFragment {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.actionSync: {
-				Application.sync();
+				AccountHelper accountHelper = AccountHelper.getInstance(getActivity()); 
+				
+				Account account = accountHelper.getCurrentAccount();
+				
+				// Pass the settings flags by inserting them in a bundle
+		        Bundle settingsBundle = new Bundle();
+		        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+		        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+		        
+		        // Request the sync for the default account, authority, and
+		        // manual sync settings
+		        ContentResolver.requestSync(account, AccountWrapper.ACCOUNT_AUTHORITY, settingsBundle);
 			} break;
 			case R.id.actionAbout: {
 				AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -100,7 +114,7 @@ public class MapFragment extends SupportMapFragment {
 		
 	    @Override
 	    public void onReceive(Context context, Intent intent) {
-	        if(intent.getAction().equals(ACTION_SYNC)) {
+	        if(intent.getAction().equals(ACTION_SYNC) && intent.getStringExtra("account").equals(AccountHelper.getInstance(getActivity()).getCurrentAccount().name)) { 
 	        	Animation mRotate = AnimationUtils.loadAnimation(getActivity(), R.anim.rotate360);
 	        	
 	            String action = intent.getStringExtra("action");
