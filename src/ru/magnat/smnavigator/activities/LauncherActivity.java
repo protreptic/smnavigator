@@ -75,30 +75,6 @@ public class LauncherActivity extends Activity {
 					}
 				}
 			}, null);
-        } else if (accountHelper.getAccounts().size() == 1) {
-			final Account account = accountHelper.getAccount(0);
-			
-			AccountManager accountManager = AccountManager.get(getBaseContext());
-			accountManager.invalidateAuthToken(AccountWrapper.ACCOUNT_TYPE, null); 
-			accountManager.getAuthToken(account, AccountWrapper.ACCOUNT_TYPE, null, getParent(), new AccountManagerCallback<Bundle>() {
-				
-				@Override
-				public void run(AccountManagerFuture<Bundle> future) {
-					try {
-						Bundle bundle = future.getResult();
-						
-						Log.d("", "" + bundle);
-						
-						launchApplication(account); 
-					} catch (OperationCanceledException e) {
-						e.printStackTrace();
-					} catch (AuthenticatorException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}, null);
         } else {
 	        AlertDialog.Builder builder = new AlertDialog.Builder(this);
 	        builder

@@ -1,9 +1,5 @@
 package ru.magnat.smnavigator.fragments;
 
-
-import java.sql.Date;
-import java.text.SimpleDateFormat;
-
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.map.LocationHelper;
 import android.os.Bundle;

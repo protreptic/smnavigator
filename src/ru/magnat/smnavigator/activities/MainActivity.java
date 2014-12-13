@@ -9,12 +9,14 @@ import ru.magnat.smnavigator.account.AccountWrapper;
 import ru.magnat.smnavigator.fragments.MapFragment;
 import ru.magnat.smnavigator.fragments.PsrListFragment;
 import ru.magnat.smnavigator.fragments.StoreListFragment;
+import ru.magnat.smnavigator.update.CentralRepository;
 import android.accounts.Account;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -38,14 +40,12 @@ import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity {
 	
-	//private FragmentTabHost mTabHost;
-	
 	private MenuItem mSyncItem;
 	
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
 
-    private String[] mPlanetTitles = new String[] { "Карта", "Торговые агенты", "Магазины" };
+    private String[] mPlanetTitles;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +56,8 @@ public class MainActivity extends FragmentActivity {
 		AccountHelper accountHelper = AccountHelper.getInstance(this);
 		
 		Account account = accountHelper.getCurrentAccount();
+		
+		mPlanetTitles = new String[] { getString(R.string.titleMap), getString(R.string.titlePsrs), getString(R.string.titleStores) };
 		
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
@@ -79,6 +81,18 @@ public class MainActivity extends FragmentActivity {
 		
 		// register receivers
 		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 
+		
+		new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				CentralRepository centralRepository = new CentralRepository(getBaseContext(), getPackageName()); 
+				
+				centralRepository.update();
+				
+				return null;
+			}
+		}.execute(); 
 	}
 
     private class DrawerItemClickListener implements ListView.OnItemClickListener {

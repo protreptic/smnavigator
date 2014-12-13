@@ -11,11 +11,9 @@ import com.google.android.gms.maps.model.Marker;
 public class StoreInfoWindow implements InfoWindowAdapter {
 
 	private Context context;
-	private Store store;
 	
 	public StoreInfoWindow(Context context, Store store) {
 		this.context = context;
-		this.store = store;
 	}
 	
 	@Override
