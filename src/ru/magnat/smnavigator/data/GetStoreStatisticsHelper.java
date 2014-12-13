@@ -9,7 +9,6 @@ import java.util.List;
 
 import ru.magnat.smnavigator.model.StoreStatistics;
 import android.util.JsonReader;
-import android.util.Log;
 
 public class GetStoreStatisticsHelper {
 	
@@ -31,8 +30,6 @@ public class GetStoreStatisticsHelper {
 	    	storeStatistics.add(readStoreStatistics(reader));
 	    }
 	    reader.endArray();
-	    
-	    Log.d("", "StoreStatistics = " + storeStatistics.size()); 
 	    
 	    return storeStatistics;
 	}

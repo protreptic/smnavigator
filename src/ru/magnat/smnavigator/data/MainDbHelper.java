@@ -41,11 +41,6 @@ public class MainDbHelper {
 	private static String DB_FULL_NAME;
 	private static String DB_URL;
 	
-//	private static final boolean DB_OPTION_FILE_LOCK = true;
-//	private static final boolean DB_OPTION_IGNORECASE = true;
-//	private static final long DB_OPTION_PAGE_SIZE = 1024;
-//	private static final long DB_OPTION_CACHE_SIZE = 8192;
-	
 	private JdbcPooledConnectionSource mConnectionSource;
 	 
 	private MainDbHelper(Context context) {
@@ -54,20 +49,26 @@ public class MainDbHelper {
 		AccountHelper accountHelper = AccountHelper.getInstance(context);
 		
 		Account account = accountHelper.getCurrentAccount();
-		
+
 		DB_PATH = context.getDir("data", Context.MODE_PRIVATE).getPath() + "/" + account.name + "/";
 		DB_NAME = context.getPackageName() + "-" + Apps.getVersionName(context);
 		DB_FULL_NAME = DB_PATH + DB_NAME;
 		DB_URL = "jdbc:h2:file:" + DB_FULL_NAME + ";file_lock=no;ifexists=true;ignorecase=true;page_size=1024;cache_size=1024;autocommit=on;init=set schema sm_navigator";
+		
+		Log.d(TAG, "storage:instantiate->" + DB_FULL_NAME);
 		
 		initDb();
 	}
 	
 	private MainDbHelper(Context context, Account account) {
+		mContext = context;
+		
 		DB_PATH = context.getDir("data", Context.MODE_PRIVATE).getPath() + "/" + account.name + "/";
 		DB_NAME = context.getPackageName() + "-" + Apps.getVersionName(context);
 		DB_FULL_NAME = DB_PATH + DB_NAME;
 		DB_URL = "jdbc:h2:file:" + DB_FULL_NAME + ";file_lock=no;ifexists=true;ignorecase=true;page_size=1024;cache_size=1024;autocommit=on;init=set schema sm_navigator";
+		
+		Log.d(TAG, "storage:instantiate->" + DB_FULL_NAME);
 		
 		initDb();
 	}
@@ -77,18 +78,24 @@ public class MainDbHelper {
 			sInstance = new MainDbHelper(context);
 		}
 		
+		Log.d(TAG, "storage:instantiate->ok");
+		
 		return sInstance;
 	}
 	
-	public static MainDbHelper getInstance(Context context, Account account) {
+	public synchronized static MainDbHelper getInstance(Context context, Account account) {
 		if (sInstance == null) {
 			sInstance = new MainDbHelper(context, account);
 		}
+		
+		Log.d(TAG, "storage:instantiate->ok");
 		
 		return sInstance;
 	}
 	
 	public void deployDb() throws IOException {
+		Log.d(TAG, "storage:deploy->" + DB_FULL_NAME);
+		
 		File accountDirectory = new File(DB_PATH);
 		
 		if (!accountDirectory.exists()) {
@@ -104,6 +111,8 @@ public class MainDbHelper {
 		}
 		os.close();
 		is.close();
+		
+		Log.d(TAG, "storage:deploy->ok");
 	}
 	
 	private Dao<Store, String> mStoreDao;
@@ -112,9 +121,13 @@ public class MainDbHelper {
 	private Dao<Route, String> mRouteDao;
 	private Dao<Geofenceable, String> mGeoregionDao;
 	
+	private static final String TAG = "DB_HELPER";
+	
 	private void initDb() {
+		Log.d(TAG, "storage:init->" + DB_FULL_NAME); 
+		
 		try {
-			if (!new File(DB_FULL_NAME + ".h2.db").exists()) {
+			if (!new File(DB_FULL_NAME + ".h2.db").exists()) {				
 				deployDb();
 			}
 			
@@ -130,6 +143,8 @@ public class MainDbHelper {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		Log.d(TAG, "storage:init->ok"); 
 	}
 
 	public static void close() {

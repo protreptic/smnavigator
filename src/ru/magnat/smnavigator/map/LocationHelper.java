@@ -523,7 +523,7 @@ public class LocationHelper {
 	
 	private ClusterManager<AbstractMarker> mClusterManager;
 	
-	private long limit = 500;
+	private long limit = 750;
 	
 	private void addStoreMarkers() {
 		MainDbHelper dbHelper = MainDbHelper.getInstance(mContext);
