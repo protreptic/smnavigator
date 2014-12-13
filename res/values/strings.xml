@@ -32,6 +32,7 @@
     
     <string name="syncSuccess">Синхронизация успешно завершена</string>
     <string name="syncError">Синхронизация не выполненна</string>
+    <string name="syncCanceled">Синхронизация отменена</string>
     
     <string name="locationUnknown">Местоположение не задано</string>
     
@@ -71,5 +72,8 @@
     <string name="nextVisit">Дата прошлого посещения</string>
     
     <string name="chooseAccount">Выберите учетную запись:</string>
+    
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
     
 </resources>

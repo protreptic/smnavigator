@@ -66,6 +66,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
     
     private MainDbHelper mMainDbHelper;
+    private Account mAccount;
     
     /*
      * Specify the code you want to run in the sync adapter. The entire
@@ -74,6 +75,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
      */
     @Override
     public void onPerformSync(final Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
+    	mAccount = account;    	
+    	
     	sendNotification("started", account.name);
     	
     	Timer timer = new Timer("askSender");
@@ -149,8 +152,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		for (StoreStatistics storeStatistic : storeStatistics) {
 			storeStatisticDao.createOrUpdate(storeStatistic);
-			
-			//Log.d("SQL LOG", "id = " + storeStatistic.getId() + " status = " + status);
 		}
 	}
 	
@@ -169,8 +170,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		for (Psr psr : psrs) {
 			psrDao.createOrUpdate(psr);
-			
-			//Log.d("SQL LOG", "id = " + psr.getId() + " status = " + status);
 		}
 	}
 	
@@ -189,9 +188,21 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		for (Route route : routes) {
 			routeDao.createOrUpdate(route);
-			
-			//Log.d("SQL LOG", "id = " + psr.getId() + " status = " + status);
 		}
+	}
+
+	@Override
+	public void onSyncCanceled() {
+		super.onSyncCanceled();
+		
+		sendNotification("canceled", mAccount.name); 
+	}
+
+	@Override
+	public void onSyncCanceled(Thread thread) {
+		super.onSyncCanceled(thread);
+		
+		sendNotification("canceled", mAccount.name); 
 	}
 
 }

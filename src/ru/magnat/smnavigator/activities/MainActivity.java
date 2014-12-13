@@ -16,50 +16,124 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentTabHost;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
 import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity {
 	
-	private FragmentTabHost mTabHost;
+	//private FragmentTabHost mTabHost;
 	
 	private MenuItem mSyncItem;
 	
+    private DrawerLayout mDrawerLayout;
+    private ListView mDrawerList;
+
+    private String[] mPlanetTitles = new String[] { "Карта", "Торговые агенты", "Магазины" };
+	
 	@Override
-	protected void onCreate(Bundle bundle) {
-		super.onCreate(bundle); 
-		
-		setContentView(R.layout.fragment_tab_host);
-		
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState); 
+
+        setContentView(R.layout.activity_main2);
+
 		AccountHelper accountHelper = AccountHelper.getInstance(this);
 		
 		Account account = accountHelper.getCurrentAccount();
 		
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerList = (ListView) findViewById(R.id.left_drawer);
+
+        // set a custom shadow that overlays the main content when the drawer opens
+        mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
+        // set up the drawer's list view with items and click listener
+        mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, mPlanetTitles));
+        mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+
+        // enable ActionBar app icon to behave as action to toggle nav drawer
+        getActionBar().setDisplayHomeAsUpEnabled(false);
+        getActionBar().setHomeButtonEnabled(false);
 		getActionBar().setTitle(account.name); 
 		getActionBar().setSubtitle(account.type); 
 		getActionBar().setIcon(getResources().getDrawable(R.drawable.ic_action_view_as_grid)); 
+
+        if (savedInstanceState == null) {
+            selectItem(0);
+        }
 		
-		mTabHost = (FragmentTabHost) findViewById(android.R.id.tabhost);
-        mTabHost.setup(this, getSupportFragmentManager(), android.R.id.tabcontent);
-        
-        mTabHost.addTab(mTabHost.newTabSpec("map").setIndicator(getString(R.string.titleMap), null), MapFragment.class, null); 
-        mTabHost.addTab(mTabHost.newTabSpec("psrs").setIndicator(getString(R.string.titlePsrs), null), PsrListFragment.class, null);
-        mTabHost.addTab(mTabHost.newTabSpec("stores").setIndicator(getString(R.string.titleStores), null), StoreListFragment.class, null);
-        
 		// register receivers
 		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 
 	}
+
+    private class DrawerItemClickListener implements ListView.OnItemClickListener {
+    	
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            selectItem(position);
+        }
+        
+    }
 	
+    private MapFragment mMapFragment;
+    private PsrListFragment mPsrListFragment;
+    private StoreListFragment mStoreListFragment;
+    
+    private void selectItem(int position) {
+        // update the main content by replacing fragments
+        Fragment fragment = null;
+        
+        switch (position) {
+			case 0: {
+				if (mMapFragment == null) {
+					mMapFragment = new MapFragment();
+				}
+				
+				fragment = mMapFragment;
+			} break;
+			case 1: {
+				if (mPsrListFragment == null) {
+					mPsrListFragment = new PsrListFragment();
+				}
+				
+				fragment = mPsrListFragment;
+			} break;
+			case 2: {
+				if (mStoreListFragment == null) {
+					mStoreListFragment = new StoreListFragment();
+				}
+				
+				fragment = mStoreListFragment;
+			} break;
+
+			default: {
+				return;
+			}
+		}
+        
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
+
+        // update selected item and title, then close the drawer
+        mDrawerList.setItemChecked(position, true);
+        mDrawerLayout.closeDrawer(mDrawerList);
+    }
+    
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
@@ -112,6 +186,8 @@ public class MainActivity extends FragmentActivity {
 	
 	private BroadcastReceiver mSyncReceiver = new BroadcastReceiver() {
 		
+		private static final String TAG = "SYNCHRONIZATION";
+		
 	    @Override
 	    public void onReceive(Context context, Intent intent) {
 	        if(intent.getAction().equals(ACTION_SYNC) && intent.getStringExtra("account").equals(AccountHelper.getInstance(getBaseContext()).getCurrentAccount().name)) { 
@@ -120,7 +196,7 @@ public class MainActivity extends FragmentActivity {
 	            String action = intent.getStringExtra("action");
 	            
 	            if (action.equals("started") && mSyncItem != null) {
-	            	Log.d("", "sync started");
+	            	Log.d(TAG, "sync:started->" + intent.getStringExtra("account"));
 	            	
 	    			LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 	    			RelativeLayout view = (RelativeLayout) inflater.inflate(R.layout.animated_refresh_icon, new LinearLayout(getBaseContext()), false); 
@@ -135,7 +211,7 @@ public class MainActivity extends FragmentActivity {
 	    			mSyncItem.setActionView(view);
 	            }
 	            if (action.equals("ask") && mSyncItem != null) {
-	            	Log.d("", "sync ask");
+	            	Log.d(TAG, "sync:ask->" + intent.getStringExtra("account"));
 	            	
 	    			LayoutInflater inflater = (LayoutInflater) getBaseContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 	    			RelativeLayout view = (RelativeLayout) inflater.inflate(R.layout.animated_refresh_icon, new LinearLayout(getBaseContext()), false); 
@@ -148,7 +224,8 @@ public class MainActivity extends FragmentActivity {
 	    		    }
 	            }
 	            if (action.equals("completed") && mSyncItem != null && mSyncItem.getActionView() != null) {
-	            	Log.d("", "sync completed"); Toast.makeText(getBaseContext(), getResources().getString(R.string.syncSuccess), Toast.LENGTH_LONG).show(); 
+	            	Log.d(TAG, "sync:completed->" + intent.getStringExtra("account")); 
+	            	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncSuccess), Toast.LENGTH_LONG).show(); 
 	            	
 	    			mSyncItem.getActionView().clearAnimation();
 	    			mSyncItem.setActionView(null);
@@ -157,11 +234,17 @@ public class MainActivity extends FragmentActivity {
 	    			
 	    			mSyncItem.setIcon(getResources().getDrawable(R.drawable.ic_action_refresh_ok));
 	    			mSyncItem.setTitle(getResources().getString(R.string.syncLastSuccessAttempt) + " " + dateFormat.format(new Date(System.currentTimeMillis()))); 
-	            
-	    			//mLocationHelper.updateOverlays();
+	            }
+	            if (action.equals("canceled") && mSyncItem != null && mSyncItem.getActionView() != null) {
+	            	Log.d(TAG, "sync:canceled->" + intent.getStringExtra("account"));  
+	            	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncCanceled), Toast.LENGTH_LONG).show();	
+	            	
+	    			mSyncItem.getActionView().clearAnimation();
+	    			mSyncItem.setActionView(null);
 	            }
 	            if (action.equals("error") && mSyncItem != null && mSyncItem.getActionView() != null) {
-	            	Log.d("", "sync error"); Toast.makeText(getBaseContext(), getResources().getString(R.string.syncError), Toast.LENGTH_LONG).show();	
+	            	Log.d(TAG, "sync:error->" + intent.getStringExtra("account"));  
+	            	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncError), Toast.LENGTH_LONG).show();	
 	            	
 	    			mSyncItem.getActionView().clearAnimation();
 	    			mSyncItem.setActionView(null);

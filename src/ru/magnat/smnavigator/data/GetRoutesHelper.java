@@ -9,7 +9,6 @@ import java.util.List;
 
 import ru.magnat.smnavigator.model.Route;
 import android.util.JsonReader;
-import android.util.Log;
 
 public class GetRoutesHelper {
 	
@@ -31,8 +30,6 @@ public class GetRoutesHelper {
 	    	routes.add(readRoute(reader));
 	    }
 	    reader.endArray();
-	    
-	    Log.d("", "Route = " + routes.size()); 
 	    
 	    return routes;
 	}

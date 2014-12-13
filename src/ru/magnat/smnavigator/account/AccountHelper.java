@@ -59,7 +59,7 @@ public class AccountHelper {
 		return new AccountListAdapter();
 	}
 	
-	public static AccountHelper getInstance(Context context) {
+	public synchronized static AccountHelper getInstance(Context context) {
 		if (sInstance == null) {
 			sInstance = new AccountHelper(context);
 		}

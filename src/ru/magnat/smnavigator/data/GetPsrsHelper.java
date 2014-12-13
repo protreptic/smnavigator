@@ -8,7 +8,6 @@ import java.util.List;
 
 import ru.magnat.smnavigator.model.Psr;
 import android.util.JsonReader;
-import android.util.Log;
 
 public class GetPsrsHelper {
 	
@@ -30,8 +29,6 @@ public class GetPsrsHelper {
 	    	psrs.add(readPsr(reader));
 	    }
 	    reader.endArray();
-	    
-	    Log.d("", "Psr = " + psrs.size()); 
 	    
 	    return psrs;
 	}
