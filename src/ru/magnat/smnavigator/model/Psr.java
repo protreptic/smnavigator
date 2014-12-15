@@ -19,6 +19,9 @@ public class Psr implements Mappable {
 	@DatabaseField(columnName = "project")
 	private String project;
 	
+	@DatabaseField(columnName = "email")
+	private String email;
+	
 	@DatabaseField(columnName = "tel")
 	private String tel;
 	
@@ -100,6 +103,14 @@ public class Psr implements Mappable {
 
 	public void setLongitude(Double longitude) {
 		this.longitude = longitude;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
 	}
 	
 }

@@ -1,25 +1,29 @@
 package ru.magnat.smnavigator.model;
 
-import ru.magnat.smnavigator.entities.Mappable;
-
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "manager")
-public class Manager implements Mappable {
+public class Manager {
 	
 	@DatabaseField(columnName = "id", id = true)
 	private Integer id;
-	
+	 
 	@DatabaseField(columnName = "name")
 	private String name;
-	
-	@DatabaseField(columnName = "latitude")
-	private Double latitude;
-	
-	@DatabaseField(columnName = "longitude")
-	private Double longitude;
 
+	@DatabaseField(columnName = "email")
+	private String email;
+	
+	@DatabaseField(columnName = "tel")
+	private String tel;
+	
+	@DatabaseField(columnName = "branch")
+	private Integer branch;
+	
+	@DatabaseField(columnName = "department")
+	private Integer department;
+	
 	public Integer getId() {
 		return id;
 	}
@@ -36,20 +40,36 @@ public class Manager implements Mappable {
 		this.name = name;
 	}
 
-	public Double getLatitude() {
-		return latitude;
+	public String getEmail() {
+		return email;
 	}
 
-	public void setLatitude(Double latitude) {
-		this.latitude = latitude;
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
-	public Double getLongitude() {
-		return longitude;
+	public String getTel() {
+		return tel;
 	}
 
-	public void setLongitude(Double longitude) {
-		this.longitude = longitude;
+	public void setTel(String tel) {
+		this.tel = tel;
+	}
+
+	public Integer getBranch() {
+		return branch;
+	}
+
+	public void setBranch(Integer branch) {
+		this.branch = branch;
+	}
+
+	public Integer getDepartment() {
+		return department;
+	}
+
+	public void setDepartment(Integer department) {
+		this.department = department;
 	}
 	
 }

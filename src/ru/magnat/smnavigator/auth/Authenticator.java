@@ -23,12 +23,14 @@ public class Authenticator extends AbstractAccountAuthenticator {
 	
 	private Context mContext;
 	private AccountManager mAccountManager;
-		
+	private String mAuthUrl;	
+	
 	public Authenticator(Context context) {
 		super(context);
 		
 		mContext = context;
 		mAccountManager = AccountManager.get(context);
+		mAuthUrl = "http://" + mContext.getString(R.string.syncServer) + "/sm_auth?login=%s&password=%s";
 	}
 
 	@Override
@@ -42,11 +44,11 @@ public class Authenticator extends AbstractAccountAuthenticator {
         return bundle;
 	}
 
-    private String authenticate(String login, String password) {
+    static String authenticate(String authUrl, String login, String password) {
     	String token = null;
     	
     	try {
-    		URL url = new URL("http://" + mContext.getString(R.string.syncServer) + "/sm_auth?login=" + login + "&password=" + password);
+    		URL url = new URL(String.format(authUrl, login, password));
     		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 
     		List<AccountWrapper> accounts = new GetAccountHelper().readJsonStream(urlConnection.getInputStream());
@@ -80,7 +82,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
         // the server for an appropriate AuthToken.
         final String password = mAccountManager.getPassword(account);
         if (password != null) {
-            final String authToken = authenticate(account.name, password); 
+            final String authToken = authenticate(mAuthUrl, account.name, password); 
             if (!TextUtils.isEmpty(authToken)) {
                 final Bundle result = new Bundle();
                 result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
