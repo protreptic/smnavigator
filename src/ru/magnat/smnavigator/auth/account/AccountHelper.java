@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.account;
+package ru.magnat.smnavigator.auth.account;
 
 import java.util.ArrayList;
 import java.util.List;

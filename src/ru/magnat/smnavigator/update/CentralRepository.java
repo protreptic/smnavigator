@@ -17,18 +17,23 @@ import android.util.Log;
 public class CentralRepository {
 	
 	private Context mContext;
+	
+	private String mSessionToken;
 	private String mPackageName;
 	private RepositoryArtifactReader mArtifactReader;
 	private List<Artifact> mArtifacts = new ArrayList<Artifact>();
 	
-	public CentralRepository(Context context, String packageName) {
+	public CentralRepository(Context context, String sessionToken, String packageName) {
 		mContext = context;
+		
 		mPackageName = packageName;
+		mSessionToken = sessionToken;
+		
 		mArtifactReader = new RepositoryArtifactReader();
 	}
 	
 	public void update() {
-		mArtifacts = mArtifactReader.fetchRepository(mPackageName);
+		mArtifacts = mArtifactReader.fetchRepository(mSessionToken, mPackageName);
 	}
 	
 	public void clear() {
@@ -48,14 +53,14 @@ public class CentralRepository {
 		
 		private static final String TAG = "CENTRAL_REPOSITORY_READER";
 		
-		public List<Artifact> fetchRepository(String packageName) {
-			if (TextUtils.isEmpty(packageName))
+		public List<Artifact> fetchRepository(String sessionToken, String packageName) {
+			if (TextUtils.isEmpty(sessionToken) || TextUtils.isEmpty(packageName))
 				throw new IllegalArgumentException();
 			
 			List<Artifact> artifacts = new ArrayList<Artifact>();
 			
 			try {
-				URL url = new URL("http://" + mContext.getResources().getString(R.string.syncServer) + "/sm_checkUpdates?package=" + packageName);
+				URL url = new URL("http://" + mContext.getResources().getString(R.string.syncServer) + "/sm_checkUpdates?token=" + sessionToken + "&package=" + packageName);
 				HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 
 				artifacts = readJsonStream(urlConnection.getInputStream());
@@ -101,6 +106,8 @@ public class CentralRepository {
 		    	
 		    	if (name.equals("artifactId")) {
 		    		artifact.setArtifactId(reader.nextString());
+		    	} else if (name.equals("artifactName")) {
+		    		artifact.setArtifactName(reader.nextString());
 		    	} else if (name.equals("package")) {
 		    		artifact.setPackageName(reader.nextString());
 		    	} else if (name.equals("description")) {

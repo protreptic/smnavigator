@@ -3,8 +3,8 @@ package ru.magnat.smnavigator.activities;
 import java.io.IOException;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.account.AccountHelper;
-import ru.magnat.smnavigator.account.AccountWrapper;
+import ru.magnat.smnavigator.auth.account.AccountHelper;
+import ru.magnat.smnavigator.auth.account.AccountWrapper;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;

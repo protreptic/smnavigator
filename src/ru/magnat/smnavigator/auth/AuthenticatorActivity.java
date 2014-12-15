@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.account.AccountWrapper;
+import ru.magnat.smnavigator.auth.account.AccountWrapper;
 import ru.magnat.smnavigator.data.GetAccountHelper;
 import ru.magnat.smnavigator.util.Fonts;
 import android.accounts.Account;
@@ -169,12 +169,12 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
         	String token = null;
         	
         	try {
-        		URL url = new URL("http://" + getResources().getString(R.string.syncServer) + "/sm_Auth?login=" + login + "&password=" + password);
+        		URL url = new URL("http://" + getResources().getString(R.string.syncServer) + "/sm_auth?login=" + login + "&password=" + password);
         		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 
-        		List<ru.magnat.smnavigator.account.AccountWrapper> accounts = new GetAccountHelper().readJsonStream(urlConnection.getInputStream());
+        		List<AccountWrapper> accounts = new GetAccountHelper().readJsonStream(urlConnection.getInputStream());
         		
-        		for (ru.magnat.smnavigator.account.AccountWrapper account : accounts) {
+        		for (AccountWrapper account : accounts) {
 					token = account.getToken();
 				}
         		

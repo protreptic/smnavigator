@@ -1,16 +1,22 @@
 package ru.magnat.smnavigator.activities;
 
+import java.io.IOException;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.account.AccountHelper;
-import ru.magnat.smnavigator.account.AccountWrapper;
+import ru.magnat.smnavigator.auth.account.AccountHelper;
+import ru.magnat.smnavigator.auth.account.AccountWrapper;
 import ru.magnat.smnavigator.fragments.MapFragment;
 import ru.magnat.smnavigator.fragments.PsrListFragment;
 import ru.magnat.smnavigator.fragments.StoreListFragment;
 import ru.magnat.smnavigator.update.CentralRepository;
 import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -45,19 +51,15 @@ public class MainActivity extends FragmentActivity {
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
 
-    private String[] mPlanetTitles;
-	
+    private AccountHelper mAccountHelper;
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState); 
 
         setContentView(R.layout.activity_main2);
 
-		AccountHelper accountHelper = AccountHelper.getInstance(this);
-		
-		Account account = accountHelper.getCurrentAccount();
-		
-		mPlanetTitles = new String[] { getString(R.string.titleMap), getString(R.string.titlePsrs), getString(R.string.titleStores) };
+        mAccountHelper = AccountHelper.getInstance(this);
 		
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
@@ -65,14 +67,14 @@ public class MainActivity extends FragmentActivity {
         // set a custom shadow that overlays the main content when the drawer opens
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
         // set up the drawer's list view with items and click listener
-        mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, mPlanetTitles));
+        mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, new String[] { getString(R.string.titleMap), getString(R.string.titlePsrs), getString(R.string.titleStores) }));
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
         // enable ActionBar app icon to behave as action to toggle nav drawer
         getActionBar().setDisplayHomeAsUpEnabled(false);
         getActionBar().setHomeButtonEnabled(false);
-		getActionBar().setTitle(account.name); 
-		getActionBar().setSubtitle(account.type); 
+		getActionBar().setTitle(mAccountHelper.getCurrentAccount().name); 
+		getActionBar().setSubtitle(mAccountHelper.getCurrentAccount().type); 
 		getActionBar().setIcon(getResources().getDrawable(R.drawable.ic_action_view_as_grid)); 
 
         if (savedInstanceState == null) {
@@ -82,17 +84,40 @@ public class MainActivity extends FragmentActivity {
 		// register receivers
 		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 
 		
-		new AsyncTask<Void, Void, Void>() {
-
+		AccountManager accountManager = AccountManager.get(getBaseContext());
+		accountManager.invalidateAuthToken(AccountWrapper.ACCOUNT_TYPE, null); 
+		accountManager.getAuthToken(mAccountHelper.getCurrentAccount(), AccountWrapper.ACCOUNT_TYPE, null, getParent(), new AccountManagerCallback<Bundle>() {
+			 
 			@Override
-			protected Void doInBackground(Void... params) {
-				CentralRepository centralRepository = new CentralRepository(getBaseContext(), getPackageName()); 
-				
-				centralRepository.update();
-				
-				return null;
+			public void run(AccountManagerFuture<Bundle> future) {
+				try {
+					Bundle bundle = future.getResult();
+					
+					final String sessionToken = bundle.getString(AccountManager.KEY_AUTHTOKEN);
+					final String packageName = getPackageName();
+					
+					new AsyncTask<Void, Void, Void>() {
+
+						@Override
+						protected Void doInBackground(Void... params) {
+							CentralRepository centralRepository = new CentralRepository(getBaseContext(), sessionToken, packageName); 
+							
+							centralRepository.update();
+							
+							return null;
+						}
+					}.execute(); 
+				} catch (OperationCanceledException e) {
+					e.printStackTrace();
+				} catch (AuthenticatorException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
-		}.execute(); 
+		}, null);
+		
+
 	}
 
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
