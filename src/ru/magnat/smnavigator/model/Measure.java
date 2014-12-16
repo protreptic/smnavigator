@@ -6,7 +6,7 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "store_statistics")
-public class StoreStatistics {
+public class Measure {
 	
 	@DatabaseField(columnName = "id", id = true)
 	private Integer id;
@@ -29,6 +29,9 @@ public class StoreStatistics {
 	@DatabaseField(columnName = "golden_distribution")
 	private Double goldenDistribution;
 
+	@DatabaseField(columnName = "golden_status")
+	private String goldenStatus;
+	
 	public Integer getId() {
 		return id;
 	}
@@ -83,6 +86,14 @@ public class StoreStatistics {
 
 	public void setGoldenDistribution(Double goldenDistribution) {
 		this.goldenDistribution = goldenDistribution;
+	}
+	
+	public String getGoldenStatus() {
+		return goldenStatus;
+	}
+
+	public void setGoldenStatus(String goldenStatus) {
+		this.goldenStatus = goldenStatus;
 	}
 	
 }

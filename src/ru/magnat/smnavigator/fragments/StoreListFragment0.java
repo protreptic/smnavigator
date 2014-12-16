@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.model.Store;
-import ru.magnat.smnavigator.model.StoreStatistics;
+import ru.magnat.smnavigator.model.Measure;
 import ru.magnat.smnavigator.view.StoreView;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -36,7 +36,7 @@ public class StoreListFragment0 extends ListFragment implements OnScrollListener
 	private MyAdapter mListAdapter;
 	private Dao<Store, String> mStoreDao;
 	private List<Store> mGroupData = new ArrayList<Store>();
-	private List<List<StoreStatistics>> mChildData = new ArrayList<List<StoreStatistics>>();
+	private List<List<Measure>> mChildData = new ArrayList<List<Measure>>();
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {

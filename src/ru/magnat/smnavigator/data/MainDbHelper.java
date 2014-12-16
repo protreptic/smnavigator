@@ -12,7 +12,7 @@ import ru.magnat.smnavigator.map.geofence.Geofenceable;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.model.Store;
-import ru.magnat.smnavigator.model.StoreStatistics;
+import ru.magnat.smnavigator.model.Measure;
 import ru.magnat.smnavigator.util.Apps;
 import android.accounts.Account;
 import android.content.Context;
@@ -116,7 +116,7 @@ public class MainDbHelper {
 	}
 	
 	private Dao<Store, String> mStoreDao;
-	private Dao<StoreStatistics, String> mStoreStatisticsDao;
+	private Dao<Measure, String> mMeasureDao;
 	private Dao<Psr, String> mPsrDao;
 	private Dao<Route, String> mRouteDao;
 	private Dao<Geofenceable, String> mGeoregionDao;
@@ -134,7 +134,7 @@ public class MainDbHelper {
 			mConnectionSource = new JdbcPooledConnectionSource(DB_URL); 
 			
 			mStoreDao = DaoManager.createDao(mConnectionSource, Store.class);
-			mStoreStatisticsDao = DaoManager.createDao(mConnectionSource, StoreStatistics.class);
+			mMeasureDao = DaoManager.createDao(mConnectionSource, Measure.class);
 			mPsrDao = DaoManager.createDao(mConnectionSource, Psr.class);
 			mRouteDao = DaoManager.createDao(mConnectionSource, Route.class);
 			mGeoregionDao = DaoManager.createDao(mConnectionSource, Geofenceable.class);
@@ -161,7 +161,7 @@ public class MainDbHelper {
 	public void log() {
 		try {
 			Log.d("SQL LOG", "count of stores " + mStoreDao.countOf());
-			Log.d("SQL LOG", "count of stores statistics " + mStoreStatisticsDao.countOf());
+			Log.d("SQL LOG", "count of stores statistics " + mMeasureDao.countOf());
 			Log.d("SQL LOG", "count of psrs " + mPsrDao.countOf());
 			Log.d("SQL LOG", "count of routes " + mRouteDao.countOf());
 		} catch (SQLException e) {
@@ -173,8 +173,8 @@ public class MainDbHelper {
 		return mStoreDao;
 	}
 
-	public Dao<StoreStatistics, String> getStoreStatisticsDao() {
-		return mStoreStatisticsDao;
+	public Dao<Measure, String> getMeasureDao() {
+		return mMeasureDao;
 	}
 	
 	public Dao<Psr, String> getPsrDao() {

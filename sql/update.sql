@@ -5,6 +5,37 @@
 drop domain "sm_token";
 create domain "sm_token" as nvarchar(32);
 
+/*
+    
+*/
+drop domain "ShortString";
+create domain "ShortString" as nvarchar(255);
+
+/* Функция интерпретирует числовое значение типа покрытия */
+create or replace function "sm_explainCoverageType" ("coverageType" integer) returns "ShortString" 
+begin
+    declare "explanation" "ShortString";
+    
+    case "coverageType"
+       when 0 then
+          set "explanation" = '0'
+       when 1 then
+          set "explanation" = '1'
+       when 2 then
+          set "explanation" = '2'
+       when 3 then
+          set "explanation" = '3'
+       when 4 then
+          set "explanation" = '4'
+       else
+          set "explanation" = 'UNKNOWN'
+    end case;     
+
+    return "explanation";
+end;
+comment on procedure "sm_explainCoverageType" is '
+    Функция интерпретирует числовое значение типа покрытия';
+
 /* Функция генерирует новый токен по алгоритму MD5 */
 create or replace function "sm_generateToken" () returns sm_token 
 begin
@@ -21,7 +52,7 @@ comment on procedure "sm_generateToken" is '
 create or replace procedure "sm_authenticate" ("login" nvarchar(255), "password" nvarchar(255))
     result ("token" sm_token, "expiration" datetime)
 begin
-    update "RefUser" a set a."sessionToken" = "sm_generateToken"(), a."sessionExpiration" = dateadd(hour, 1, now()) where a."wi_login" = "login" and a."wi_password" = "password"; 
+    update "RefUser" a set a."sessionToken" = "sm_generateToken"(), a."sessionExpiration" = dateadd(hour, 5, now()) where a."wi_login" = "login" and a."wi_password" = "password"; 
 	
     select a."sessionToken", a."sessionExpiration" from "RefUser" a where a."wi_login" = "login" and a."wi_password" = "password";
 end;
@@ -56,8 +87,6 @@ begin
     else
         set "tokenStatus" = 100;
         set "tokenStatusDescription" = 'TOKEN_ACCEPTED';        
-
-        call sa_set_http_header('@HttpStatus', '200');
     endif;
     
     call sa_set_http_header('Server', null);
@@ -69,7 +98,8 @@ begin
 
     return "tokenStatus";
 end;
-comment on procedure "sm_validateToken" is '';
+comment on procedure "sm_validateToken" is '
+    Процедура валидации токена';
 
 /*
     Таблица для хранения артифактов репозитория обновления
@@ -143,7 +173,7 @@ begin
 			
         	call sa_set_http_header('Content-Type', 'application/vnd.android.package-archive');     
         	call sa_set_http_header('Content-Disposition', 'attachment; filename="' || string("appName", '-', "versionName", '.apk') || '"');
-			call sa_set_http_header('Checksum', "checksum");        
+			call sa_set_http_header('Checksum', "checksum"); // если null, то заголовок не будет установлен     
 
         	select a."data" from "sm_release" a where a."artifact_id" = "artifactId";
 		else 
@@ -230,30 +260,26 @@ create service "sm_getManager"
     as call "sm_getManager" (:token);
 
 /*
-        
+    Возвращает филиал пользователя которому принадлежит токен переданный в запросе
 */
 create or replace procedure "sm_getBranch" ("token" sm_token) 
     result ("id" integer, "name" nvarchar(255))
 begin
     if ("sm_validateToken" ("token") >= 0) then
         select
-            d."Id",
-            d."Descr"
+            b."Id",     // идентификатор филиала
+            b."Descr"   // наименование филиала
         from     
-            "RefUser" a
-            join "RefUsersEmployee" b 
-                on a."Id" = b."ParentExt"
-            join "RefEmployee" c 
-                on b."Employee" = c."Id"
-            join "RefBranch" d 
-                on c."Branch" = d."Id"
-        where
-            a."sessionToken" = "token"
+            "sm_getManager" ("token") a
+            join "RefBranch" b 
+                on b."Id" = a."branch"
     endif;
 end;
+comment on procedure "sm_getBranch" is '
+    Возвращает филиал пользователя которому принадлежит токен переданный в запросе';
 
 /*
-        
+    Возвращает филиал пользователя которому принадлежит токен переданный в запросе        
 */
 drop service "sm_getBranch";
 create service "sm_getBranch" 
@@ -263,6 +289,8 @@ create service "sm_getBranch"
     user dba
     methods 'GET,POST'
     as call "sm_getBranch" (:token);
+comment on service "sm_getBranch" is '
+    Возвращает филиал пользователя которому принадлежит токен переданный в запросе';
 
 /*
         
@@ -272,18 +300,12 @@ create or replace procedure "sm_getDepartment" ("token" sm_token)
 begin
     if ("sm_validateToken" ("token") >= 0) then
         select
-            d."Id",
-            d."Descr"
+            b."Id",     // идентификатор департамента
+            b."Descr"   // наименование департамента
         from     
-            "RefUser" a
-            join "RefUsersEmployee" b 
-                on a."Id" = b."ParentExt"
-            join "RefEmployee" c 
-                on b."Employee" = c."Id"
-            join "RefDepartment" d 
-                on c."Department" = d."Id"
-        where
-            a."sessionToken" = "token"
+            "sm_getManager" ("token") a
+            join "RefDepartment" b 
+                on b."Id" = a."department"
     endif;
 end;
 
@@ -308,37 +330,16 @@ begin
     declare "department_id" integer;
 
     if ("sm_validateToken" ("token") >= 0) then    
-        select d."Id" into "department_id"
-        from     
-            "RefUser" a
-            join "RefUsersEmployee" b 
-                on a."Id" = b."ParentExt"
-            join "RefEmployee" c 
-                on b."Employee" = c."Id"
-            join "RefDepartment" d 
-                on c."Department" = d."Id"
-        where a."sessionToken" = "token";
-        
         select 
-            a."Id",
-            a."Descr",
-            c."Descr",
-            c."Email",
-            c."Phone",
-            d."Id",
-            e."Id"
+            d."Id", d."Descr", b."Descr", b."Email", b."Phone", b."Branch", b."Department"
         from     
-            "RefUser" a
-            join "RefUsersEmployee" b 
-                on a."Id" = b."ParentExt"
-            join "RefEmployee" c 
-                on b."Employee" = c."Id"
-            join "RefDepartment" d 
-                on c."Department" = d."Id"
-            join "RefBranch" e
-                on c."Branch" = e."Id"
-        where
-            c."Department" = "department_id";
+            "sm_getDepartment" ("token") a
+             join "RefEmployee" b 
+                on b."Department" = a."id"
+             join "RefUsersEmployee" c 
+                on c."Employee" = b."Id"
+             join "RefUser" d 
+                on d."Id" = c."ParentExt"
     endif;
 end;
 
@@ -353,3 +354,112 @@ create service "sm_getPsr"
     user dba
     methods 'GET,POST'
     as call "sm_getPsr" (:token);
+
+/*
+        
+*/
+create or replace procedure "sm_getRoute" ("token" sm_token) 
+    result ("id" integer, "visitDate" nvarchar(255), "psr" integer, "store" integer)
+begin
+    if ("sm_validateToken" ("token") >= 0) then    
+        select 
+            b."Id", b."StartDate", a."id", b."Outlet" 
+        from "sm_getPsr" ("token") a 
+            join "TaskVisitJournal" b 
+                on b."Author" = a."id" 
+        where datediff(day, b."StartDate", now()) = 0;
+    endif;
+end;
+
+/*
+        
+*/
+drop service "sm_getRoute";
+create service "sm_getRoute" 
+    type 'json'
+    authorization off
+    secure off
+    user dba
+    methods 'GET,POST'
+    as call "sm_getRoute" (:token);
+
+/*
+        
+*/
+create or replace procedure "sm_getStore" ("token" sm_token) 
+    result (
+        "id" integer, "name" nvarchar(255), "customer" nvarchar(255), 
+        "address" nvarchar(255), "tel" nvarchar(255), "channel" nvarchar(255), 
+        "coverageType" nvarchar(255), "latitude" double, "longitude" double)
+begin
+    if ("sm_validateToken" ("token") >= 0) then    
+        select distinct
+            b."Id", b."Descr", c."Descr", 
+            b."Address", e."Phone", d."Descr",
+            "sm_explainCoverageType" (c."CoverageType"),
+            b."LocationLat", b."LocationLon"
+        from
+            "sm_getRoute" ("token") a 
+            join "RefOutlet" b 
+                on b."Id" = a."store"
+            join "RefCustomer" c
+                on c."Id" = b."ParentExt"
+            join "RefStoreChannel" d
+                on d."Id" = b."Channel"
+            left join "RefContact" e
+                on e."Id" = c."Contact" 
+    endif;
+end;
+
+/*
+        
+*/
+drop service "sm_getStore";
+create service "sm_getStore" 
+    type 'json'
+    authorization off
+    secure off
+    user dba
+    methods 'GET,POST'
+    as call "sm_getStore" (:token);
+
+/*
+        
+*/
+create or replace procedure "sm_getMeasure" ("token" sm_token) 
+    result (
+        "id" integer, "lastVisit" nvarchar(255), "nextVisit" nvarchar(255), 
+        "turnoverPreviousMonth" double, "turnoverCurrentMonth" double,
+        "totalDistribution" double, "goldenDistribution" double, "goldenStatus" nvarchar(255), "frequencyOfVisits" integer)
+begin
+    if ("sm_validateToken" ("token") >= 0) then    
+        select
+            b."id", // идентификатор точки
+            null,   // дата последнего визита
+            null,   // дата следующего визита
+            0,  // товарооборот текущего месяца
+            0,  // товарооборот предыдущего месяца
+            0,  // ОПД
+            0,  // ЗПД
+            c."Descr",  // "золотой" статус точки
+            0           // частота посещения
+        from
+            "sm_getStore" ("token") a 
+            join "RefOutlet" b 
+                on b."Id" = a."id"
+            left join "RefStoreType" c
+                on c."Id" = b.StoreType; 
+    endif;
+end;
+
+/*
+    
+*/
+drop service "sm_getMeasure";
+create service "sm_getMeasure" 
+    type 'json'
+    authorization off
+    secure off
+    user dba
+    methods 'GET,POST'
+    as call "sm_getMeasure" (:token);

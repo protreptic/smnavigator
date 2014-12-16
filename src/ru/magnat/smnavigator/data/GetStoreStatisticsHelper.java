@@ -7,12 +7,12 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
-import ru.magnat.smnavigator.model.StoreStatistics;
+import ru.magnat.smnavigator.model.Measure;
 import android.util.JsonReader;
 
 public class GetStoreStatisticsHelper {
 	
-	public List<StoreStatistics> readJsonStream(InputStream in) throws IOException {
+	public List<Measure> readJsonStream(InputStream in) throws IOException {
 	     JsonReader reader = new JsonReader(new InputStreamReader(in, "UTF-8"));
 	     
 	     try {
@@ -22,8 +22,8 @@ public class GetStoreStatisticsHelper {
 	     }
 	}
 
-	public List<StoreStatistics> readStoresArray(JsonReader reader) throws IOException {
-		List<StoreStatistics> storeStatistics = new ArrayList<StoreStatistics>();
+	public List<Measure> readStoresArray(JsonReader reader) throws IOException {
+		List<Measure> storeStatistics = new ArrayList<Measure>();
 
 	    reader.beginArray();
 	    while (reader.hasNext()) {
@@ -34,8 +34,8 @@ public class GetStoreStatisticsHelper {
 	    return storeStatistics;
 	}
 
-	public StoreStatistics readStoreStatistics(JsonReader reader) throws IOException {
-		StoreStatistics storeStatistics = new StoreStatistics();
+	public Measure readStoreStatistics(JsonReader reader) throws IOException {
+		Measure storeStatistics = new Measure();
 
 	    reader.beginObject();
 	    while (reader.hasNext()) {

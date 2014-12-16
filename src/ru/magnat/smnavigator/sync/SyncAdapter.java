@@ -19,7 +19,7 @@ import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.model.Store;
-import ru.magnat.smnavigator.model.StoreStatistics;
+import ru.magnat.smnavigator.model.Measure;
 import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
@@ -141,17 +141,17 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_getStoreStatistics");
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 
-		List<StoreStatistics> storeStatistics = new GetStoreStatisticsHelper().readJsonStream(urlConnection.getInputStream());
+		List<Measure> measures = new GetStoreStatisticsHelper().readJsonStream(urlConnection.getInputStream());
 		
 		urlConnection.disconnect();
 		
-		Dao<StoreStatistics, String> storeStatisticDao = mMainDbHelper.getStoreStatisticsDao();
-		storeStatisticDao.setObjectCache(false); 
+		Dao<Measure, String> measureDao = mMainDbHelper.getMeasureDao();
+		measureDao.setObjectCache(false); 
 		
-		storeStatisticDao.delete(storeStatisticDao.queryForAll());
+		measureDao.delete(measureDao.queryForAll());
 		
-		for (StoreStatistics storeStatistic : storeStatistics) {
-			storeStatisticDao.createOrUpdate(storeStatistic);
+		for (Measure measure : measures) {
+			measureDao.createOrUpdate(measure);
 		}
 	}
 	

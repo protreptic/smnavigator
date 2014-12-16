@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.model.Store;
-import ru.magnat.smnavigator.model.StoreStatistics;
+import ru.magnat.smnavigator.model.Measure;
 import ru.magnat.smnavigator.util.DateUtils;
 import ru.magnat.smnavigator.view.StoreStatisticsView;
 import ru.magnat.smnavigator.view.StoreView;
@@ -36,16 +36,16 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 	private MainDbHelper mDbHelper;
 	private MyAdapter mAdapter;
 	private Dao<Store, String> mStoreDao;
-	private Dao<StoreStatistics, String> mStoreStatisticsDao;
+	private Dao<Measure, String> mMeasureDao;
 	private List<Store> mGroupData = new ArrayList<Store>();
-	private List<List<StoreStatistics>> mChildData = new ArrayList<List<StoreStatistics>>();
+	private List<List<Measure>> mChildData = new ArrayList<List<Measure>>();
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
 		setHasOptionsMenu(true); 
-	}
+	} 
 	
 	private String mQueryText = "";
 	
@@ -149,14 +149,14 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 				mGroupData.addAll(stores);
 				
 				for (Store store : mGroupData) {
-					StoreStatistics storeStatistics = mStoreStatisticsDao.queryForId(store.getId().toString());
+					Measure measure = mMeasureDao.queryForId(store.getId().toString());
 					
-					List<StoreStatistics> statistics = new ArrayList<StoreStatistics>();
-					if (storeStatistics != null) {
-						statistics.add(storeStatistics);
+					List<Measure> measures = new ArrayList<Measure>();
+					if (measure != null) {
+						measures.add(measure);
 					}
 					
-					mChildData.add(statistics);	
+					mChildData.add(measures);	
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
@@ -187,7 +187,7 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 		
 		public MyAdapter() {
 			mStoreDao = mDbHelper.getStoreDao();
-			mStoreStatisticsDao = mDbHelper.getStoreStatisticsDao();
+			mMeasureDao = mDbHelper.getMeasureDao();
 		}
 		
 		@Override
@@ -212,12 +212,12 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 
 		@Override
 		public long getChildId(int groupPosition, int childPosition) {
-			return ((StoreStatistics) mChildData.get(groupPosition).get(childPosition)).getId();
+			return ((Measure) mChildData.get(groupPosition).get(childPosition)).getId();
 		}
 
 		@Override
 		public Object getChild(int groupPosition, int childPosition) {
-			return (StoreStatistics) mChildData.get(groupPosition).get(childPosition);
+			return (Measure) mChildData.get(groupPosition).get(childPosition);
 		}
  
 		@Override
@@ -227,7 +227,7 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 
 		@Override
 		public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-			StoreStatistics storeStatistics = (StoreStatistics) getChild(groupPosition, childPosition);
+			Measure storeStatistics = (Measure) getChild(groupPosition, childPosition);
 			
 			LinearLayout linearLayout = new LinearLayout(getActivity());
 			linearLayout.setOrientation(LinearLayout.VERTICAL); 

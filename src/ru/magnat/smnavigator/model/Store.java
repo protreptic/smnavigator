@@ -34,9 +34,6 @@ public class Store implements Mappable, Jsonable, Clusterable {
 	@DatabaseField(columnName = "coverage_type")
 	private String coverageType;
 	
-	@DatabaseField(columnName = "golden_status")
-	private String goldenStatus;
-	
 	@DatabaseField(columnName = "psr")
 	private Integer psr;
 	
@@ -100,14 +97,6 @@ public class Store implements Mappable, Jsonable, Clusterable {
 
 	public void setCoverageType(String coverageType) {
 		this.coverageType = coverageType;
-	}
-
-	public String getGoldenStatus() {
-		return goldenStatus;
-	}
-
-	public void setGoldenStatus(String goldenStatus) {
-		this.goldenStatus = goldenStatus;
 	}
 
 	public Integer getPsr() {

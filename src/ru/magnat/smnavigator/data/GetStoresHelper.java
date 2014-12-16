@@ -54,12 +54,6 @@ public class GetStoresHelper {
 	    		store.setChannel(reader.nextString()); 
 	    	} else if (name.equals("coverage_type")) {
 	    		store.setCoverageType(reader.nextString()); 
-	    	} else if (name.equals("golden_status")) {
-	    		store.setGoldenStatus(reader.nextString()); 
-//	    	} else if (name.equals("psr")) {
-//	    		store.setPsr(null); 
-//	    	} else if (name.equals("store_statistics")) {
-//	    		store.setStoreStatistics(null); 
 	    	} else if (name.equals("latitude")) {
 	    		store.setLatitude(reader.nextDouble()); 
 	    	} else if (name.equals("longitude")) {
