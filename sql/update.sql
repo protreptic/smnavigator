@@ -18,15 +18,15 @@ begin
     
     case "coverageType"
        when 0 then
-          set "explanation" = '0'
+          set "explanation" = 'UNKNOWN'
        when 1 then
-          set "explanation" = '1'
+          set "explanation" = 'HFS'
        when 2 then
-          set "explanation" = '2'
+          set "explanation" = 'WHS'
        when 3 then
-          set "explanation" = '3'
+          set "explanation" = 'KBD'
        when 4 then
-          set "explanation" = '4'
+          set "explanation" = 'NA'
        else
           set "explanation" = 'UNKNOWN'
     end case;     
@@ -232,8 +232,8 @@ begin
         select
             a."Id",
             a."Descr",
-            c."Email",
-            c."Phone",
+            ifnull(c."Email",'Нет'),
+            ifnull(c."Phone",'Нет'),
             c."Branch",
             c."Department"
         from     
@@ -331,7 +331,8 @@ begin
 
     if ("sm_validateToken" ("token") >= 0) then    
         select 
-            d."Id", d."Descr", b."Descr", b."Email", b."Phone", b."Branch", b."Department"
+            d."Id", d."Descr", b."Descr", b."Email", 
+            b."Phone", b."Branch", b."Department"
         from     
             "sm_getDepartment" ("token") a
              join "RefEmployee" b 
@@ -340,6 +341,9 @@ begin
                 on c."Employee" = b."Id"
              join "RefUser" d 
                 on d."Id" = c."ParentExt"
+        where
+            d."IsMark" = 0
+            and d."TestUser" = 0
     endif;
 end;
 
@@ -395,9 +399,9 @@ begin
     if ("sm_validateToken" ("token") >= 0) then    
         select distinct
             b."Id", b."Descr", c."Descr", 
-            b."Address", e."Phone", d."Descr",
+            b."Address", ifnull(e."Phone",'Нет'), d."Descr",
             "sm_explainCoverageType" (c."CoverageType"),
-            b."LocationLat", b."LocationLon"
+            ifnull(b."LocationLat",0), ifnull(b."LocationLon",0)
         from
             "sm_getRoute" ("token") a 
             join "RefOutlet" b 
@@ -423,9 +427,86 @@ create service "sm_getStore"
     methods 'GET,POST'
     as call "sm_getStore" (:token);
 
-/*
-        
-*/
+// Возвращает товарооборот точки за прошлый месяц по ее идентификатору
+create or replace function "sm_getTurnoverPreviousMonth" ("store_id" integer) returns double
+begin
+    declare "turnover" double;    
+
+    select sum(a."Shipments") into "turnover" from "RegSales" a where a."Outlet" = "store_id" and datediff(month, dateadd(month, -1, now()), now()) = 1;
+
+    return "turnover";
+end;
+
+// Возвращает товарооборот точки за текущий месяц по ее идентификатору
+create or replace function "sm_getTurnoverCurrentMonth" ("store_id" integer) returns double
+begin
+    declare "turnover" double;    
+
+    select sum(a."Shipments") into "turnover" from "RegSales" a where a."Outlet" = "store_id" and datediff(month, now(), now()) = 0;
+
+    return "turnover";
+end;
+
+// Возвращает товарооборот точки за период по ее идентификатору
+create or replace function "sm_getTurnover" ("store_id" integer, "period" date) returns double
+begin
+    declare "turnover" double;    
+
+    select sum(a."Shipments") into "turnover" from "RegSales" a where a."Outlet" = "store_id" and datediff(month, "period", now()) = 0;
+
+    return "turnover";
+end;
+
+// Возвращает ОПД точки по ее идентификатору
+create or replace function "sm_getTotalDistribution" ("store_id" integer) returns integer
+begin
+    declare "distribution" double;    
+    
+    select count(distinct a."Csku") into "distribution" from "RegSales" a where a."Outlet" = "store_id" and datediff(month, now(), now()) < 3;
+
+    return "distribution";
+end;
+
+// Возвращает ЗПД точки по ее идентификатору
+create or replace function "sm_getGoldenDistribution" ("store_id" integer) returns integer
+begin
+    declare "distribution" double;    
+    
+    select count(distinct a."Csku") into "distribution" from "RegSales" a where a."Outlet" = "store_id" and a."Abc" = 1 and datediff(month, now(), now()) < 3;
+
+    return "distribution";
+end;
+
+// Возвращает частоту посещений точки по ее идентификатору
+create or replace function "sm_getFrequencyOfVisits" ("store_id" integer) returns integer
+begin
+    declare "frequency" integer;    
+    
+    set "frequency" = 0;   
+
+    return "frequency";
+end;
+
+// Возвращает дату последнего визита в точку по ее идентификатору
+create or replace function "sm_getLastVisitDate" ("store_id" integer) returns date
+begin
+    declare "lastVisit" date;    
+    
+    select top 1 a."StartDate" into "lastVisit" from "TaskVisitJournal" a where a."Outlet" = "store_id" and datediff(day, a."StartDate", now()) >= 0 order by a."StartDate" desc; 
+
+    return "lastVisit";
+end;
+
+// Возвращает дату следующего визита в точку по ее идентификатору
+create or replace function "sm_getNextVisitDate" ("store_id" integer) returns date
+begin
+    declare "nextVisit" date;    
+    
+    select top 1 a."StartDate" into "nextVisit" from "TaskVisitJournal" a where a."Outlet" = "store_id" and datediff(day, a."StartDate", now()) < 0 order by a."StartDate" asc;
+
+    return "nextVisit";
+end;
+    
 create or replace procedure "sm_getMeasure" ("token" sm_token) 
     result (
         "id" integer, "lastVisit" nvarchar(255), "nextVisit" nvarchar(255), 
@@ -435,14 +516,14 @@ begin
     if ("sm_validateToken" ("token") >= 0) then    
         select
             b."id", // идентификатор точки
-            null,   // дата последнего визита
-            null,   // дата следующего визита
-            0,  // товарооборот текущего месяца
-            0,  // товарооборот предыдущего месяца
-            0,  // ОПД
-            0,  // ЗПД
-            c."Descr",  // "золотой" статус точки
-            0           // частота посещения
+            "sm_getLastVisitDate" (b."Id"), // дата последнего визита
+            "sm_getNextVisitDate" (b."Id"), // дата следующего визита
+            "sm_getTurnoverPreviousMonth" (b."Id"),  // товарооборот предыдущего месяца
+            "sm_getTurnoverCurrentMonth" (b."Id"),  // товарооборот текущего месяца
+            "sm_getTotalDistribution" (b."Id"),  // ОПД
+            "sm_getGoldenDistribution" (b."Id"),  // ЗПД
+            c."Descr", // "золотой" статус точки
+            "sm_getFrequencyOfVisits" (b."Id") // частота посещения
         from
             "sm_getStore" ("token") a 
             join "RefOutlet" b 

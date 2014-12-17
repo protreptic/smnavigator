@@ -38,7 +38,7 @@ public class StaticMapView extends RelativeLayout {
 		super(context);
 	}
 
-	private static final String STATIC_MAP_CACHE = "STATIC_MAP_CACHE";
+	private static final String STATIC_MAP_CACHE = "static_map_cache";
 	
 	public static Map<String, Drawable> drawables = new HashMap<String, Drawable>();
 	
@@ -125,7 +125,7 @@ public class StaticMapView extends RelativeLayout {
 			Drawable drawable = null;
 			
 			StringBuilder urlBuilder = new StringBuilder();
-			urlBuilder.append("http://maps.googleapis.com/maps/api/staticmap?");
+			urlBuilder.append("https://maps.googleapis.com/maps/api/staticmap?");
 			urlBuilder.append("center=" + mappable.getLatitude() + "," + mappable.getLongitude());
 			urlBuilder.append("&zoom=16");
 			urlBuilder.append("&size=100x100");

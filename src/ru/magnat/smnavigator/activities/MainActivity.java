@@ -1,6 +1,5 @@
 package ru.magnat.smnavigator.activities;
 
-import java.io.IOException;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 
@@ -10,19 +9,12 @@ import ru.magnat.smnavigator.auth.account.AccountWrapper;
 import ru.magnat.smnavigator.fragments.MapFragment;
 import ru.magnat.smnavigator.fragments.PsrListFragment;
 import ru.magnat.smnavigator.fragments.StoreListFragment;
-import ru.magnat.smnavigator.update.CentralRepository;
 import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.accounts.AccountManagerCallback;
-import android.accounts.AccountManagerFuture;
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -84,38 +76,38 @@ public class MainActivity extends FragmentActivity {
 		// register receivers
 		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 
 		
-		AccountManager accountManager = AccountManager.get(getBaseContext());
-		accountManager.invalidateAuthToken(AccountWrapper.ACCOUNT_TYPE, null); 
-		accountManager.getAuthToken(mAccountHelper.getCurrentAccount(), AccountWrapper.ACCOUNT_TYPE, null, getParent(), new AccountManagerCallback<Bundle>() {
-			 
-			@Override
-			public void run(AccountManagerFuture<Bundle> future) {
-				try {
-					Bundle bundle = future.getResult();
-					
-					final String sessionToken = bundle.getString(AccountManager.KEY_AUTHTOKEN);
-					final String packageName = getPackageName();
-					
-					new AsyncTask<Void, Void, Void>() {
-
-						@Override
-						protected Void doInBackground(Void... params) {
-							CentralRepository centralRepository = new CentralRepository(getBaseContext(), sessionToken, packageName); 
-							
-							centralRepository.update();
-							
-							return null;
-						}
-					}.execute(); 
-				} catch (OperationCanceledException e) {
-					e.printStackTrace();
-				} catch (AuthenticatorException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}, null);
+//		AccountManager accountManager = AccountManager.get(getBaseContext());
+//		accountManager.invalidateAuthToken(AccountWrapper.ACCOUNT_TYPE, null); 
+//		accountManager.getAuthToken(mAccountHelper.getCurrentAccount(), AccountWrapper.ACCOUNT_TYPE, null, getParent(), new AccountManagerCallback<Bundle>() {
+//			 
+//			@Override
+//			public void run(AccountManagerFuture<Bundle> future) {
+//				try {
+//					Bundle bundle = future.getResult();
+//					
+//					final String sessionToken = bundle.getString(AccountManager.KEY_AUTHTOKEN);
+//					final String packageName = getPackageName();
+//					
+//					new AsyncTask<Void, Void, Void>() {
+//
+//						@Override
+//						protected Void doInBackground(Void... params) {
+//							CentralRepository centralRepository = new CentralRepository(getBaseContext(), sessionToken, packageName); 
+//							
+//							centralRepository.update();
+//							
+//							return null;
+//						}
+//					}.execute(); 
+//				} catch (OperationCanceledException e) {
+//					e.printStackTrace();
+//				} catch (AuthenticatorException e) {
+//					e.printStackTrace();
+//				} catch (IOException e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		}, null);
 		
 
 	}
@@ -134,6 +126,10 @@ public class MainActivity extends FragmentActivity {
     private StoreListFragment mStoreListFragment;
     
     private void selectItem(int position) {
+        // update selected item and title, then close the drawer
+        mDrawerList.setItemChecked(position, true);
+        mDrawerLayout.closeDrawer(mDrawerList);
+    	       
         // update the main content by replacing fragments
         Fragment fragment = null;
         
@@ -167,10 +163,6 @@ public class MainActivity extends FragmentActivity {
         
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
-
-        // update selected item and title, then close the drawer
-        mDrawerList.setItemChecked(position, true);
-        mDrawerLayout.closeDrawer(mDrawerList);
     }
     
 	@Override

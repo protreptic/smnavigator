@@ -29,6 +29,7 @@
     <string name="contentDescription" />
     
     <string name="syncServer">sfs.magnat.ru:8081</string>
+    <string name="syncServerSecure">https://sfs.magnat.ru:8443</string>
     
     <string name="syncSuccess">Синхронизация успешно завершена</string>
     <string name="syncError">Синхронизация не выполненна</string>

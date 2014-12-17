@@ -9,6 +9,7 @@ import java.sql.SQLException;
 
 import ru.magnat.smnavigator.auth.account.AccountHelper;
 import ru.magnat.smnavigator.map.geofence.Geofenceable;
+import ru.magnat.smnavigator.model.Manager;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.model.Store;
@@ -115,6 +116,8 @@ public class MainDbHelper {
 		Log.d(TAG, "storage:deploy->ok");
 	}
 	
+	private Dao<Manager, String> mManagerDao;
+	
 	private Dao<Store, String> mStoreDao;
 	private Dao<Measure, String> mMeasureDao;
 	private Dao<Psr, String> mPsrDao;
@@ -132,6 +135,8 @@ public class MainDbHelper {
 			}
 			
 			mConnectionSource = new JdbcPooledConnectionSource(DB_URL); 
+			
+			mManagerDao = DaoManager.createDao(mConnectionSource, Manager.class);
 			
 			mStoreDao = DaoManager.createDao(mConnectionSource, Store.class);
 			mMeasureDao = DaoManager.createDao(mConnectionSource, Measure.class);
@@ -167,6 +172,10 @@ public class MainDbHelper {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public Dao<Manager, String> getManagerDao() {
+		return mManagerDao;
 	}
 	
 	public Dao<Store, String> getStoreDao() {

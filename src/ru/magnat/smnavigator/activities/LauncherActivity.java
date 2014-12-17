@@ -130,16 +130,4 @@ public class LauncherActivity extends Activity {
 		startActivity(intent); 
 	}
 	
-	@SuppressWarnings("unused")
-	private void saveDefaultAccount(Account account) {
-		SharedPreferences settings = getSharedPreferences("global", 0);
-		
-		SharedPreferences.Editor editor = settings.edit();
-		editor.putString("defaultAccountName", account.name);
-		editor.putString("defaultAccountType", account.type);
-		
-		// Commit the edits!
-		editor.commit();
-	}
-	
 }

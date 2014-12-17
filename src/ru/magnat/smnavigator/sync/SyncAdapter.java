@@ -9,26 +9,38 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.activities.MainActivity;
+import ru.magnat.smnavigator.auth.MyTrustManager;
+import ru.magnat.smnavigator.data.GetManagerHelper;
 import ru.magnat.smnavigator.data.GetPsrsHelper;
 import ru.magnat.smnavigator.data.GetRoutesHelper;
 import ru.magnat.smnavigator.data.GetStoreStatisticsHelper;
 import ru.magnat.smnavigator.data.GetStoresHelper;
 import ru.magnat.smnavigator.data.MainDbHelper;
+import ru.magnat.smnavigator.model.Manager;
+import ru.magnat.smnavigator.model.Measure;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.model.Store;
-import ru.magnat.smnavigator.model.Measure;
+import ru.magnat.smnavigator.security.KeyStoreManager;
 import android.accounts.Account;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.SyncResult;
 import android.content.res.Resources.NotFoundException;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
 
@@ -78,7 +90,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     	mAccount = account;    	
     	
     	sendNotification("started", account.name);
-    	
+    	    	
     	Timer timer = new Timer("askSender");
     	timer.schedule(new TimerTask() {
 			
@@ -93,10 +105,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 			mMainDbHelper = MainDbHelper.getInstance(getContext(), account);
 			
-			loadStores();
-			loadStoreStatistics();
-			loadPsrs();
-			loadRoutes();
+			getManagerSecured();
+			
+			//loadStores();
+			//loadStoreStatistics();
+			//loadPsrs();
+			//loadRoutes();
 			
 			MainDbHelper.close();
 			
@@ -117,6 +131,45 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     	intentStarted.putExtra("account", account);
     	
     	getContext().sendBroadcast(intentStarted);
+    }
+    
+    private void getManagerSecured()  throws Exception {	
+		// Create an SSLContext that uses our TrustManager
+		SSLContext sslContext = SSLContext.getInstance("TLS");
+		sslContext.init(null, new TrustManager[] { new MyTrustManager(KeyStoreManager.getInstance(getContext()).getKeyStore()) } , null);
+		
+		HostnameVerifier hostnameVerifier = new HostnameVerifier () {
+
+			@Override
+			public boolean verify(String hostname, SSLSession session) {
+				return true;
+			}
+			
+		};
+		
+		SharedPreferences settings = getContext().getSharedPreferences("global", Context.MODE_MULTI_PROCESS);
+		String token = settings.getString("defaultAccountSessionToken", null);
+		
+		URL url = new URL(getContext().getString(R.string.syncServerSecure) + "/sm_getManager?token=" + token);
+		
+		HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection(); 
+		urlConnection.setSSLSocketFactory(sslContext.getSocketFactory());
+		urlConnection.setHostnameVerifier(hostnameVerifier); 
+
+		List<Manager> managers = new GetManagerHelper().readJsonStream(urlConnection.getInputStream());
+
+		urlConnection.disconnect();
+		
+		Dao<Manager, String> managerDao = mMainDbHelper.getManagerDao();
+		managerDao.setObjectCache(false); 
+		
+		managerDao.delete(managerDao.queryForAll());
+		
+		for (Manager manager : managers) {
+			managerDao.createOrUpdate(manager);
+			
+			Log.d("", manager.toString()); 
+		}
     }
     
 	private void loadStores() throws Exception { 

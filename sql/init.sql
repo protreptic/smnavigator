@@ -1,10 +1,10 @@
-drop schema "sm_navigator" if exists;
-create schema "sm_navigator";
+drop schema "SM_NAVIGATOR" if exists;
+create schema "SM_NAVIGATOR";
 
 /*
 	
 */
-create table "sm_navigator"."branch" (
+create table "SM_NAVIGATOR"."branch" (
 	id integer primary key,
 	name varchar(255)
 );
@@ -12,7 +12,7 @@ create table "sm_navigator"."branch" (
 /*
 	
 */
-create table "sm_navigator"."department" (
+create table "SM_NAVIGATOR"."department" (
 	id integer primary key,
 	name varchar(255)
 );
@@ -20,15 +20,33 @@ create table "sm_navigator"."department" (
 /*
 	
 */
-create table "sm_navigator"."manager" (
+create table "SM_NAVIGATOR"."manager" (
 	id integer primary key,
-	name varchar(255)
+	name varchar(255),
+	email varchar(255),
+	tel varchar(255),
+	branch integer,
+	department integer
 );
 
 /*
 	
 */
-create table "sm_navigator"."store" (
+create table "SM_NAVIGATOR"."psr" (
+	id integer primary key,
+	name varchar (255),
+	project varchar (255),
+	tel varchar (255),
+	branch varchar (255),
+	department varchar (255),
+	latitude double,
+	longitude double,
+);
+
+/*
+	
+*/
+create table "SM_NAVIGATOR"."store" (
 	id integer primary key,
 	name varchar (255),
 	customer varchar (255),
@@ -47,7 +65,7 @@ create table "sm_navigator"."store" (
 /*
 	
 */
-create table "sm_navigator"."store_statistics" (
+create table "SM_NAVIGATOR"."store_statistics" (
 	id integer primary key,
 	last_visit date,
 	next_visit date,
@@ -60,21 +78,7 @@ create table "sm_navigator"."store_statistics" (
 /*
 	
 */
-create table "sm_navigator"."psr" (
-	id integer primary key,
-	name varchar (255),
-	project varchar (255),
-	tel varchar (255),
-	branch varchar (255),
-	department varchar (255),
-	latitude double,
-	longitude double,
-);
-
-/*
-	
-*/
-create table "sm_navigator"."psr_route" (
+create table "SM_NAVIGATOR"."psr_route" (
 	id integer primary key,
 	visit_date date,
 	psr integer,
@@ -84,12 +88,12 @@ create table "sm_navigator"."psr_route" (
 /*
 	
 */
-create table "sm_navigator"."sync_info" ();
+create table "SM_NAVIGATOR"."sync_info" ();
 
 /*
 	
 */
-create table "sm_navigator"."georegion" (
+create table "SM_NAVIGATOR"."georegion" (
 	id integer,
 	latitude double,
 	longitude double		

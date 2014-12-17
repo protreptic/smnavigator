@@ -35,7 +35,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 	private EditText mPasswordEditText;
 	private Button mSubmitButton;
 	
-	private String mAuthUrl;	
 	private String mUsername;
 	private String mPassword;
 	
@@ -46,8 +45,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 		setContentView(R.layout.login_activity);
 		
 		mAccountManager = AccountManager.get(this);
-		
-		mAuthUrl = "http://" + getString(R.string.syncServer) + "/sm_auth?login=%s&password=%s";
 		
 		mMessageTextView = (TextView) findViewById(R.id.message);
 		mMessageTextView.setTypeface(Fonts.getInstance(this).getTypeface("RobotoCondensed-Regular"));
@@ -142,7 +139,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
         @Override
         protected String doInBackground(Void... params) {
         	try {
-        		return Authenticator.authenticate(mAuthUrl, mUsername, mPassword); 
+        		return Authenticator.authenticate(getBaseContext(), mUsername, mPassword); 
         	} catch (Exception e) {
                 Log.e(TAG, "UserLoginTask.doInBackground: failed to authenticate");
                 Log.i(TAG, e.toString());

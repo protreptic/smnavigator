@@ -1,14 +1,20 @@
 package ru.magnat.smnavigator.auth;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.auth.account.AccountWrapper;
 import ru.magnat.smnavigator.data.GetAccountHelper;
+import ru.magnat.smnavigator.security.KeyStoreManager;
 import android.accounts.AbstractAccountAuthenticator;
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
@@ -16,21 +22,21 @@ import android.accounts.AccountManager;
 import android.accounts.NetworkErrorException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 
 public class Authenticator extends AbstractAccountAuthenticator {
 	
 	private Context mContext;
 	private AccountManager mAccountManager;
-	private String mAuthUrl;	
 	
 	public Authenticator(Context context) {
 		super(context);
 		
 		mContext = context;
 		mAccountManager = AccountManager.get(context);
-		mAuthUrl = "http://" + mContext.getString(R.string.syncServer) + "/sm_auth?login=%s&password=%s";
 	}
 
 	@Override
@@ -44,17 +50,46 @@ public class Authenticator extends AbstractAccountAuthenticator {
         return bundle;
 	}
 
-    static String authenticate(String authUrl, String login, String password) {
+    public static String authenticate(Context context, String login, String password) {
     	String token = null;
     	
     	try {
-    		URL url = new URL(String.format(authUrl, login, password));
-    		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
+    		// Create an SSLContext that uses our TrustManager
+    		SSLContext sslContext = SSLContext.getInstance("TLS");
+    		sslContext.init(null, new TrustManager[] { new MyTrustManager(KeyStoreManager.getInstance(context).getKeyStore()) } , null);
+    		
+    		HostnameVerifier hostnameVerifier = new HostnameVerifier () {
 
+				@Override
+				public boolean verify(String hostname, SSLSession session) {
+					return true;
+				}
+				
+    		};
+    		
+    		URL url = new URL(String.format(context.getString(R.string.syncServerSecure) + "/sm_auth?login=%s&password=%s", login, password));
+    		HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection(); 
+    		urlConnection.setSSLSocketFactory(sslContext.getSocketFactory());
+    		urlConnection.setHostnameVerifier(hostnameVerifier); 
+    		
     		List<AccountWrapper> accounts = new GetAccountHelper().readJsonStream(urlConnection.getInputStream());
     		
     		for (ru.magnat.smnavigator.auth.account.AccountWrapper account : accounts) {
 				token = account.getToken();
+				
+				SharedPreferences settings = context.getSharedPreferences("global", Context.MODE_MULTI_PROCESS);
+				
+				SharedPreferences.Editor editor = settings.edit();
+				
+				editor.putString("defaultAccountName", login);
+				editor.putString("defaultAccountType", AccountWrapper.ACCOUNT_TYPE); 
+				editor.putString("defaultAccountPassword", password);
+				editor.putString("defaultAccountSessionToken", account.getToken());
+				editor.putString("defaultAccountSessionTokenExpiration", account.getExpiration());
+				
+				editor.commit();
+				
+				Log.d("", account.toString());
 			}
     		
     		urlConnection.disconnect();
@@ -63,11 +98,13 @@ public class Authenticator extends AbstractAccountAuthenticator {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
     	
 		return token;
     }
-	
+	    
 	@Override
 	public Bundle getAuthToken(AccountAuthenticatorResponse response, Account account, String authTokenType, Bundle options) throws NetworkErrorException {
         // If the caller requested an authToken type we don't support, then
@@ -82,7 +119,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
         // the server for an appropriate AuthToken.
         final String password = mAccountManager.getPassword(account);
         if (password != null) {
-            final String authToken = authenticate(mAuthUrl, account.name, password); 
+            final String authToken = authenticate(mContext, account.name, password); 
             if (!TextUtils.isEmpty(authToken)) {
                 final Bundle result = new Bundle();
                 result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);

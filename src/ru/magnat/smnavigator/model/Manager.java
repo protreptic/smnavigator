@@ -72,4 +72,9 @@ public class Manager {
 		this.department = department;
 	}
 	
+	@Override
+	public String toString() {
+		return getClass().getName() + " [id=" + id + ", name=" + name + ", email=" + email + ", tel=" + tel + ", branch=" + branch + ", department=" + department + "]";
+	}
+	
 }
