@@ -25,6 +25,9 @@
 	
     <string name="loading">Загрузка</string>
     <string name="waiting">Ожидайте</string>
+   	<string name="cancel">Отмена</string>
+   	<string name="install">Установить</string>
+   	<string name="download">Загрузить</string>
     
     <string name="contentDescription" />
     
@@ -76,5 +79,12 @@
     
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
+    
+    <!-- Обновление -->
+    <string name="update_loading">Загрузка обновления</string>
+    <string name="update_loading_complete">Загрузка обновления завершена</string>
+    <string name="update_check">Проверка обновления</string>
+    <string name="update_update_available">Доступна новая версия: %s</string>
+    <string name="update_install">Установить обновление сейчас?</string>
     
 </resources>

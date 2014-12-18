@@ -87,11 +87,7 @@ begin
     else
         set "tokenStatus" = 100;
         set "tokenStatusDescription" = 'TOKEN_ACCEPTED';        
-    endif;
-    
-    call sa_set_http_header('Server', null);
-    call sa_set_http_header('Expires', null);    
-    //call sa_set_http_header('Content-Type', null);     
+    endif;  
     
     call sa_set_http_header('AuthStatus', "tokenStatus");
     call sa_set_http_header('AuthStatusDescription', "tokenStatusDescription");    
@@ -135,14 +131,15 @@ insert into "sm_release" ("artifact_name","package","description","version_code"
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',10,'1.0.0-alpha.9');
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('sfs','ru.magnat.sfs','',108,'1.108');
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',11,'1.0.0-alpha.10');
+insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',12,'1.0.0-alpha.11');
 
 /*
     
 */
 create or replace procedure "sm_checkUpdates" ("token" sm_token, "packageName" nvarchar(255)) 
-    result ("artifactId" nvarchar(255), "artifactName" nvarchar(255), "package" nvarchar(255), "description" nvarchar(255), "versionCode" integer, "versionName" nvarchar(255))
+    result ("artifactId" nvarchar(255), "artifactName" nvarchar(255), "packageName" nvarchar(255), "description" nvarchar(255), "versionCode" integer, "versionName" nvarchar(255))
 begin
-    if ("sm_validateToken" ("token") >= 0) then
+    //if ("sm_validateToken" ("token") >= 0) then
         select 
 			a."artifact_id", a."artifact_name", a."package", a."description", a."version_code", a."version_name"
         from 
@@ -151,7 +148,7 @@ begin
             a."package" = "packageName"
         order by 
             a."version_code" desc;
-    endif; 
+    //endif; 
 end;
 comment on procedure "sm_checkUpdates" is '';
 
@@ -163,26 +160,30 @@ create or replace procedure "sm_downloadUpdate" ("token" sm_token, "artifactId" 
 begin
     declare "appName" nvarchar(255); 
     declare "versionName" nvarchar(255);    
-	declare "checksum" nvarchar(32);  
+	declare "checksum" nvarchar(32); 
+    declare "contentLength" integer; 
 
-    if ("sm_validateToken" ("token") >= 0) then
-		if ((select a."artifact_id" from "sm_release" a where a."artifact_id" = "artifactId") is not null) then
+    //if ("sm_validateToken" ("token") >= 0) then
+		//if ((select a."artifact_id" from "sm_release" a where a."artifact_id" = "artifactId") is not null) then
 			select a."artifact_name" into "appName" from sm_release a where a."artifact_id" = "artifactId"; 
         	select a."version_name" into "versionName" from sm_release a where a."artifact_id" = "artifactId";     
 			select a."hash" into "checksum" from sm_release a where a."artifact_id" = "artifactId";    
-			
+            select length(a."data") into "contentLength" from sm_release a where a."artifact_id" = "artifactId";   			
+
         	call sa_set_http_header('Content-Type', 'application/vnd.android.package-archive');     
         	call sa_set_http_header('Content-Disposition', 'attachment; filename="' || string("appName", '-', "versionName", '.apk') || '"');
 			call sa_set_http_header('Checksum', "checksum"); // если null, то заголовок не будет установлен     
+            call sa_set_http_header('Filename', string("appName", '-', "versionName", '.apk'));            
+            call sa_set_http_header('Content-Length', contentLength);            
 
         	select a."data" from "sm_release" a where a."artifact_id" = "artifactId";
-		else 
-			call sa_set_http_header('@HttpStatus', '404');
-    		call sa_set_http_header('Server', null);
-   	 		call sa_set_http_header('Expires', null);    
-    		call sa_set_http_header('Content-Type', null); 
-		endif;
-    endif;
+		//else 
+		//	call sa_set_http_header('@HttpStatus', '404');
+    	//	call sa_set_http_header('Server', null);
+   	 	//	call sa_set_http_header('Expires', null);    
+    	//	call sa_set_http_header('Content-Type', null); 
+		//endif;
+    //endif;
 end;
 comment on procedure "sm_downloadUpdate" is '';
 

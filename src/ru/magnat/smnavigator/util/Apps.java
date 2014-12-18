@@ -18,18 +18,32 @@ public class Apps {
 	    intentInstallApk.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 	    context.startActivity(intentInstallApk);
 	}
-
+	
 	public static String getVersionName(Context context) {
 		String versionName = null;
+		
 		try {
 			versionName = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
 		} catch (final NameNotFoundException e) {
-			Log.e(context.getClass().getSimpleName(), "Could not get version from manifest.");
+			Log.e(context.getClass().getSimpleName(), "Could not get version name from manifest.");
 		}
 		if (versionName == null) {
 			versionName = "unknown";
 		}
+		
 		return versionName;
+	}
+	
+	public static int getVersionCode(Context context) {
+		int versionCode = 0;
+		
+		try {
+			versionCode = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode;
+		} catch (final NameNotFoundException e) {
+			Log.e(context.getClass().getSimpleName(), "Could not get version code from manifest.");
+		}
+
+		return versionCode;
 	}
 	
 }
