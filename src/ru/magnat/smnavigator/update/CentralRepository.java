@@ -63,7 +63,7 @@ public class CentralRepository {
 			List<Artifact> artifacts = new ArrayList<Artifact>();
 			
 			try {
-				URL url = new URL("http://" + mContext.getString(R.string.syncServer) + "/sm_checkUpdates?packageName=" + mContext.getPackageName());
+				URL url = new URL(mContext.getString(R.string.syncServer) + "/sm_checkUpdates?packageName=" + mContext.getPackageName());
 				HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 				
 				artifacts = new Gson().fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Artifact>>() {}.getType());

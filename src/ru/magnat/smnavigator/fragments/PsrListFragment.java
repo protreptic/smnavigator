@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
+import ru.magnat.smnavigator.auth.account.AccountHelper;
 import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
@@ -14,6 +15,7 @@ import ru.magnat.smnavigator.util.Text;
 import ru.magnat.smnavigator.view.RouteView;
 import ru.magnat.smnavigator.widget.ExpandableListFragment;
 import ru.magnat.smnavigator.widget.StaticMapView;
+import android.accounts.Account;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -76,6 +78,9 @@ public class PsrListFragment extends ExpandableListFragment {
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		
+		AccountHelper accountHelper = AccountHelper.getInstance(getActivity());
+		Account account = accountHelper.getCurrentAccount();
+		
 		//getExpandableListView().setPadding(5, 5, 5, 5);
 		getExpandableListView().setGroupIndicator(null); 
 		getExpandableListView().setDivider(null); 
@@ -83,7 +88,7 @@ public class PsrListFragment extends ExpandableListFragment {
 		getExpandableListView().setBackgroundColor(getResources().getColor(R.color.gray)); 
 		//getExpandableListView().setBackground(getResources().getDrawable(R.drawable.bg_2));  
 		
-		mDbHelper = MainDbHelper.getInstance(getActivity());
+		mDbHelper = MainDbHelper.getInstance(getActivity(), account);
 		
 		mAdapter = new MyAdapter();
 		

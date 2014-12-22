@@ -1,21 +1,22 @@
 package ru.magnat.smnavigator.model;
 
-import java.sql.Date;
-
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
-@DatabaseTable(tableName = "store_statistics")
+@DatabaseTable(tableName = "measure")
 public class Measure {
 	
 	@DatabaseField(columnName = "id", id = true)
 	private Integer id;
 	
+	@DatabaseField(columnName = "visit_frequency")
+	private Integer frequencyOfVisits;
+	
 	@DatabaseField(columnName = "last_visit")
-	private Date lastVisit;
+	private String lastVisit;
 	
 	@DatabaseField(columnName = "next_visit")
-	private Date nextVisit;
+	private String nextVisit;
 	
 	@DatabaseField(columnName = "turnover_previous_month")
 	private Double turnoverPreviousMonth;
@@ -40,19 +41,19 @@ public class Measure {
 		this.id = id;
 	}
 
-	public Date getLastVisit() {
+	public String getLastVisit() {
 		return lastVisit;
 	}
 
-	public void setLastVisit(Date lastVisit) {
+	public void setLastVisit(String lastVisit) {
 		this.lastVisit = lastVisit;
 	}
 
-	public Date getNextVisit() {
+	public String getNextVisit() {
 		return nextVisit;
 	}
 
-	public void setNextVisit(Date nextVisit) {
+	public void setNextVisit(String nextVisit) {
 		this.nextVisit = nextVisit;
 	}
 
@@ -94,6 +95,14 @@ public class Measure {
 
 	public void setGoldenStatus(String goldenStatus) {
 		this.goldenStatus = goldenStatus;
+	}
+
+	public Integer getFrequencyOfVisits() {
+		return frequencyOfVisits;
+	}
+
+	public void setFrequencyOfVisits(Integer frequencyOfVisits) {
+		this.frequencyOfVisits = frequencyOfVisits;
 	}
 	
 }

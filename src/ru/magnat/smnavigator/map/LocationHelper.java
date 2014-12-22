@@ -6,10 +6,12 @@ import java.util.List;
 import java.util.Random;
 
 import ru.magnat.smnavigator.R;
+import ru.magnat.smnavigator.auth.account.AccountHelper;
 import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.map.geofence.Geofenceable;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Store;
+import android.accounts.Account;
 import android.content.Context;
 import android.graphics.Color;
 
@@ -30,7 +32,12 @@ public class LocationHelper {
 	private Context mContext;
 	private GoogleMap mMap;
 
-	public static LocationHelper getInstance(Context context, GoogleMap map) {
+	private ClusterManager<AbstractMarker> mClusterManager;
+	
+	private AccountHelper mAccountHelper;
+	private Account mAccount;
+	
+	public synchronized static LocationHelper getInstance(Context context, GoogleMap map) {
 		if (sInstance == null) {
 			sInstance = new LocationHelper(context, map);
 		}
@@ -38,7 +45,7 @@ public class LocationHelper {
 		return sInstance;
 	}
 	
-	public static void destroy() {
+	public synchronized static void destroy() {
 		if (sInstance != null) {
 			sInstance = null;
 		}
@@ -55,7 +62,7 @@ public class LocationHelper {
 	
 	@SuppressWarnings("unused")
 	private void addRegion() {
-		MainDbHelper dbHelper = MainDbHelper.getInstance(mContext);
+		MainDbHelper dbHelper = MainDbHelper.getInstance(mContext, mAccount);
 		
 		try {
 			PolygonOptions polygonOptions1 = new PolygonOptions();
@@ -459,6 +466,10 @@ public class LocationHelper {
 	private LocationHelper(Context context, GoogleMap map) {
 		mContext = context; 
 		mMap = map;
+		
+		mAccountHelper = AccountHelper.getInstance(context);
+		
+		mAccount = mAccountHelper.getCurrentAccount();
 	} 
 	
 	public void moveToPoint(double latitude, double longitude) {
@@ -467,7 +478,7 @@ public class LocationHelper {
 	
 	@SuppressWarnings("unused")
 	private void addHeatMap() {
-		MainDbHelper dbHelper = MainDbHelper.getInstance(mContext);
+		MainDbHelper dbHelper = MainDbHelper.getInstance(mContext, mAccount);
 		
 		try {
 			List<LatLng> points = new ArrayList<LatLng>();
@@ -489,7 +500,6 @@ public class LocationHelper {
 		}
 		
 		MainDbHelper.close();
-
 	}
 	
 	public void updateOverlays() {	
@@ -502,12 +512,14 @@ public class LocationHelper {
 	}
 	
 	private void addPsrMarkers() {
-		MainDbHelper dbHelper = MainDbHelper.getInstance(mContext);
+		MainDbHelper dbHelper = MainDbHelper.getInstance(mContext, mAccount);
 		
 		try {
 			List<Psr> psrs = dbHelper.getPsrDao().queryForAll();
 			
 			for (Psr psr : psrs) {
+				if (psr.getLatitude() == 0 || psr.getLongitude() == 0) continue;
+				
 				mMap.addMarker(new MarkerOptions()
 		        .position(new LatLng(psr.getLatitude(), psr.getLongitude())) 
 		        .title(psr.getName()) 
@@ -521,20 +533,18 @@ public class LocationHelper {
 		MainDbHelper.close();
 	}
 	
-	private ClusterManager<AbstractMarker> mClusterManager;
-	
-	private long limit = 750;
-	
 	private void addStoreMarkers() {
-		MainDbHelper dbHelper = MainDbHelper.getInstance(mContext);
+		MainDbHelper dbHelper = MainDbHelper.getInstance(mContext, mAccount);
 		
 		try {
-			List<Store> stores = dbHelper.getStoreDao().queryBuilder().limit(limit).query();
+			List<Store> stores = dbHelper.getStoreDao().queryBuilder().query();
 			
 			mClusterManager = new ClusterManager<AbstractMarker>(mContext, mMap);
 			mClusterManager.setRenderer(new StoreClusterRenderer(mContext, mMap, mClusterManager));
 			
 			for (Store store : stores) {
+				if (store.getLatitude() == 0 || store.getLongitude() == 0) continue;
+				
 				mClusterManager.addItem(new StoreMarker(store));  
 			}
 			

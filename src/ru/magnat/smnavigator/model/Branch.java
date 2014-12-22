@@ -28,4 +28,9 @@ public class Branch {
 		this.name = name;
 	}
 	
+	@Override
+	public String toString() {
+		return getClass().getName() + " [id=" + id + ", name=" + name + "]";
+	}
+	
 }

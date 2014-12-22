@@ -6,13 +6,14 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
+import ru.magnat.smnavigator.auth.account.AccountHelper;
 import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.model.Measure;
-import ru.magnat.smnavigator.util.DateUtils;
 import ru.magnat.smnavigator.view.StoreStatisticsView;
 import ru.magnat.smnavigator.view.StoreView;
 import ru.magnat.smnavigator.widget.ExpandableListFragment;
+import android.accounts.Account;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -94,6 +95,9 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		
+		AccountHelper accountHelper = AccountHelper.getInstance(getActivity());
+		Account account = accountHelper.getCurrentAccount();
+		
 		getExpandableListView().setGroupIndicator(null); 
 		getExpandableListView().setDivider(null); 
 		getExpandableListView().setDividerHeight(-5);
@@ -106,7 +110,7 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 		
 		getExpandableListView().addFooterView(progressBar); 
 		
-		mDbHelper = MainDbHelper.getInstance(getActivity());
+		mDbHelper = MainDbHelper.getInstance(getActivity(), account);
 		
 		mAdapter = new MyAdapter();
 		
@@ -128,6 +132,8 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 			if (offset == 0) {
 				setListShown(false); 
 			}
+			
+			mIsLoading = true;
 		}
 		
 		@Override
@@ -179,6 +185,8 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
         			progressBar = null;
         		}
 	        }
+	        
+	        mIsLoading = false;
 		}
 		
 	}
@@ -250,11 +258,11 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 			turnoverPreviousMonth.setSubTitle(getResources().getString(R.string.turnoverPreviousMonth));  
 			
 			StoreStatisticsView lastVisit = new StoreStatisticsView(getActivity()); 
-			lastVisit.setTitle(DateUtils.format(storeStatistics.getLastVisit()));  
+			lastVisit.setTitle(storeStatistics.getLastVisit());  
 			lastVisit.setSubTitle(getResources().getString(R.string.lastVisit));  
 			
 			StoreStatisticsView nextVisit = new StoreStatisticsView(getActivity()); 
-			nextVisit.setTitle(DateUtils.format(storeStatistics.getNextVisit()));  
+			nextVisit.setTitle(storeStatistics.getNextVisit());  
 			nextVisit.setSubTitle(getResources().getString(R.string.nextVisit));  
 			
 			linearLayout.addView(totalDistribution);
@@ -279,13 +287,15 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 		
 	}
 
+	private boolean mIsLoading;
+	
 	@Override
 	public void onScrollStateChanged(AbsListView view, int scrollState) {
 		if (scrollState == SCROLL_STATE_IDLE) { 
 			if (getExpandableListView().getFirstVisiblePosition() == 0) {
 			}
 			
-	        if (getExpandableListView().getLastVisiblePosition() >= getExpandableListView().getCount() - 1) {
+	        if (getExpandableListView().getLastVisiblePosition() >= getExpandableListView().getCount() - 1 && !mIsLoading) {
 	        	if (count != offset) {
 	        		new LoadData().execute();
 	        	} else {

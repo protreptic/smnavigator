@@ -1,16 +1,17 @@
 package ru.magnat.smnavigator.view;
 
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 
 import com.j256.ormlite.dao.Dao;
 
 import ru.magnat.smnavigator.R;
+import ru.magnat.smnavigator.auth.account.AccountHelper;
 import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.util.Fonts;
 import ru.magnat.smnavigator.util.Text;
+import android.accounts.Account;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,8 +28,12 @@ public class RouteView extends RelativeLayout {
 		
 		mRoute = route;
 		
+		AccountHelper accountHelper = AccountHelper.getInstance(context);
+		
+		Account account = accountHelper.getCurrentAccount();
+		
 		Store store = null;
-		MainDbHelper dbHelper = MainDbHelper.getInstance(getContext());
+		MainDbHelper dbHelper = MainDbHelper.getInstance(context, account);
 		Dao<Store, String> storeDao = dbHelper.getStoreDao();
 		
 		try {
@@ -43,11 +48,9 @@ public class RouteView extends RelativeLayout {
 		name.setTypeface(Fonts.getInstance(context).getDefaultTypeface());  
 		name.setText((store != null ? store.getCustomer() : "null"));   
 		
-		SimpleDateFormat format = new SimpleDateFormat("dd MMMM yyyy");
-		
 		TextView subtitle = (TextView) relativeLayout.findViewById(R.id.subtitle); 
 		subtitle.setTypeface(Fonts.getInstance(context).getDefaultTypeface());  
-		subtitle.setText(format.format(mRoute.getVisitDate()));  
+		subtitle.setText(mRoute.getVisitDate());  
 		
 		TextView description = (TextView) relativeLayout.findViewById(R.id.description); 
 		description.setTypeface(Fonts.getInstance(context).getDefaultTypeface());  

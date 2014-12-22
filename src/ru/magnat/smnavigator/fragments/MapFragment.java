@@ -23,6 +23,12 @@ public class MapFragment extends SupportMapFragment {
 		map.setMyLocationEnabled(true);
 		
 		mLocationHelper = LocationHelper.getInstance(getActivity(), map);
+	}
+	
+	@Override
+	public void onStart() {
+		super.onStart();
+		
 		mLocationHelper.updateOverlays();
 	}
 	
@@ -31,6 +37,11 @@ public class MapFragment extends SupportMapFragment {
 		super.onCreate(savedInstanceState);
 		
 		setHasOptionsMenu(true); 
+	}
+	
+	public void updateMap() {
+		if (mLocationHelper != null) 
+			mLocationHelper.updateOverlays();
 	}
 	
 	@Override

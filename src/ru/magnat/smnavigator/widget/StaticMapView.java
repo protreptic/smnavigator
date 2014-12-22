@@ -10,7 +10,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.entities.Mappable;
@@ -139,11 +138,7 @@ public class StaticMapView extends RelativeLayout {
 			Log.d(TAG, "get->" + urlBuilder.toString());
 			
 			try {
-				TimeUnit.MILLISECONDS.sleep(150);
-				
 				drawable = Drawable.createFromPath(readDataFromUrl(urlBuilder.toString())); 
-			} catch (InterruptedException e) {
-				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

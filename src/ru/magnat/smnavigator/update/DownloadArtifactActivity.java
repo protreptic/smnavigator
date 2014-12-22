@@ -71,7 +71,7 @@ public class DownloadArtifactActivity extends Activity {
 					        String fileName = null;
 					        
 					        try {
-								URL url = new URL("http://" + getString(R.string.syncServer) + "/sm_downloadUpdate?artifactId=" + artifact.getArtifactId());
+								URL url = new URL(getString(R.string.syncServer) + "/sm_downloadUpdate?artifactId=" + artifact.getArtifactId());
 					            connection = (HttpURLConnection) url.openConnection();
 					            connection.connect();
 

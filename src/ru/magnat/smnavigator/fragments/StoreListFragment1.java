@@ -6,10 +6,12 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
+import ru.magnat.smnavigator.auth.account.AccountHelper;
 import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.model.Measure;
 import ru.magnat.smnavigator.view.StoreView;
+import android.accounts.Account;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
@@ -91,6 +93,9 @@ public class StoreListFragment1 extends ListFragment implements OnScrollListener
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		
+		AccountHelper accountHelper = AccountHelper.getInstance(getActivity());
+		Account account = accountHelper.getCurrentAccount();
+		
 		getListView().setDivider(null); 
 		getListView().setDividerHeight(-5);
 		getListView().setBackgroundColor(getResources().getColor(R.color.gray)); 
@@ -101,7 +106,7 @@ public class StoreListFragment1 extends ListFragment implements OnScrollListener
 		
 		getListView().addFooterView(progressBar); 
 		
-		mDbHelper = MainDbHelper.getInstance(getActivity());
+		mDbHelper = MainDbHelper.getInstance(getActivity(), account);
 		
 		mListAdapter = new MyAdapter();
 		

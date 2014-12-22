@@ -1,18 +1,28 @@
 package ru.magnat.smnavigator.activities;
 
+import java.io.IOException;
 import java.sql.Date;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.auth.account.AccountHelper;
 import ru.magnat.smnavigator.auth.account.AccountWrapper;
+import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.fragments.MapFragment;
 import ru.magnat.smnavigator.fragments.PsrListFragment;
 import ru.magnat.smnavigator.fragments.StoreListFragment;
+import ru.magnat.smnavigator.model.Manager;
 import ru.magnat.smnavigator.update.Artifact;
 import ru.magnat.smnavigator.update.CentralRepository;
 import ru.magnat.smnavigator.update.DownloadArtifactActivity;
 import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.Notification;
 import android.app.Notification.Builder;
 import android.app.NotificationManager;
@@ -54,6 +64,26 @@ public class MainActivity extends FragmentActivity {
 
     private AccountHelper mAccountHelper;
     
+    private Manager getManager() {
+    	Manager manager = null;
+    	
+		MainDbHelper dbHelper = MainDbHelper.getInstance(this, mAccountHelper.getCurrentAccount());
+		
+		try {
+			List<Manager> managers = dbHelper.getManagerDao().queryForAll();
+			
+			if (managers.size() > 0) {
+				manager = managers.get(0);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		MainDbHelper.close();
+    	
+    	return manager;
+    }
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState); 
@@ -71,12 +101,25 @@ public class MainActivity extends FragmentActivity {
         mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, new String[] { getString(R.string.titleMap), getString(R.string.titlePsrs), getString(R.string.titleStores) }));
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
+        String title;
+        String subTitle;
+        
+        Manager manager = getManager();
+        
+        if (manager != null) { 
+        	title = manager.getName();
+        	subTitle = "email: " + manager.getEmail();
+        } else {
+        	title = mAccountHelper.getCurrentAccount().name;
+        	subTitle = mAccountHelper.getCurrentAccount().type;
+        }
+        
         // enable ActionBar app icon to behave as action to toggle nav drawer
         getActionBar().setDisplayHomeAsUpEnabled(false);
         getActionBar().setHomeButtonEnabled(false);
-		getActionBar().setTitle(mAccountHelper.getCurrentAccount().name); 
-		getActionBar().setSubtitle(mAccountHelper.getCurrentAccount().type); 
-		getActionBar().setIcon(getResources().getDrawable(R.drawable.ic_action_view_as_grid)); 
+		getActionBar().setTitle(title); 
+		getActionBar().setSubtitle(subTitle); 
+		getActionBar().setIcon(getResources().getDrawable(R.drawable.logotype_small));  
 
         if (savedInstanceState == null) {
             selectItem(0);
@@ -217,16 +260,36 @@ public class MainActivity extends FragmentActivity {
 			case R.id.actionSync: {
 				AccountHelper accountHelper = AccountHelper.getInstance(this); 
 				
-				Account account = accountHelper.getCurrentAccount();
-				
-				// Pass the settings flags by inserting them in a bundle
-		        Bundle settingsBundle = new Bundle();
-		        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-		        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
-		        
-		        // Request the sync for the default account, authority, and
-		        // manual sync settings
-		        ContentResolver.requestSync(account, AccountWrapper.ACCOUNT_AUTHORITY, settingsBundle);
+				final Account account = accountHelper.getCurrentAccount();
+						        
+				AccountManager accountManager = AccountManager.get(getBaseContext());
+				accountManager.invalidateAuthToken(AccountWrapper.ACCOUNT_TYPE, null); 
+				accountManager.getAuthToken(account, AccountWrapper.ACCOUNT_TYPE, null, getParent(), new AccountManagerCallback<Bundle>() {
+					
+					@Override
+					public void run(AccountManagerFuture<Bundle> future) {
+						try {
+							Bundle bundle = future.getResult();
+							
+							// Pass the settings flags by inserting them in a bundle
+					        Bundle settingsBundle = new Bundle();
+					        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+					        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+					        
+					        settingsBundle.putString(AccountManager.KEY_AUTHTOKEN, bundle.getString(AccountManager.KEY_AUTHTOKEN)); 
+					        
+					        // Request the sync for the default account, authority, and
+					        // manual sync settings
+					        ContentResolver.requestSync(account, AccountWrapper.ACCOUNT_AUTHORITY, settingsBundle);
+						} catch (OperationCanceledException e) {
+							e.printStackTrace();
+						} catch (AuthenticatorException e) {
+							e.printStackTrace();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				}, null);
 			} break;
 //			case R.id.actionAbout: {
 //				AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -294,6 +357,9 @@ public class MainActivity extends FragmentActivity {
 	    			
 	    			mSyncItem.setIcon(getResources().getDrawable(R.drawable.ic_action_refresh_ok));
 	    			mSyncItem.setTitle(getResources().getString(R.string.syncLastSuccessAttempt) + " " + dateFormat.format(new Date(System.currentTimeMillis()))); 
+	    			
+	    			if (mMapFragment != null) 
+	    				mMapFragment.updateMap();
 	            }
 	            if (action.equals("canceled") && mSyncItem != null && mSyncItem.getActionView() != null) {
 	            	Log.d(TAG, "sync:canceled->" + intent.getStringExtra("account"));  

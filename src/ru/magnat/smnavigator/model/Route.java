@@ -1,18 +1,16 @@
 package ru.magnat.smnavigator.model;
 
-import java.sql.Date;
-
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
-@DatabaseTable(tableName = "psr_route")
+@DatabaseTable(tableName = "route")
 public class Route {
 
 	@DatabaseField(columnName = "id", id = true)
 	private Integer id;
 	
 	@DatabaseField(columnName = "visit_date")
-	private Date visitDate;
+	private String visitDate;
 	
 	@DatabaseField(columnName = "psr")
 	private Integer psr;
@@ -28,11 +26,11 @@ public class Route {
 		this.id = id;
 	}
 
-	public Date getVisitDate() {
+	public String getVisitDate() {
 		return visitDate;
 	}
 
-	public void setVisitDate(Date visitDate) {
+	public void setVisitDate(String visitDate) {
 		this.visitDate = visitDate;
 	}
 
@@ -50,6 +48,11 @@ public class Route {
 
 	public void setStore(Integer store) {
 		this.store = store;
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getName() + " [id=" + id + ", visitDate=" + visitDate + ", psr=" + psr + ", store=" + store + "]";
 	}
 	
 }

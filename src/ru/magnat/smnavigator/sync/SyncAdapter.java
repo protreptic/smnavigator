@@ -1,47 +1,38 @@
 package ru.magnat.smnavigator.sync;
 
-import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.activities.MainActivity;
-import ru.magnat.smnavigator.auth.MyTrustManager;
-import ru.magnat.smnavigator.data.GetManagerHelper;
-import ru.magnat.smnavigator.data.GetPsrsHelper;
-import ru.magnat.smnavigator.data.GetRoutesHelper;
-import ru.magnat.smnavigator.data.GetStoreStatisticsHelper;
-import ru.magnat.smnavigator.data.GetStoresHelper;
 import ru.magnat.smnavigator.data.MainDbHelper;
+import ru.magnat.smnavigator.model.Branch;
+import ru.magnat.smnavigator.model.Department;
 import ru.magnat.smnavigator.model.Manager;
 import ru.magnat.smnavigator.model.Measure;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.model.Store;
-import ru.magnat.smnavigator.security.KeyStoreManager;
 import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.SyncResult;
-import android.content.res.Resources.NotFoundException;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
 import com.j256.ormlite.dao.Dao;
 
 public class SyncAdapter extends AbstractThreadedSyncAdapter {
@@ -80,6 +71,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     private MainDbHelper mMainDbHelper;
     private Account mAccount;
     
+    private String mAuthToken;
+    
     /*
      * Specify the code you want to run in the sync adapter. The entire
      * sync adapter runs in a background thread, so you don't have to set
@@ -90,7 +83,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     	mAccount = account;    	
     	
     	sendNotification("started", account.name);
-    	    	
+    	
+    	mAuthToken = extras.getString(AccountManager.KEY_AUTHTOKEN);
+    	
     	Timer timer = new Timer("askSender");
     	timer.schedule(new TimerTask() {
 			
@@ -98,19 +93,20 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			public void run() {
 				sendNotification("ask", account.name);
 			}
-		}, 0, 1000);
+		}, 0, 1500);
     	
 		try {
 			TimeUnit.SECONDS.sleep(3);
 		
 			mMainDbHelper = MainDbHelper.getInstance(getContext(), account);
 			
-			getManagerSecured();
-			
-			//loadStores();
-			//loadStoreStatistics();
-			//loadPsrs();
-			//loadRoutes();
+			getManager();
+			getBranch();
+			getDepartment();
+			getPsr();
+			getRoute();
+			getStore();
+			getMeasure();
 			
 			MainDbHelper.close();
 			
@@ -133,30 +129,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     	getContext().sendBroadcast(intentStarted);
     }
     
-    private void getManagerSecured()  throws Exception {	
-		// Create an SSLContext that uses our TrustManager
-		SSLContext sslContext = SSLContext.getInstance("TLS");
-		sslContext.init(null, new TrustManager[] { new MyTrustManager(KeyStoreManager.getInstance(getContext()).getKeyStore()) } , null);
+    private void getManager() throws Exception {
+		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getManager?token=" + mAuthToken);
 		
-		HostnameVerifier hostnameVerifier = new HostnameVerifier () {
-
-			@Override
-			public boolean verify(String hostname, SSLSession session) {
-				return true;
-			}
-			
-		};
-		
-		SharedPreferences settings = getContext().getSharedPreferences("global", Context.MODE_MULTI_PROCESS);
-		String token = settings.getString("defaultAccountSessionToken", null);
-		
-		URL url = new URL(getContext().getString(R.string.syncServerSecure) + "/sm_getManager?token=" + token);
-		
-		HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection(); 
-		urlConnection.setSSLSocketFactory(sslContext.getSocketFactory());
-		urlConnection.setHostnameVerifier(hostnameVerifier); 
-
-		List<Manager> managers = new GetManagerHelper().readJsonStream(urlConnection.getInputStream());
+		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
+    	
+		List<Manager> managers = new Gson().fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Manager>>() {}.getType());
 
 		urlConnection.disconnect();
 		
@@ -172,11 +150,95 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		}
     }
     
-	private void loadStores() throws Exception { 
-		URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_getStores");
+    private void getBranch() throws Exception {
+		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getBranch?token=" + mAuthToken);
+		
+		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
+    	
+		List<Branch> branches = new Gson().fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Branch>>() {}.getType());
+
+		urlConnection.disconnect();
+		
+		Dao<Branch, String> branchDao = mMainDbHelper.getBranchDao();
+		branchDao.setObjectCache(false); 
+		
+		branchDao.delete(branchDao.queryForAll());
+		
+		for (Branch branch : branches) {
+			branchDao.createOrUpdate(branch);
+			
+			Log.d("", branch.toString()); 
+		}
+    }
+    
+    private void getDepartment() throws Exception {
+		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getDepartment?token=" + mAuthToken);
+		
+		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
+    	
+		List<Department> departments = new Gson().fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Department>>() {}.getType());
+
+		urlConnection.disconnect();
+		
+		Dao<Department, String> departmentDao = mMainDbHelper.getDepartmentDao();
+		departmentDao.setObjectCache(false); 
+		
+		departmentDao.delete(departmentDao.queryForAll());
+		
+		for (Department department : departments) {
+			departmentDao.createOrUpdate(department);
+			
+			Log.d("", department.toString()); 
+		}
+    }
+    
+    private void getPsr() throws Exception {
+		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getPsr?token=" + mAuthToken);
+		
+		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
+    	
+		List<Psr> psrs = new Gson().fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Psr>>() {}.getType());
+
+		urlConnection.disconnect();
+		
+		Dao<Psr, String> psrDao = mMainDbHelper.getPsrDao();
+		psrDao.setObjectCache(false); 
+		
+		psrDao.delete(psrDao.queryForAll());
+		
+		for (Psr psr : psrs) {
+			psrDao.createOrUpdate(psr);
+			
+			Log.d("", psr.toString()); 
+		}
+    }
+    
+    private void getRoute() throws Exception {
+		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getRoute?token=" + mAuthToken);
+		
+		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
+    	
+		List<Route> routes = new Gson().fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Route>>() {}.getType());
+
+		urlConnection.disconnect();
+		
+		Dao<Route, String> routeDao = mMainDbHelper.getRouteDao();
+		routeDao.setObjectCache(false); 
+		
+		routeDao.delete(routeDao.queryForAll());
+		
+		for (Route route : routes) {
+			routeDao.createOrUpdate(route);
+			
+			Log.d("", route.toString()); 
+		}
+    }
+    
+	private void getStore() throws Exception { 
+		URL url = new URL(getContext().getResources().getString(R.string.syncServer) + "/sm_getStore?token=" + mAuthToken);
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 
-		List<Store> stores = new GetStoresHelper().readJsonStream(urlConnection.getInputStream());
+		List<Store> stores = new Gson().fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Store>>() {}.getType());
 
 		urlConnection.disconnect();
 		
@@ -187,14 +249,16 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		for (Store store : stores) {
 			storeDao.createOrUpdate(store);
+			
+			Log.d("", store.toString()); 
 		}
 	}
 	
-	private void loadStoreStatistics() throws NotFoundException, IOException, SQLException {   
-		URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_getStoreStatistics");
+	private void getMeasure() throws Exception {   
+		URL url = new URL(getContext().getResources().getString(R.string.syncServer) + "/sm_getMeasure?token=" + mAuthToken);
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 
-		List<Measure> measures = new GetStoreStatisticsHelper().readJsonStream(urlConnection.getInputStream());
+		List<Measure> measures = new Gson().fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Measure>>() {}.getType());
 		
 		urlConnection.disconnect();
 		
@@ -205,42 +269,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		for (Measure measure : measures) {
 			measureDao.createOrUpdate(measure);
-		}
-	}
-	
-	private void loadPsrs() throws NotFoundException, IOException, SQLException { 
-		URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_getPsrs");
-		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
-
-		List<Psr> psrs = new GetPsrsHelper().readJsonStream(urlConnection.getInputStream());
-		
-		urlConnection.disconnect();
-		
-		Dao<Psr, String> psrDao = mMainDbHelper.getPsrDao();
-		psrDao.setObjectCache(false); 
-		
-		psrDao.delete(psrDao.queryForAll());
-		
-		for (Psr psr : psrs) {
-			psrDao.createOrUpdate(psr);
-		}
-	}
-	
-	private void loadRoutes() throws NotFoundException, IOException, SQLException { 
-		URL url = new URL("http://" + getContext().getResources().getString(R.string.syncServer) + "/sm_getRoutes");
-		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
-
-		List<Route> routes = new GetRoutesHelper().readJsonStream(urlConnection.getInputStream());
-		
-		urlConnection.disconnect();
-		
-		Dao<Route, String> routeDao = mMainDbHelper.getRouteDao();
-		routeDao.setObjectCache(false); 
-		
-		routeDao.delete(routeDao.queryForAll());
-		
-		for (Route route : routes) {
-			routeDao.createOrUpdate(route);
+			
+			Log.d("", measure.toString()); 
 		}
 	}
 

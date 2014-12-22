@@ -113,4 +113,9 @@ public class Psr implements Mappable {
 		this.email = email;
 	}
 	
+	@Override
+	public String toString() {
+		return getClass().getName() + " [id=" + id + ", name=" + name + ", email=" + email + ", tel=" + tel + ", branch=" + branch + ", department=" + department + "]";
+	}
+	
 }

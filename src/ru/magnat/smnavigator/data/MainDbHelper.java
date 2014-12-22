@@ -7,8 +7,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
 
-import ru.magnat.smnavigator.auth.account.AccountHelper;
 import ru.magnat.smnavigator.map.geofence.Geofenceable;
+import ru.magnat.smnavigator.model.Branch;
+import ru.magnat.smnavigator.model.Department;
 import ru.magnat.smnavigator.model.Manager;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
@@ -17,6 +18,7 @@ import ru.magnat.smnavigator.model.Measure;
 import ru.magnat.smnavigator.util.Apps;
 import android.accounts.Account;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
@@ -24,6 +26,8 @@ import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcPooledConnectionSource;
 
 public class MainDbHelper {
+	
+	private static final String TAG = "DB_HELPER";
 	
 	static {
 		try {
@@ -44,44 +48,42 @@ public class MainDbHelper {
 	
 	private JdbcPooledConnectionSource mConnectionSource;
 	 
-	private MainDbHelper(Context context) {
-		mContext = context;
-		
-		AccountHelper accountHelper = AccountHelper.getInstance(context);
-		
-		Account account = accountHelper.getCurrentAccount();
-
-		DB_PATH = context.getDir("data", Context.MODE_PRIVATE).getPath() + "/" + account.name + "/";
-		DB_NAME = context.getPackageName() + "-" + Apps.getVersionName(context);
-		DB_FULL_NAME = DB_PATH + DB_NAME;
-		DB_URL = "jdbc:h2:file:" + DB_FULL_NAME + ";file_lock=no;ifexists=true;ignorecase=true;page_size=1024;cache_size=1024;autocommit=on;init=set schema sm_navigator";
-		
-		Log.d(TAG, "storage:instantiate->" + DB_FULL_NAME);
-		
-		initDb();
-	}
-	
 	private MainDbHelper(Context context, Account account) {
 		mContext = context;
 		
+		SharedPreferences sharedPreferences = context.getSharedPreferences("global.storage", 0);
+		
+		// 
+		boolean databaseToUpper = sharedPreferences.getBoolean("global.storage.databaseToUpper", false);
+		boolean ifExists = sharedPreferences.getBoolean("global.storage.ifExists", true);
+		boolean ignoreCase = sharedPreferences.getBoolean("global.storage.ignoreCase", true);
+		boolean autoCommit = sharedPreferences.getBoolean("global.storage.autoCommit", true);
+		boolean compress = sharedPreferences.getBoolean("global.storage.compress", false);
+		
+		String fileLock = sharedPreferences.getString("global.storage.fileLock", "no");
+		
+		int pageSize = sharedPreferences.getInt("global.storage.pageSize", 1024);
+		int cacheSize = sharedPreferences.getInt("global.storage.cacheSize", 1024);
+		
 		DB_PATH = context.getDir("data", Context.MODE_PRIVATE).getPath() + "/" + account.name + "/";
 		DB_NAME = context.getPackageName() + "-" + Apps.getVersionName(context);
 		DB_FULL_NAME = DB_PATH + DB_NAME;
-		DB_URL = "jdbc:h2:file:" + DB_FULL_NAME + ";file_lock=no;ifexists=true;ignorecase=true;page_size=1024;cache_size=1024;autocommit=on;init=set schema sm_navigator";
+		DB_URL = "jdbc:h2:file:" + DB_FULL_NAME + ";database_to_upper=false;file_lock=no;ifexists=true;ignorecase=true;page_size=1024;cache_size=1024;autocommit=on;init=set schema sm_navigator;";
+		
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append("jdbc:h2:file:");
+		stringBuilder.append(DB_FULL_NAME + ";");
+		stringBuilder.append("database_to_upper=no;");
+		stringBuilder.append("file_lock=no;");
+		stringBuilder.append("ifexists=true;");
+		stringBuilder.append("ignorecase=true;");
+		stringBuilder.append("page_size=1024;");
+		stringBuilder.append("cache_size=1024;");
+		stringBuilder.append("autocommit=on;");
 		
 		Log.d(TAG, "storage:instantiate->" + DB_FULL_NAME);
 		
 		initDb();
-	}
-	
-	public static MainDbHelper getInstance(Context context) {
-		if (sInstance == null) {
-			sInstance = new MainDbHelper(context);
-		}
-		
-		Log.d(TAG, "storage:instantiate->ok");
-		
-		return sInstance;
 	}
 	
 	public synchronized static MainDbHelper getInstance(Context context, Account account) {
@@ -117,14 +119,13 @@ public class MainDbHelper {
 	}
 	
 	private Dao<Manager, String> mManagerDao;
-	
-	private Dao<Store, String> mStoreDao;
-	private Dao<Measure, String> mMeasureDao;
+	private Dao<Branch, String> mBranchDao;
+	private Dao<Department, String> mDepartmentDao;
 	private Dao<Psr, String> mPsrDao;
 	private Dao<Route, String> mRouteDao;
+	private Dao<Store, String> mStoreDao;
+	private Dao<Measure, String> mMeasureDao;
 	private Dao<Geofenceable, String> mGeoregionDao;
-	
-	private static final String TAG = "DB_HELPER";
 	
 	private void initDb() {
 		Log.d(TAG, "storage:init->" + DB_FULL_NAME); 
@@ -137,11 +138,13 @@ public class MainDbHelper {
 			mConnectionSource = new JdbcPooledConnectionSource(DB_URL); 
 			
 			mManagerDao = DaoManager.createDao(mConnectionSource, Manager.class);
-			
-			mStoreDao = DaoManager.createDao(mConnectionSource, Store.class);
-			mMeasureDao = DaoManager.createDao(mConnectionSource, Measure.class);
+			mBranchDao = DaoManager.createDao(mConnectionSource, Branch.class);
+			mDepartmentDao = DaoManager.createDao(mConnectionSource, Department.class);
 			mPsrDao = DaoManager.createDao(mConnectionSource, Psr.class);
 			mRouteDao = DaoManager.createDao(mConnectionSource, Route.class);
+			mStoreDao = DaoManager.createDao(mConnectionSource, Store.class);
+			mMeasureDao = DaoManager.createDao(mConnectionSource, Measure.class);
+						
 			mGeoregionDao = DaoManager.createDao(mConnectionSource, Geofenceable.class);
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -163,19 +166,16 @@ public class MainDbHelper {
 		}
 	}
 	
-	public void log() {
-		try {
-			Log.d("SQL LOG", "count of stores " + mStoreDao.countOf());
-			Log.d("SQL LOG", "count of stores statistics " + mMeasureDao.countOf());
-			Log.d("SQL LOG", "count of psrs " + mPsrDao.countOf());
-			Log.d("SQL LOG", "count of routes " + mRouteDao.countOf());
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
-	
 	public Dao<Manager, String> getManagerDao() {
 		return mManagerDao;
+	}
+	
+	public Dao<Branch, String> getBranchDao() {
+		return mBranchDao;
+	}
+	
+	public Dao<Department, String> getDepartmentDao() {
+		return mDepartmentDao;
 	}
 	
 	public Dao<Store, String> getStoreDao() {

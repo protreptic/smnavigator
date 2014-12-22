@@ -326,14 +326,15 @@ create service "sm_getDepartment"
         
 */
 create or replace procedure "sm_getPsr" ("token" sm_token) 
-    result ("id" integer, "name" nvarchar(255), "project" nvarchar(255), "email" nvarchar(255), "tel" nvarchar(255), "branch" integer, "department" integer)
+    result ("id" integer, "name" nvarchar(255), "project" nvarchar(255), "email" nvarchar(255), "tel" nvarchar(255), "branch" integer, "department" integer, "latitude" double, "longitude" double)
 begin
     declare "department_id" integer;
 
     if ("sm_validateToken" ("token") >= 0) then    
         select 
             d."Id", d."Descr", b."Descr", b."Email", 
-            b."Phone", b."Branch", b."Department"
+            b."Phone", b."Branch", b."Department",
+            ifnull(d."LastLatitude",0,d."LastLatitude"), ifnull(d."LastLongitude",0,d."LastLongitude")
         from     
             "sm_getDepartment" ("token") a
              join "RefEmployee" b 
@@ -364,7 +365,7 @@ create service "sm_getPsr"
         
 */
 create or replace procedure "sm_getRoute" ("token" sm_token) 
-    result ("id" integer, "visitDate" nvarchar(255), "psr" integer, "store" integer)
+    result ("id" integer, "visitDate" date, "psr" integer, "store" integer)
 begin
     if ("sm_validateToken" ("token") >= 0) then    
         select 
@@ -402,7 +403,7 @@ begin
             b."Id", b."Descr", c."Descr", 
             b."Address", ifnull(e."Phone",'Нет'), d."Descr",
             "sm_explainCoverageType" (c."CoverageType"),
-            ifnull(b."LocationLat",0), ifnull(b."LocationLon",0)
+            ifnull(b."LocationLat",0,b."LocationLat"), ifnull(b."LocationLon",0,b."LocationLon")
         from
             "sm_getRoute" ("token") a 
             join "RefOutlet" b 
@@ -514,7 +515,7 @@ create or replace procedure "sm_getMeasure" ("token" sm_token)
         "turnoverPreviousMonth" double, "turnoverCurrentMonth" double,
         "totalDistribution" double, "goldenDistribution" double, "goldenStatus" nvarchar(255), "frequencyOfVisits" integer)
 begin
-    if ("sm_validateToken" ("token") >= 0) then    
+    //if ("sm_validateToken" ("token") >= 0) then    
         select
             b."id", // идентификатор точки
             "sm_getLastVisitDate" (b."Id"), // дата последнего визита
@@ -531,7 +532,7 @@ begin
                 on b."Id" = a."id"
             left join "RefStoreType" c
                 on c."Id" = b.StoreType; 
-    endif;
+    //endif;
 end;
 
 /*
