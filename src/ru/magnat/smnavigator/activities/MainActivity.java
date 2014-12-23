@@ -1,6 +1,5 @@
 package ru.magnat.smnavigator.activities;
 
-import java.io.IOException;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -16,11 +15,6 @@ import ru.magnat.smnavigator.fragments.StoreListFragment;
 import ru.magnat.smnavigator.model.Branch;
 import ru.magnat.smnavigator.model.Manager;
 import android.accounts.Account;
-import android.accounts.AccountManager;
-import android.accounts.AccountManagerCallback;
-import android.accounts.AccountManagerFuture;
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -136,7 +130,7 @@ public class MainActivity extends FragmentActivity {
         getActionBar().setHomeButtonEnabled(false);
 		getActionBar().setTitle(title); 
 		getActionBar().setSubtitle(subTitle); 
-		getActionBar().setIcon(getResources().getDrawable(R.drawable.logotype_small));  
+		getActionBar().setIcon(getResources().getDrawable(R.drawable.logotype_small_beta));  
 
         if (savedInstanceState == null) {
             selectItem(0);
@@ -146,6 +140,13 @@ public class MainActivity extends FragmentActivity {
 		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 
 	}
 
+	@Override
+	protected void onStart() {
+		super.onStart();
+		
+		mMapFragment.updateMap();
+	}
+	
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
     	
         @Override
@@ -220,34 +221,14 @@ public class MainActivity extends FragmentActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.actionSync: {
-				AccountManager accountManager = AccountManager.get(getBaseContext());
-				accountManager.invalidateAuthToken(AccountWrapper.ACCOUNT_TYPE, null); 
-				accountManager.getAuthToken(mAccount, AccountWrapper.ACCOUNT_TYPE, null, getParent(), new AccountManagerCallback<Bundle>() {
-					
-					@Override
-					public void run(AccountManagerFuture<Bundle> future) {
-						try {
-							Bundle bundle = future.getResult();
-							
-							// Pass the settings flags by inserting them in a bundle
-					        Bundle settingsBundle = new Bundle();
-					        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-					        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
-					        
-					        settingsBundle.putString(AccountManager.KEY_AUTHTOKEN, bundle.getString(AccountManager.KEY_AUTHTOKEN)); 
-					        
-					        // Request the sync for the default account, authority, and
-					        // manual sync settings
-					        ContentResolver.requestSync(mAccount, AccountWrapper.ACCOUNT_AUTHORITY, settingsBundle);
-						} catch (OperationCanceledException e) {
-							e.printStackTrace();
-						} catch (AuthenticatorException e) {
-							e.printStackTrace();
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-					}
-				}, null);
+				// Pass the settings flags by inserting them in a bundle
+		        Bundle settingsBundle = new Bundle();
+		        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+		        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+		        
+		        // Request the sync for the default account, authority, and
+		        // manual sync settings
+		        ContentResolver.requestSync(mAccount, AccountWrapper.ACCOUNT_AUTHORITY, settingsBundle);
 			} break;
 //			case R.id.actionAbout: {
 //				AlertDialog.Builder builder = new AlertDialog.Builder(this);

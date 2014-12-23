@@ -48,7 +48,7 @@ public class LauncherActivity extends Activity {
 				centralRepository = new CentralRepository(getBaseContext()); 
 				
 				Notification.Builder builder = new Builder(getBaseContext());
-				builder.setSmallIcon(R.drawable.logotype_small);
+				builder.setSmallIcon(R.drawable.logotype_small_icon);
 				builder.setContentTitle(getString(R.string.app_name));
 				builder.setContentText(getString(R.string.update_check)); 
 				builder.setProgress(0, 0, true);
@@ -79,7 +79,7 @@ public class LauncherActivity extends Activity {
 					long[] pattern = {3, 1000, 1000};
 					
 					Notification.Builder builder = new Builder(getBaseContext());
-					builder.setSmallIcon(R.drawable.logotype_small);
+					builder.setSmallIcon(R.drawable.logotype_small_icon);
 					builder.setContentTitle(getString(R.string.app_name));
 					builder.setContentText(String.format(getString(R.string.update_update_available), artifact.getVersionName())); 
 					builder.setVibrate(pattern);					
@@ -88,7 +88,7 @@ public class LauncherActivity extends Activity {
 					notificationManager.notify(NOTIFICATION_ID, builder.build()); 
 				} else {
 					Notification.Builder builder = new Builder(getBaseContext());
-					builder.setSmallIcon(R.drawable.logotype_small);
+					builder.setSmallIcon(R.drawable.logotype_small_icon);
 					builder.setContentTitle(getString(R.string.app_name));
 					builder.setContentText(getString(R.string.update_update_unavailable)); 
 					builder.setAutoCancel(false);
@@ -230,7 +230,7 @@ public class LauncherActivity extends Activity {
 		mAccountManager = AccountManager.get(this);
 		mAccountHelper = AccountHelper.get(this);
 		
-		// Проверить обновления
+		// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 		checkUpdates();
 	}
 	

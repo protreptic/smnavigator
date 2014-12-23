@@ -27,7 +27,7 @@
         android:name="ru.magnat.smnavigator.SmNavigator"
         android:allowBackup="true"
         android:backupAgent=".backup.SmNavigatorBackupAgent"
-        android:icon="@drawable/logotype_small"
+        android:icon="@drawable/logotype_small_beta"
         android:label="@string/app_name"
         android:largeHeap="true"
         android:theme="@android:style/Theme.Holo.Light" >

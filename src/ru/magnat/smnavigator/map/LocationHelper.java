@@ -37,7 +37,7 @@ public class LocationHelper {
 	private AccountHelper mAccountHelper;
 	private Account mAccount;
 	
-	public synchronized static LocationHelper getInstance(Context context, GoogleMap map) {
+	public synchronized static LocationHelper get(Context context, GoogleMap map) {
 		if (sInstance == null) {
 			sInstance = new LocationHelper(context, map);
 		}

@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.activities.MainActivity;
+import ru.magnat.smnavigator.auth.account.AccountWrapper;
 import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.model.Branch;
 import ru.magnat.smnavigator.model.Department;
@@ -37,61 +38,39 @@ import com.j256.ormlite.dao.Dao;
 
 public class SyncAdapter extends AbstractThreadedSyncAdapter {
     
-    // Global variables
-    // Define a variable to contain a content resolver instance
-    ContentResolver mContentResolver;
-    
-    /**
-     * Set up the sync adapter
-     */
-    public SyncAdapter(Context context, boolean autoInitialize) {
-        super(context, autoInitialize);
-
-        /*
-         * If your app uses a content resolver, get an instance of it
-         * from the incoming Context
-         */
-        mContentResolver = context.getContentResolver();
-    }
-    
-    /**
-     * Set up the sync adapter. This form of the
-     * constructor maintains compatibility with Android 3.0
-     * and later platform versions
-     */
-    public SyncAdapter(Context context, boolean autoInitialize, boolean allowParallelSyncs) {
-        super(context, autoInitialize, allowParallelSyncs);
-        /*
-         * If your app uses a content resolver, get an instance of it
-         * from the incoming Context
-         */
-        mContentResolver = context.getContentResolver();
-    }
+    @SuppressWarnings("unused")
+	private ContentResolver mContentResolver;
     
     private MainDbHelper mMainDbHelper;
     private Account mAccount;
-    
     private String mAuthToken;
     
-    /*
-     * Specify the code you want to run in the sync adapter. The entire
-     * sync adapter runs in a background thread, so you don't have to set
-     * up your own background processing.
-     */
+    public SyncAdapter(Context context, boolean autoInitialize) {
+        super(context, autoInitialize);
+
+        mContentResolver = context.getContentResolver();
+    }
+    
+    public SyncAdapter(Context context, boolean autoInitialize, boolean allowParallelSyncs) {
+        super(context, autoInitialize, allowParallelSyncs);
+        
+        mContentResolver = context.getContentResolver();
+    }
+    
     @Override
-    public void onPerformSync(final Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
+    public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
     	mAccount = account;    	
     	
-    	sendNotification("started", account.name);
+    	sendNotification("started");
     	
-    	mAuthToken = extras.getString(AccountManager.KEY_AUTHTOKEN);
+    	mAuthToken = AccountManager.get(getContext()).peekAuthToken(account, AccountWrapper.ACCOUNT_TYPE);
     	
     	Timer timer = new Timer("askSender");
     	timer.schedule(new TimerTask() {
 			
 			@Override
 			public void run() {
-				sendNotification("ask", account.name);
+				sendNotification("ask");
 			}
 		}, 0, 1500);
     	
@@ -113,18 +92,18 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			TimeUnit.SECONDS.sleep(3);
 		} catch (Exception e) {
 			e.printStackTrace();
-			sendNotification("error", account.name);	
+			sendNotification("error");	
 	    }
 		
 		timer.cancel();
 		
-		sendNotification("completed", account.name);
+		sendNotification("completed");
     }
     
-    private void sendNotification(String action, String account) {
+    private void sendNotification(String action) {
     	Intent intentStarted = new Intent(MainActivity.ACTION_SYNC);
     	intentStarted.putExtra("action", action);
-    	intentStarted.putExtra("account", account);
+    	intentStarted.putExtra("account", mAccount.name);
     	
     	getContext().sendBroadcast(intentStarted);
     }
@@ -278,14 +257,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 	public void onSyncCanceled() {
 		super.onSyncCanceled();
 		
-		sendNotification("canceled", mAccount.name); 
+		sendNotification("canceled"); 
 	}
 
 	@Override
 	public void onSyncCanceled(Thread thread) {
 		super.onSyncCanceled(thread);
 		
-		sendNotification("canceled", mAccount.name); 
+		sendNotification("canceled"); 
 	}
 
 }

@@ -2,14 +2,18 @@ package ru.magnat.smnavigator.fragments;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.map.LocationHelper;
+import android.location.Location;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnMyLocationChangeListener;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 
 public class MapFragment extends SupportMapFragment {
 	
@@ -21,15 +25,32 @@ public class MapFragment extends SupportMapFragment {
 		
 		GoogleMap map = getMap();
 		map.setMyLocationEnabled(true);
+		map.setOnMyLocationChangeListener(new OnMyLocationChangeListener() {
+			
+			@Override
+			public void onMyLocationChange(Location location) {
+				if (location != null) {
+					getMap().animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 10f));
+					getMap().setOnMyLocationChangeListener(null); 
+				}
+			}
+		});
 		
-		mLocationHelper = LocationHelper.getInstance(getActivity(), map);
-	}
-	
+		mLocationHelper = LocationHelper.get(getActivity(), map);
+	}	
+	 
 	@Override
 	public void onStart() {
 		super.onStart();
 		
 		mLocationHelper.updateOverlays();
+	}
+	
+	@Override
+	public void onDetach() {
+		super.onDetach();
+		
+		LocationHelper.destroy();
 	}
 	
 	@Override

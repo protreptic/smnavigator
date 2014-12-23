@@ -37,7 +37,7 @@ public class DownloadArtifactActivity extends Activity {
 		if (artifact != null) { 
 			AlertDialog.Builder builder = new AlertDialog.Builder(this);
 			builder.setMessage(artifact.toString());
-			builder.setPositiveButton("Загрузить", new OnClickListener() {
+			builder.setPositiveButton(getString(R.string.download), new OnClickListener() {
 				
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
@@ -51,7 +51,7 @@ public class DownloadArtifactActivity extends Activity {
 						
 						protected void onPreExecute() {
 							Notification.Builder builder = new Builder(DownloadArtifactActivity.this);
-							builder.setSmallIcon(R.drawable.logotype_small);
+							builder.setSmallIcon(R.drawable.logotype_small_icon);
 							builder.setContentTitle(getString(R.string.app_name)); 
 							builder.setContentText(getString(R.string.update_loading));
 							builder.setAutoCancel(false);
@@ -87,10 +87,10 @@ public class DownloadArtifactActivity extends Activity {
 					            input = connection.getInputStream();
 					            output = new FileOutputStream(Environment.getExternalStorageDirectory() + "/" + Environment.DIRECTORY_DOWNLOADS + "/" + fileName);
 
-					            byte data[] = new byte[4096];
+					            byte buffer[] = new byte[1024 * 256];
 					            long total = 0;
 					            int count;
-					            while ((count = input.read(data)) != -1) {
+					            while ((count = input.read(buffer)) != -1) {
 					                // allow canceling with back button
 					                if (isCancelled()) {
 					                    input.close();
@@ -100,7 +100,7 @@ public class DownloadArtifactActivity extends Activity {
 					                // publishing the progress....
 					                if (contentLength > 0) // only if total length is known
 					                    publishProgress(new Integer[] { (int) total });
-					                output.write(data, 0, count);
+					                output.write(buffer, 0, count);
 					            } 
 					        } catch (Exception e) {
 					        	e.printStackTrace();
@@ -123,7 +123,7 @@ public class DownloadArtifactActivity extends Activity {
 						
 						protected void onProgressUpdate(Integer... progress) {
 							Notification.Builder builder = new Builder(DownloadArtifactActivity.this);
-							builder.setSmallIcon(R.drawable.logotype_small);
+							builder.setSmallIcon(R.drawable.logotype_small_icon);
 							builder.setContentTitle(getString(R.string.app_name));
 							builder.setContentText(getString(R.string.update_loading));
 							builder.setAutoCancel(false);
@@ -138,7 +138,7 @@ public class DownloadArtifactActivity extends Activity {
 							 
 							if (artifact != null) {
 								Notification.Builder builder = new Builder(DownloadArtifactActivity.this);
-								builder.setSmallIcon(R.drawable.logotype_small);
+								builder.setSmallIcon(R.drawable.logotype_small_icon);
 								builder.setContentTitle(getString(R.string.app_name));
 								builder.setContentText(getString(R.string.update_loading_complete));
 								builder.setAutoCancel(false);
@@ -172,7 +172,7 @@ public class DownloadArtifactActivity extends Activity {
 					}.execute();
 				}
 			});
-			builder.setNegativeButton("Отмена", new OnClickListener() {
+			builder.setNegativeButton(getString(R.string.cancel), new OnClickListener() {
 				
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
