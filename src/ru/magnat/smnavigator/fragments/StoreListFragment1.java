@@ -93,7 +93,7 @@ public class StoreListFragment1 extends ListFragment implements OnScrollListener
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		
-		AccountHelper accountHelper = AccountHelper.getInstance(getActivity());
+		AccountHelper accountHelper = AccountHelper.get(getActivity());
 		Account account = accountHelper.getCurrentAccount();
 		
 		getListView().setDivider(null); 

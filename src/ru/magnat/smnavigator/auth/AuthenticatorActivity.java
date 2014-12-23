@@ -48,7 +48,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 		
 		mMessageTextView = (TextView) findViewById(R.id.message);
 		mMessageTextView.setTypeface(Fonts.getInstance(this).getTypeface("RobotoCondensed-Regular"));
-		mMessageTextView.setTextSize(32); 
+		mMessageTextView.setTextSize(30); 
 		mMessageTextView.setTextColor(getResources().getColor(R.color.red)); 
 		
 		mLoginEditText = (EditText) findViewById(R.id.login); 
@@ -90,7 +90,23 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
         
         Account account = new Account(mUsername, AccountWrapper.ACCOUNT_TYPE);
         
-        mAccountManager.addAccountExplicitly(account, mPassword, null);
+        Account[] accounts = mAccountManager.getAccountsByType(AccountWrapper.ACCOUNT_TYPE);
+        
+        boolean accountExists = false;
+        
+        for (Account temp : accounts) {
+			if (temp.name.equals(account.name)) {
+				mAccountManager.setPassword(account, mPassword); 
+				
+				accountExists = true;
+				
+				break;
+			}
+		} 
+        
+        if (!accountExists) {
+        	mAccountManager.addAccountExplicitly(account, mPassword, null);
+        }
         
         Intent intent = new Intent();
         intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, mUsername);
@@ -116,7 +132,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
         } else {
             Log.e(TAG, "onAuthenticationResult: failed to authenticate");
             
-            mMessageTextView.setText("Please enter a valid username/password.");
+            mMessageTextView.setText(getString(R.string.authError));
             
             mLoginEditText.requestFocus();
             mLoginEditText.setText(""); 

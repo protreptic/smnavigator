@@ -22,7 +22,6 @@ import android.accounts.AccountManager;
 import android.accounts.NetworkErrorException;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -77,18 +76,6 @@ public class Authenticator extends AbstractAccountAuthenticator {
     		for (ru.magnat.smnavigator.auth.account.AccountWrapper account : accounts) {
 				token = account.getToken();
 				
-				SharedPreferences settings = context.getSharedPreferences("global", Context.MODE_MULTI_PROCESS);
-				
-				SharedPreferences.Editor editor = settings.edit();
-				
-				editor.putString("defaultAccountName", login);
-				editor.putString("defaultAccountType", AccountWrapper.ACCOUNT_TYPE); 
-				editor.putString("defaultAccountPassword", password);
-				editor.putString("defaultAccountSessionToken", account.getToken());
-				editor.putString("defaultAccountSessionTokenExpiration", account.getExpiration());
-				
-				editor.commit();
-				
 				Log.d("", account.toString());
 			}
     		
@@ -107,38 +94,40 @@ public class Authenticator extends AbstractAccountAuthenticator {
 	    
 	@Override
 	public Bundle getAuthToken(AccountAuthenticatorResponse response, Account account, String authTokenType, Bundle options) throws NetworkErrorException {
-        // If the caller requested an authToken type we don't support, then
-        // return an error
         if (!authTokenType.equals(AccountWrapper.ACCOUNT_TYPE)) {
-            final Bundle result = new Bundle();
+            Bundle result = new Bundle();
+            result.putString(AccountManager.KEY_ERROR_CODE, "invalid authTokenType");
             result.putString(AccountManager.KEY_ERROR_MESSAGE, "invalid authTokenType");
+            
             return result;
         }
 
-        // Extract the username and password from the Account Manager, and ask
-        // the server for an appropriate AuthToken.
-        final String password = mAccountManager.getPassword(account);
-        if (password != null) {
-            final String authToken = authenticate(mContext, account.name, password); 
-            if (!TextUtils.isEmpty(authToken)) {
-                final Bundle result = new Bundle();
-                result.putString(AccountManager.KEY_ACCOUNT_NAME, account.name);
-                result.putString(AccountManager.KEY_ACCOUNT_TYPE, AccountWrapper.ACCOUNT_TYPE);
-                result.putString(AccountManager.KEY_AUTHTOKEN, authToken);
+		String accountName = account.name;
+		String accountPassword = mAccountManager.getPassword(account);
+		String accountType = account.type;
+		String accountToken = null;
+        
+        if (accountPassword != null) {
+            accountToken = authenticate(mContext, accountName, accountPassword); 
+            
+            if (!TextUtils.isEmpty(accountToken)) {
+                Bundle result = new Bundle();
+                result.putString(AccountManager.KEY_ACCOUNT_NAME, accountName);
+                result.putString(AccountManager.KEY_ACCOUNT_TYPE, accountType);
+                result.putString(AccountManager.KEY_AUTHTOKEN, accountToken);
+
                 return result;
             }
         }
-
-        // If we get here, then we couldn't access the user's password - so we
-        // need to re-prompt them for their credentials. We do that by creating
-        // an intent to display our AuthenticatorActivity panel.
-        final Intent intent = new Intent(mContext, AuthenticatorActivity.class);
-        intent.putExtra(AuthenticatorActivity.PARAM_USERNAME, account.name);
-        intent.putExtra(AuthenticatorActivity.PARAM_AUTHTOKEN_TYPE, authTokenType);
-        intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
         
-        final Bundle bundle = new Bundle();
+        Intent intent = new Intent(mContext, AuthenticatorActivity.class);
+        intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
+        intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, account.name);
+        intent.putExtra(AuthenticatorActivity.PARAM_AUTHTOKEN_TYPE, authTokenType);
+
+        Bundle bundle = new Bundle();
         bundle.putParcelable(AccountManager.KEY_INTENT, intent);
+        
         return bundle;
 	}
 

@@ -28,7 +28,7 @@ public class RouteView extends RelativeLayout {
 		
 		mRoute = route;
 		
-		AccountHelper accountHelper = AccountHelper.getInstance(context);
+		AccountHelper accountHelper = AccountHelper.get(context);
 		
 		Account account = accountHelper.getCurrentAccount();
 		
