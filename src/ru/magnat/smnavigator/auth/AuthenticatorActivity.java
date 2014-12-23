@@ -1,5 +1,7 @@
 package ru.magnat.smnavigator.auth;
 
+import java.util.concurrent.TimeUnit;
+
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.auth.account.AccountWrapper;
 import ru.magnat.smnavigator.util.Fonts;
@@ -20,11 +22,6 @@ import android.widget.TextView;
 public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 	
     private static final String TAG = "AuthenticatorActivity";
-    
-    public static final String PARAM_CONFIRM_CREDENTIALS = "confirmCredentials";
-    public static final String PARAM_PASSWORD = "password";
-    public static final String PARAM_USERNAME = "username";
-    public static final String PARAM_AUTHTOKEN_TYPE = "authtokenType";
     
     private AccountManager mAccountManager;
 
@@ -76,15 +73,6 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
 		});
 	}
 	
-    /**
-     * Called when response is received from the server for authentication
-     * request. See onAuthenticationResult(). Sets the
-     * AccountAuthenticatorResult which is sent back to the caller. We store the
-     * authToken that's returned from the server as the 'password' for this
-     * account - so we're never storing the user's actual password locally.
-     *
-     * @param result the confirmCredentials result.
-     */
     private void finishLogin(String authToken) {
         Log.i(TAG, "finishLogin()");
         
@@ -135,7 +123,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
             mMessageTextView.setText(getString(R.string.authError));
             
             mLoginEditText.requestFocus();
-            mLoginEditText.setText(""); 
+            //mLoginEditText.setText(""); 
             mPasswordEditText.setText(""); 
         }
         
@@ -155,6 +143,8 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
         @Override
         protected String doInBackground(Void... params) {
         	try {
+        		TimeUnit.SECONDS.sleep(3);
+        		
         		return Authenticator.authenticate(getBaseContext(), mUsername, mPassword); 
         	} catch (Exception e) {
                 Log.e(TAG, "UserLoginTask.doInBackground: failed to authenticate");
@@ -165,7 +155,7 @@ public class AuthenticatorActivity extends AccountAuthenticatorActivity {
         }
         
         @Override
-        protected void onPostExecute(final String authToken) {
+        protected void onPostExecute(String authToken) {
             // On a successful authentication, call back into the Activity to
             // communicate the authToken (or null for an error).
             onAuthenticationResult(authToken);

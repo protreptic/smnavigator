@@ -7,8 +7,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
 
+import org.h2.engine.DbSettings;
+
 import ru.magnat.smnavigator.map.geofence.Geofenceable;
 import ru.magnat.smnavigator.model.Branch;
+import ru.magnat.smnavigator.model.Customer;
 import ru.magnat.smnavigator.model.Department;
 import ru.magnat.smnavigator.model.Manager;
 import ru.magnat.smnavigator.model.Psr;
@@ -25,7 +28,7 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcPooledConnectionSource;
 
-public class MainDbHelper {
+public class DbHelper {
 	
 	private static final String TAG = "DB_HELPER";
 	
@@ -37,7 +40,7 @@ public class MainDbHelper {
 		}
 	}
 	
-	private static MainDbHelper sInstance;
+	private static DbHelper sInstance;
 	
 	private Context mContext;
 	
@@ -48,7 +51,7 @@ public class MainDbHelper {
 	
 	private JdbcPooledConnectionSource mConnectionSource;
 	 
-	private MainDbHelper(Context context, Account account) {
+	private DbHelper(Context context, Account account) {
 		mContext = context;
 		
 		SharedPreferences sharedPreferences = context.getSharedPreferences("global.storage", 0);
@@ -61,7 +64,7 @@ public class MainDbHelper {
 		boolean compress = sharedPreferences.getBoolean("global.storage.compress", false);
 		
 		String fileLock = sharedPreferences.getString("global.storage.fileLock", "no");
-		
+		DbSettings.getInstance(null);
 		int pageSize = sharedPreferences.getInt("global.storage.pageSize", 1024);
 		int cacheSize = sharedPreferences.getInt("global.storage.cacheSize", 1024);
 		
@@ -86,9 +89,9 @@ public class MainDbHelper {
 		initDb();
 	}
 	
-	public synchronized static MainDbHelper getInstance(Context context, Account account) {
+	public synchronized static DbHelper getInstance(Context context, Account account) {
 		if (sInstance == null) {
-			sInstance = new MainDbHelper(context, account);
+			sInstance = new DbHelper(context, account);
 		}
 		
 		Log.d(TAG, "storage:instantiate->ok");
@@ -124,6 +127,7 @@ public class MainDbHelper {
 	private Dao<Psr, String> mPsrDao;
 	private Dao<Route, String> mRouteDao;
 	private Dao<Store, String> mStoreDao;
+	private Dao<Customer, String> mCustomerDao;
 	private Dao<Measure, String> mMeasureDao;
 	private Dao<Geofenceable, String> mGeoregionDao;
 	
@@ -143,6 +147,7 @@ public class MainDbHelper {
 			mPsrDao = DaoManager.createDao(mConnectionSource, Psr.class);
 			mRouteDao = DaoManager.createDao(mConnectionSource, Route.class);
 			mStoreDao = DaoManager.createDao(mConnectionSource, Store.class);
+			mCustomerDao = DaoManager.createDao(mConnectionSource, Customer.class);
 			mMeasureDao = DaoManager.createDao(mConnectionSource, Measure.class);
 						
 			mGeoregionDao = DaoManager.createDao(mConnectionSource, Geofenceable.class);
@@ -196,6 +201,10 @@ public class MainDbHelper {
 	
 	public Dao<Geofenceable, String> getGeoregionDao() {
 		return mGeoregionDao;
+	}
+
+	public Dao<Customer, String> getCustomerDao() {
+		return mCustomerDao; 
 	}
 	
 }

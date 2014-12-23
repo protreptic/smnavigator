@@ -19,8 +19,8 @@ public class Store implements Mappable, Jsonable, Clusterable {
 	@DatabaseField(columnName = "name")
 	private String name;
 	
-	@DatabaseField(columnName = "customer")
-	private String customer;
+	@DatabaseField(columnName = "customer", foreign = true, foreignAutoRefresh = true)
+	private Customer customer;
 	
 	@DatabaseField(columnName = "address")
 	private String address;
@@ -33,9 +33,6 @@ public class Store implements Mappable, Jsonable, Clusterable {
 	
 	@DatabaseField(columnName = "coverage_type")
 	private String coverageType;
-	
-	@DatabaseField(columnName = "psr")
-	private Integer psr;
 	
 	@DatabaseField(columnName = "latitude")
 	private Double latitude;
@@ -59,11 +56,11 @@ public class Store implements Mappable, Jsonable, Clusterable {
 		this.name = name;
 	}
 
-	public String getCustomer() {
+	public Customer getCustomer() {
 		return customer;
 	}
 
-	public void setCustomer(String customer) {
+	public void setCustomer(Customer customer) {
 		this.customer = customer;
 	}
 
@@ -99,14 +96,6 @@ public class Store implements Mappable, Jsonable, Clusterable {
 		this.coverageType = coverageType;
 	}
 
-	public Integer getPsr() {
-		return psr;
-	}
-
-	public void setPsr(Integer psr) {
-		this.psr = psr;
-	}
-
 	public Double getLatitude() {
 		return latitude;
 	}
@@ -135,6 +124,11 @@ public class Store implements Mappable, Jsonable, Clusterable {
 	@Override
 	public LatLng getPosition() {
 		return new LatLng(latitude, longitude); 
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + ", customer=" + customer + ", address=" + address + ", tel=" + tel + ", channel=" + channel + ", coverageType=" + coverageType + ", latitude=" + latitude + ", longitude=" + longitude + "]";	
 	}
 
 }

@@ -1,5 +1,7 @@
 package ru.magnat.smnavigator.model;
 
+import java.sql.Timestamp;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -10,13 +12,13 @@ public class Route {
 	private Integer id;
 	
 	@DatabaseField(columnName = "visit_date")
-	private String visitDate;
+	private Timestamp visitDate;
 	
-	@DatabaseField(columnName = "psr")
-	private Integer psr;
+	@DatabaseField(columnName = "psr", foreign = true, foreignAutoRefresh = true)
+	private Psr psr;
 	
-	@DatabaseField(columnName = "store")
-	private Integer store;
+	@DatabaseField(columnName = "store", foreign = true, foreignAutoRefresh = true)
+	private Store store;
 
 	public Integer getId() {
 		return id;
@@ -26,33 +28,33 @@ public class Route {
 		this.id = id;
 	}
 
-	public String getVisitDate() {
+	public Timestamp getVisitDate() {
 		return visitDate;
 	}
 
-	public void setVisitDate(String visitDate) {
+	public void setVisitDate(Timestamp visitDate) {
 		this.visitDate = visitDate;
 	}
 
-	public Integer getPsr() {
+	public Psr getPsr() {
 		return psr;
 	}
 
-	public void setPsr(Integer psr) {
+	public void setPsr(Psr psr) {
 		this.psr = psr;
 	}
 
-	public Integer getStore() {
+	public Store getStore() {
 		return store;
 	}
 
-	public void setStore(Integer store) {
+	public void setStore(Store store) {
 		this.store = store;
 	}
 	
 	@Override
 	public String toString() {
-		return getClass().getName() + " [id=" + id + ", visitDate=" + visitDate + ", psr=" + psr + ", store=" + store + "]";
+		return getClass().getSimpleName() + " [id=" + id + ", visitDate=" + visitDate + ", psr=" + psr + ", store=" + store + "]";
 	}
 	
 }

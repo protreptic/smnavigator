@@ -333,7 +333,7 @@ begin
     declare "department_id" integer;
 
     if ("sm_validateToken" ("token") >= 0) then    
-        select 
+        select distinct
             d."Id", d."Descr", b."Descr", b."Email", 
             b."Phone", b."Branch", b."Department",
             ifnull(d."LastLatitude",0,d."LastLatitude"), ifnull(d."LastLongitude",0,d."LastLongitude")
@@ -367,7 +367,7 @@ create service "sm_getPsr"
         
 */
 create or replace procedure "sm_getRoute" ("token" sm_token) 
-    result ("id" integer, "visitDate" date, "psr" integer, "store" integer)
+    result ("id" integer, "visitDate" datetime, "psr" integer, "store" integer)
 begin
     if ("sm_validateToken" ("token") >= 0) then    
         select 
@@ -396,14 +396,14 @@ create service "sm_getRoute"
 */
 create or replace procedure "sm_getStore" ("token" sm_token) 
     result (
-        "id" integer, "name" nvarchar(255), "customer" nvarchar(255), 
+        "id" integer, "name" nvarchar(255), "customer" integer, 
         "address" nvarchar(255), "tel" nvarchar(255), "channel" nvarchar(255), 
         "coverageType" nvarchar(255), "latitude" double, "longitude" double)
 begin
     if ("sm_validateToken" ("token") >= 0) then    
         select distinct
-            b."Id", b."Descr", c."Descr", 
-            b."Address", ifnull(e."Phone",'Нет'), d."Descr",
+            b."Id", b."Descr", c."Id", 
+            b."Address", ifnull(e."Phone",'Нет'), ifnull(d."Descr",'',d."Descr"),
             "sm_explainCoverageType" (c."CoverageType"),
             ifnull(b."LocationLat",0,b."LocationLat"), ifnull(b."LocationLon",0,b."LocationLon")
         from
@@ -412,7 +412,7 @@ begin
                 on b."Id" = a."store"
             join "RefCustomer" c
                 on c."Id" = b."ParentExt"
-            join "RefStoreChannel" d
+            left join "RefStoreChannel" d
                 on d."Id" = b."Channel"
             left join "RefContact" e
                 on e."Id" = c."Contact" 
@@ -431,6 +431,35 @@ create service "sm_getStore"
     methods 'GET,POST'
     as call "sm_getStore" (:token);
 
+/*
+        
+*/
+create or replace procedure "sm_getCustomer" ("token" sm_token) 
+    result ("id" integer, "name" nvarchar(255))
+begin
+    if ("sm_validateToken" ("token") >= 0) then    
+        select distinct
+            c."Id", c."Descr"
+        from "sm_getStore" ("token") a
+            join "RefOutlet" b
+                on b."Id" = a."id" 
+            join "RefCustomer" c
+                on c."Id" = b."ParentExt" 
+    endif;
+end;
+
+/*
+        
+*/
+drop service "sm_getCustomer";
+create service "sm_getCustomer" 
+    type 'json'
+    authorization off
+    secure off
+    user dba
+    methods 'GET,POST'
+    as call "sm_getCustomer" (:token);
+
 // Возвращает товарооборот точки за прошлый месяц по ее идентификатору
 create or replace function "sm_getTurnoverPreviousMonth" ("store_id" integer) returns double
 begin
@@ -438,7 +467,7 @@ begin
 
     select sum(a."Shipments") into "turnover" from "RegSales" a where a."Outlet" = "store_id" and datediff(month, dateadd(month, -1, now()), now()) = 1;
 
-    return "turnover";
+    return round("turnover",2);
 end;
 
 // Возвращает товарооборот точки за текущий месяц по ее идентификатору
@@ -448,7 +477,7 @@ begin
 
     select sum(a."Shipments") into "turnover" from "RegSales" a where a."Outlet" = "store_id" and datediff(month, now(), now()) = 0;
 
-    return "turnover";
+    return round("turnover",2);
 end;
 
 // Возвращает товарооборот точки за период по ее идентификатору
@@ -513,9 +542,10 @@ end;
     
 create or replace procedure "sm_getMeasure" ("token" sm_token) 
     result (
-        "id" integer, "lastVisit" nvarchar(255), "nextVisit" nvarchar(255), 
+        "id" integer, "lastVisit" datetime, "nextVisit" datetime, 
         "turnoverPreviousMonth" double, "turnoverCurrentMonth" double,
-        "totalDistribution" double, "goldenDistribution" double, "goldenStatus" nvarchar(255), "frequencyOfVisits" integer)
+        "totalDistribution" integer, "goldenDistribution" integer, 
+        "goldenStatus" nvarchar(255), "frequencyOfVisits" integer)
 begin
     //if ("sm_validateToken" ("token") >= 0) then    
         select
