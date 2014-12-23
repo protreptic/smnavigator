@@ -25,11 +25,11 @@ public class Psr implements Mappable {
 	@DatabaseField(columnName = "tel")
 	private String tel;
 	
-	@DatabaseField(columnName = "branch")
-	private String branch;
+	@DatabaseField(columnName = "branch", foreign = true, foreignAutoRefresh = true)
+	private Branch branch;
 	
-	@DatabaseField(columnName = "department")
-	private String department;
+	@DatabaseField(columnName = "department", foreign = true, foreignAutoRefresh = true)
+	private Department department;
 	
 	@DatabaseField(columnName = "latitude")
 	private Double latitude;
@@ -69,19 +69,19 @@ public class Psr implements Mappable {
 		this.tel = tel;
 	}
 
-	public String getBranch() {
+	public Branch getBranch() {
 		return branch;
 	}
 
-	public void setBranch(String branch) {
+	public void setBranch(Branch branch) {
 		this.branch = branch;
 	}
 
-	public String getDepartment() {
+	public Department getDepartment() {
 		return department;
 	}
 
-	public void setDepartment(String department) {
+	public void setDepartment(Department department) {
 		this.department = department;
 	}
 	
@@ -115,7 +115,7 @@ public class Psr implements Mappable {
 	
 	@Override
 	public String toString() {
-		return getClass().getName() + " [id=" + id + ", name=" + name + ", email=" + email + ", tel=" + tel + ", branch=" + branch + ", department=" + department + "]";
+		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + ", email=" + email + ", tel=" + tel + ", branch=" + branch + ", department=" + department + "]";
 	}
 	
 }

@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.auth.account.AccountHelper;
-import ru.magnat.smnavigator.data.MainDbHelper;
+import ru.magnat.smnavigator.data.DbHelper;
 import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.model.Measure;
 import ru.magnat.smnavigator.view.StoreView;
@@ -32,7 +32,7 @@ import com.j256.ormlite.dao.Dao;
 
 public class StoreListFragment1 extends ListFragment implements OnScrollListener {
 
-	private MainDbHelper mDbHelper;
+	private DbHelper mDbHelper;
 	private MyAdapter mListAdapter;
 	private Dao<Store, String> mStoreDao;
 	private List<Store> mGroupData = new ArrayList<Store>();
@@ -106,7 +106,7 @@ public class StoreListFragment1 extends ListFragment implements OnScrollListener
 		
 		getListView().addFooterView(progressBar); 
 		
-		mDbHelper = MainDbHelper.getInstance(getActivity(), account);
+		mDbHelper = DbHelper.getInstance(getActivity(), account);
 		
 		mListAdapter = new MyAdapter();
 		

@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.auth.account.AccountHelper;
-import ru.magnat.smnavigator.data.MainDbHelper;
+import ru.magnat.smnavigator.data.DbHelper;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.util.Fonts;
@@ -35,7 +35,7 @@ import com.j256.ormlite.dao.Dao;
 
 public class PsrListFragment extends ExpandableListFragment {
 	
-	private MainDbHelper mDbHelper;
+	private DbHelper mDbHelper;
 	private MyAdapter mAdapter;
 	private Dao<Psr, String> mPsrDao;
 	private Dao<Route, String> mRouteDao;
@@ -88,7 +88,7 @@ public class PsrListFragment extends ExpandableListFragment {
 		getExpandableListView().setBackgroundColor(getResources().getColor(R.color.gray)); 
 		//getExpandableListView().setBackground(getResources().getDrawable(R.drawable.bg_2));  
 		
-		mDbHelper = MainDbHelper.getInstance(getActivity(), account);
+		mDbHelper = DbHelper.getInstance(getActivity(), account);
 		
 		mAdapter = new MyAdapter();
 		
@@ -186,31 +186,31 @@ public class PsrListFragment extends ExpandableListFragment {
 			
 			RelativeLayout relativeLayout = (RelativeLayout) LayoutInflater.from(getActivity()).inflate(R.layout.default_list_item, parent, false);
 			
-			TextView name = (TextView) relativeLayout.findViewById(R.id.title); 
-			name.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-			name.setText(psr.getName());   
+			TextView title = (TextView) relativeLayout.findViewById(R.id.title); 
+			title.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
+			title.setText(psr.getName());   
 			
-			TextView address = (TextView) relativeLayout.findViewById(R.id.description); 
-			address.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-			address.setText(psr.getDepartment()); 
+			TextView subtitle = (TextView) relativeLayout.findViewById(R.id.subtitle); 
+			subtitle.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
+			subtitle.setText(psr.getBranch().getName());  
 			
-			TextView channel = (TextView) relativeLayout.findViewById(R.id.staticmaptitle); 
-			channel.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-			channel.setText(Text.prepareAddress(psr.getProject())); 
+			TextView description = (TextView) relativeLayout.findViewById(R.id.description); 
+			description.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
+			description.setText(psr.getDepartment().getName()); 
 			
-			TextView goldenStatus = (TextView) relativeLayout.findViewById(R.id.subtitle); 
-			goldenStatus.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
-			goldenStatus.setText(Text.prepareAddress(psr.getBranch())); 
-			
-			StaticMapView staticMapView = (StaticMapView) relativeLayout.findViewById(R.id.staticmap); 
-			staticMapView.setMappable(psr); 
-			staticMapView.setOnClickListener(new OnClickListener() {
+			StaticMapView staticmap = (StaticMapView) relativeLayout.findViewById(R.id.staticmap); 
+			staticmap.setMappable(psr); 
+			staticmap.setOnClickListener(new OnClickListener() {
 				
 				@Override
 				public void onClick(View view) {				
 				}
 				
 			});
+			
+			TextView staticmaptitle = (TextView) relativeLayout.findViewById(R.id.staticmaptitle); 
+			staticmaptitle.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
+			staticmaptitle.setText(Text.prepareAddress(psr.getProject())); 
 			
 			ImageView details = (ImageView) relativeLayout.findViewById(R.id.actions); 
 			details.setOnClickListener(new OnClickListener() {

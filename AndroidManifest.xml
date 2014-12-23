@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ru.magnat.smnavigator"
-    android:versionCode="14"
-    android:versionName="1.0.0-beta.2" >
+    android:versionCode="15"
+    android:versionName="1.0.0-beta.3" >
 
     <uses-sdk
         android:minSdkVersion="17"
@@ -63,7 +63,9 @@
             android:theme="@android:style/Theme.Holo.Light" >
         </activity>
 
-        <service android:name="ru.magnat.smnavigator.auth.AuthenticatorService" >
+        <service
+            android:name="ru.magnat.smnavigator.auth.AuthenticatorService"
+            android:permission="android.permission.INTERNET" >
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
             </intent-filter>
@@ -82,6 +84,7 @@
         <service
             android:name="ru.magnat.smnavigator.sync.SyncService"
             android:exported="true"
+            android:permission="android.permission.INTERNET"
             android:process=":sync" >
             <intent-filter>
                 <action android:name="android.content.SyncAdapter" />

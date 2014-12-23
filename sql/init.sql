@@ -25,6 +25,14 @@ create table "sm_navigator"."branch" (
 /*
 	
 */
+create table "sm_navigator"."customer" (
+	id integer primary key,
+	name varchar(255)
+);
+
+/*
+	
+*/
 create table "sm_navigator"."department" (
 	id integer primary key,
 	name varchar(255)
@@ -50,7 +58,7 @@ create table "sm_navigator"."psr" (
 */
 create table "sm_navigator"."route" (
 	id integer primary key,
-	visit_date varchar (255),
+	visit_date timestamp,
 	psr integer,
 	store integer
 );
@@ -61,12 +69,11 @@ create table "sm_navigator"."route" (
 create table "sm_navigator"."store" (
 	id integer primary key,
 	name varchar (255),
-	customer varchar (255),
+	customer integer,
 	address varchar (255),
 	tel varchar (255),
 	channel varchar (255),
 	coverage_type varchar (255),
-	psr integer,
 	latitude double,
 	longitude double
 );
@@ -77,12 +84,12 @@ create table "sm_navigator"."store" (
 create table "sm_navigator"."measure" (
 	id integer primary key,
 	visit_frequency integer,
-	last_visit varchar (255),
-	next_visit varchar (255),
+	last_visit timestamp,
+	next_visit timestamp,
 	turnover_previous_month float,
 	turnover_current_month float,
-	total_distribution float,
-	golden_distribution float,
+	total_distribution integer,
+	golden_distribution integer,
 	golden_status varchar (255)
 );
 
