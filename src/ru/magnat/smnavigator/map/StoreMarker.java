@@ -15,7 +15,7 @@ public class StoreMarker extends AbstractMarker {
         
         setMarker(new MarkerOptions()
         	.position(new LatLng(store.getLatitude(), store.getLongitude()))
-            .title(store.getCustomer())
+            .title(store.getCustomer().getName())
             .snippet(Text.prepareAddress(store.getAddress())) 
             .icon(BitmapDescriptorFactory.fromResource(R.drawable.shop)));
     }

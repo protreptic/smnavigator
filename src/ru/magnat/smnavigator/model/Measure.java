@@ -1,5 +1,7 @@
 package ru.magnat.smnavigator.model;
 
+import java.sql.Timestamp;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -13,10 +15,10 @@ public class Measure {
 	private Integer frequencyOfVisits;
 	
 	@DatabaseField(columnName = "last_visit")
-	private String lastVisit;
+	private Timestamp lastVisit;
 	
 	@DatabaseField(columnName = "next_visit")
-	private String nextVisit;
+	private Timestamp nextVisit;
 	
 	@DatabaseField(columnName = "turnover_previous_month")
 	private Double turnoverPreviousMonth;
@@ -25,10 +27,10 @@ public class Measure {
 	private Double turnoverCurrentMonth;
 	
 	@DatabaseField(columnName = "total_distribution")
-	private Double totalDistribution;
+	private Integer totalDistribution;
 	
 	@DatabaseField(columnName = "golden_distribution")
-	private Double goldenDistribution;
+	private Integer goldenDistribution;
 
 	@DatabaseField(columnName = "golden_status")
 	private String goldenStatus;
@@ -41,19 +43,19 @@ public class Measure {
 		this.id = id;
 	}
 
-	public String getLastVisit() {
+	public Timestamp getLastVisit() {
 		return lastVisit;
 	}
 
-	public void setLastVisit(String lastVisit) {
+	public void setLastVisit(Timestamp lastVisit) {
 		this.lastVisit = lastVisit;
 	}
 
-	public String getNextVisit() {
+	public Timestamp getNextVisit() {
 		return nextVisit;
 	}
 
-	public void setNextVisit(String nextVisit) {
+	public void setNextVisit(Timestamp nextVisit) {
 		this.nextVisit = nextVisit;
 	}
 
@@ -73,19 +75,19 @@ public class Measure {
 		this.turnoverCurrentMonth = turnoverCurrentMonth;
 	}
 
-	public Double getTotalDistribution() {
+	public Integer getTotalDistribution() {
 		return totalDistribution;
 	}
 
-	public void setTotalDistribution(Double totalDistribution) {
+	public void setTotalDistribution(Integer totalDistribution) {
 		this.totalDistribution = totalDistribution;
 	}
 
-	public Double getGoldenDistribution() {
+	public Integer getGoldenDistribution() {
 		return goldenDistribution;
 	}
 
-	public void setGoldenDistribution(Double goldenDistribution) {
+	public void setGoldenDistribution(Integer goldenDistribution) {
 		this.goldenDistribution = goldenDistribution;
 	}
 	
@@ -103,6 +105,11 @@ public class Measure {
 
 	public void setFrequencyOfVisits(Integer frequencyOfVisits) {
 		this.frequencyOfVisits = frequencyOfVisits;
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + " [id=" + id + ", frequencyOfVisits=" + frequencyOfVisits + ", lastVisit=" + lastVisit + ", nextVisit=" + nextVisit + ", turnoverPreviousMonth=" + turnoverPreviousMonth + ", turnoverCurrentMonth=" + turnoverCurrentMonth + ", totalDistribution=" + totalDistribution + ", goldenDistribution=" + goldenDistribution + ", goldenStatus=" + goldenStatus + "]";	
 	}
 	
 }

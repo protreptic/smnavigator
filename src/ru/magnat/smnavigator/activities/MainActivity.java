@@ -8,13 +8,15 @@ import java.util.List;
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.auth.account.AccountHelper;
 import ru.magnat.smnavigator.auth.account.AccountWrapper;
-import ru.magnat.smnavigator.data.MainDbHelper;
+import ru.magnat.smnavigator.data.DbHelper;
 import ru.magnat.smnavigator.fragments.MapFragment;
 import ru.magnat.smnavigator.fragments.PsrListFragment;
 import ru.magnat.smnavigator.fragments.StoreListFragment;
-import ru.magnat.smnavigator.model.Branch;
 import ru.magnat.smnavigator.model.Manager;
+import ru.magnat.smnavigator.update.UpdateHelper;
+import ru.magnat.smnavigator.util.Apps;
 import android.accounts.Account;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -24,6 +26,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
@@ -51,7 +54,7 @@ public class MainActivity extends FragmentActivity {
     private Manager getManager() {
     	Manager manager = null;
     	
-		MainDbHelper dbHelper = MainDbHelper.getInstance(this, mAccount);
+		DbHelper dbHelper = DbHelper.getInstance(this, mAccount);
 		
 		try {
 			List<Manager> managers = dbHelper.getManagerDao().queryForAll();
@@ -63,29 +66,9 @@ public class MainActivity extends FragmentActivity {
 			e.printStackTrace();
 		}
 		
-		MainDbHelper.close();
+		DbHelper.close();
     	
     	return manager;
-    }
-    
-    private Branch getBranch() {
-    	Branch branch = null;
-    	
-		MainDbHelper dbHelper = MainDbHelper.getInstance(this, mAccount);
-		
-		try {
-			List<Branch> branches = dbHelper.getBranchDao().queryForAll();
-			
-			if (branches.size() > 0) {
-				branch = branches.get(0);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		MainDbHelper.close();
-    	
-    	return branch;
     }
     
     private AccountHelper mAccountHelper;
@@ -115,11 +98,10 @@ public class MainActivity extends FragmentActivity {
         String subTitle;
         
         Manager manager = getManager();
-        Branch branch = getBranch();
         
-        if (manager != null && branch != null) { 
+        if (manager != null) { 
         	title = manager.getName();
-       		subTitle = branch.getName();
+       		subTitle = manager.getBranch().getName();
         } else {
         	title = mAccount.name;
         	subTitle = mAccount.type;
@@ -132,10 +114,12 @@ public class MainActivity extends FragmentActivity {
 		getActionBar().setSubtitle(subTitle); 
 		getActionBar().setIcon(getResources().getDrawable(R.drawable.logotype_small_beta));  
 
+		mFragmentManager = getSupportFragmentManager();
+		
         if (savedInstanceState == null) {
             selectItem(0);
         }
-		
+        
 		// register receivers
 		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 
 	}
@@ -156,6 +140,8 @@ public class MainActivity extends FragmentActivity {
         
     }
 	
+    private FragmentManager mFragmentManager;
+    
     private MapFragment mMapFragment;
     private PsrListFragment mPsrListFragment;
     private StoreListFragment mStoreListFragment;
@@ -196,8 +182,9 @@ public class MainActivity extends FragmentActivity {
 			}
 		}
         
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
+        FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.content_frame, fragment);
+        fragmentTransaction.commit();
     }
     
 	@Override
@@ -221,21 +208,22 @@ public class MainActivity extends FragmentActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.actionSync: {
-				// Pass the settings flags by inserting them in a bundle
 		        Bundle settingsBundle = new Bundle();
 		        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
 		        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
 		        
-		        // Request the sync for the default account, authority, and
-		        // manual sync settings
 		        ContentResolver.requestSync(mAccount, AccountWrapper.ACCOUNT_AUTHORITY, settingsBundle);
 			} break;
-//			case R.id.actionAbout: {
-//				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//				builder.setMessage(Apps.getVersionName(this)); 
-//				builder.setCancelable(true);
-//				builder.create().show();
-//			} break;
+			case R.id.checkUpdates: {
+				Toast.makeText(getBaseContext(), "Проверка обновления", Toast.LENGTH_LONG).show();
+				UpdateHelper.get(this).update();
+			} break;
+			case R.id.actionAbout: {
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setMessage(Apps.getVersionName(this)); 
+				builder.setCancelable(true);
+				builder.create().show();
+			} break;
 			default: {
 				return super.onOptionsItemSelected(item);
 			}

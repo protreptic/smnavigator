@@ -12,14 +12,25 @@ import java.util.concurrent.TimeUnit;
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.auth.account.AccountWrapper;
-import ru.magnat.smnavigator.data.MainDbHelper;
+import ru.magnat.smnavigator.data.DbHelper;
 import ru.magnat.smnavigator.model.Branch;
+import ru.magnat.smnavigator.model.Customer;
 import ru.magnat.smnavigator.model.Department;
 import ru.magnat.smnavigator.model.Manager;
 import ru.magnat.smnavigator.model.Measure;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.model.Store;
+import ru.magnat.smnavigator.model.json.BranchDeserializer;
+import ru.magnat.smnavigator.model.json.BranchSerializer;
+import ru.magnat.smnavigator.model.json.CustomerDeserializer;
+import ru.magnat.smnavigator.model.json.CustomerSerializer;
+import ru.magnat.smnavigator.model.json.DepartmentDeserializer;
+import ru.magnat.smnavigator.model.json.DepartmentSerializer;
+import ru.magnat.smnavigator.model.json.PsrDeserializer;
+import ru.magnat.smnavigator.model.json.PsrSerializer;
+import ru.magnat.smnavigator.model.json.StoreDeserializer;
+import ru.magnat.smnavigator.model.json.StoreSerializer;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.AbstractThreadedSyncAdapter;
@@ -32,6 +43,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.j256.ormlite.dao.Dao;
@@ -41,7 +53,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     @SuppressWarnings("unused")
 	private ContentResolver mContentResolver;
     
-    private MainDbHelper mMainDbHelper;
+    private DbHelper mMainDbHelper;
     private Account mAccount;
     private String mAuthToken;
     
@@ -75,9 +87,9 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		}, 0, 1500);
     	
 		try {
-			TimeUnit.SECONDS.sleep(3);
+			TimeUnit.SECONDS.sleep(2);
 		
-			mMainDbHelper = MainDbHelper.getInstance(getContext(), account);
+			mMainDbHelper = DbHelper.getInstance(getContext(), account);
 			
 			getManager();
 			getBranch();
@@ -85,11 +97,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			getPsr();
 			getRoute();
 			getStore();
+			getCustomer();
 			getMeasure();
 			
-			MainDbHelper.close();
+			DbHelper.close();
 			
-			TimeUnit.SECONDS.sleep(3);
+			TimeUnit.SECONDS.sleep(2);
 		} catch (Exception e) {
 			e.printStackTrace();
 			sendNotification("error");	
@@ -113,13 +126,22 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
     	
-		List<Manager> managers = new Gson().fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Manager>>() {}.getType());
-
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(Branch.class, new BranchSerializer());
+		gsonBuilder.registerTypeAdapter(Branch.class, new BranchDeserializer()); 
+		gsonBuilder.registerTypeAdapter(Department.class, new DepartmentSerializer());
+		gsonBuilder.registerTypeAdapter(Department.class, new DepartmentDeserializer()); 
+		gsonBuilder.serializeNulls();
+		
+		Gson gson = gsonBuilder.create();
+		
+		List<Manager> managers = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Manager>>() {}.getType());
+		
 		urlConnection.disconnect();
+		urlConnection = null;
 		
 		Dao<Manager, String> managerDao = mMainDbHelper.getManagerDao();
 		managerDao.setObjectCache(false); 
-		
 		managerDao.delete(managerDao.queryForAll());
 		
 		for (Manager manager : managers) {
@@ -134,13 +156,18 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
     	
-		List<Branch> branches = new Gson().fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Branch>>() {}.getType());
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.serializeNulls();
+		
+		Gson gson = gsonBuilder.create();
+		
+		List<Branch> branches = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Branch>>() {}.getType());
 
 		urlConnection.disconnect();
+		urlConnection = null;
 		
 		Dao<Branch, String> branchDao = mMainDbHelper.getBranchDao();
 		branchDao.setObjectCache(false); 
-		
 		branchDao.delete(branchDao.queryForAll());
 		
 		for (Branch branch : branches) {
@@ -155,13 +182,18 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
     	
-		List<Department> departments = new Gson().fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Department>>() {}.getType());
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.serializeNulls();
+		
+		Gson gson = gsonBuilder.create();
+		
+		List<Department> departments = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Department>>() {}.getType());
 
 		urlConnection.disconnect();
+		urlConnection = null;
 		
 		Dao<Department, String> departmentDao = mMainDbHelper.getDepartmentDao();
 		departmentDao.setObjectCache(false); 
-		
 		departmentDao.delete(departmentDao.queryForAll());
 		
 		for (Department department : departments) {
@@ -176,13 +208,22 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
     	
-		List<Psr> psrs = new Gson().fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Psr>>() {}.getType());
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(Branch.class, new BranchSerializer());
+		gsonBuilder.registerTypeAdapter(Branch.class, new BranchDeserializer()); 
+		gsonBuilder.registerTypeAdapter(Department.class, new DepartmentSerializer());
+		gsonBuilder.registerTypeAdapter(Department.class, new DepartmentDeserializer()); 
+		gsonBuilder.serializeNulls();
+		
+		Gson gson = gsonBuilder.create();
+		
+		List<Psr> psrs = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Psr>>() {}.getType());
 
 		urlConnection.disconnect();
+		urlConnection = null;
 		
 		Dao<Psr, String> psrDao = mMainDbHelper.getPsrDao();
 		psrDao.setObjectCache(false); 
-		
 		psrDao.delete(psrDao.queryForAll());
 		
 		for (Psr psr : psrs) {
@@ -197,13 +238,23 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
     	
-		List<Route> routes = new Gson().fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Route>>() {}.getType());
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(Psr.class, new PsrSerializer()); 
+		gsonBuilder.registerTypeAdapter(Psr.class, new PsrDeserializer()); 
+		gsonBuilder.registerTypeAdapter(Store.class, new StoreSerializer()); 
+		gsonBuilder.registerTypeAdapter(Store.class, new StoreDeserializer());
+		gsonBuilder.serializeNulls();
+	    gsonBuilder.setDateFormat("yyyy-MM-dd HH:mm:ss.SSS"); 
+		
+		Gson gson = gsonBuilder.create();
+		
+		List<Route> routes = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Route>>() {}.getType());
 
 		urlConnection.disconnect();
+		urlConnection = null;
 		
 		Dao<Route, String> routeDao = mMainDbHelper.getRouteDao();
 		routeDao.setObjectCache(false); 
-		
 		routeDao.delete(routeDao.queryForAll());
 		
 		for (Route route : routes) {
@@ -216,14 +267,22 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 	private void getStore() throws Exception { 
 		URL url = new URL(getContext().getResources().getString(R.string.syncServer) + "/sm_getStore?token=" + mAuthToken);
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
-
-		List<Store> stores = new Gson().fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Store>>() {}.getType());
+		
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(Customer.class, new CustomerSerializer()); 
+		gsonBuilder.registerTypeAdapter(Customer.class, new CustomerDeserializer());
+		
+		gsonBuilder.serializeNulls();
+		
+		Gson gson = gsonBuilder.create();
+		
+		List<Store> stores = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Store>>() {}.getType());
 
 		urlConnection.disconnect();
+		urlConnection = null;
 		
 		Dao<Store, String> storeDao = mMainDbHelper.getStoreDao();
 		storeDao.setObjectCache(false); 
-		
 		storeDao.delete(storeDao.queryForAll());
 		
 		for (Store store : stores) {
@@ -233,17 +292,48 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		}
 	}
 	
+	private void getCustomer() throws Exception { 
+		URL url = new URL(getContext().getResources().getString(R.string.syncServer) + "/sm_getCustomer?token=" + mAuthToken);
+		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
+
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.serializeNulls();
+		
+		Gson gson = gsonBuilder.create();
+		
+		List<Customer> customers = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Customer>>() {}.getType());
+
+		urlConnection.disconnect();
+		urlConnection = null;
+		
+		Dao<Customer, String> customerDao = mMainDbHelper.getCustomerDao();
+		customerDao.setObjectCache(false); 
+		customerDao.delete(customerDao.queryForAll());
+		
+		for (Customer store : customers) {
+			customerDao.createOrUpdate(store);
+			
+			Log.d("", store.toString()); 
+		}
+	}
+	
 	private void getMeasure() throws Exception {   
 		URL url = new URL(getContext().getResources().getString(R.string.syncServer) + "/sm_getMeasure?token=" + mAuthToken);
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 
-		List<Measure> measures = new Gson().fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Measure>>() {}.getType());
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.serializeNulls();
+	    gsonBuilder.setDateFormat("yyyy-MM-dd"); 
+		
+		Gson gson = gsonBuilder.create();
+		
+		List<Measure> measures = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Measure>>() {}.getType());
 		
 		urlConnection.disconnect();
+		urlConnection = null;
 		
 		Dao<Measure, String> measureDao = mMainDbHelper.getMeasureDao();
 		measureDao.setObjectCache(false); 
-		
 		measureDao.delete(measureDao.queryForAll());
 		
 		for (Measure measure : measures) {

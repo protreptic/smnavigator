@@ -2,6 +2,9 @@ package ru.magnat.smnavigator.util;
 
 public class Text {
 	public static String prepareAddress(String address){
+		if (address == null || address.isEmpty()) 
+			return "";
+		
 		String[] parts = address.split(",");
 		String out = "";
 		for (String part: parts){

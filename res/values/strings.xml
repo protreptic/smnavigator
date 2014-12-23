@@ -28,7 +28,8 @@
    	<string name="cancel">Отмена</string>
    	<string name="install">Установить</string>
    	<string name="download">Загрузить</string>
-    
+    <string name="update">Обновить</string>
+   	
     <string name="contentDescription" />
     
     <string name="syncServer">http://sfs.magnat.ru:8081</string>
@@ -72,8 +73,8 @@
     <string name="goldenDistribution">Золотая дистрибьюция</string>
     <string name="turnoverCurrentMonth">Товарооборот за текущий месяц</string>
     <string name="turnoverPreviousMonth">Товарооборот за предыдущий месяц</string>
-    <string name="lastVisit">Дата следующего посещения</string>
-    <string name="nextVisit">Дата прошлого посещения</string>
+    <string name="lastVisit">Дата прошлого посещения</string>
+    <string name="nextVisit">Дата следующего посещения</string>
     
     <string name="chooseAccount">Выберите учетную запись:</string>
     

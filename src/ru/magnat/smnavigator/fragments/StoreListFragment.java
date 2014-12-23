@@ -1,13 +1,14 @@
 package ru.magnat.smnavigator.fragments;
 
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.auth.account.AccountHelper;
-import ru.magnat.smnavigator.data.MainDbHelper;
+import ru.magnat.smnavigator.data.DbHelper;
 import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.model.Measure;
 import ru.magnat.smnavigator.view.StoreStatisticsView;
@@ -34,7 +35,7 @@ import com.j256.ormlite.dao.Dao;
 
 public class StoreListFragment extends ExpandableListFragment implements OnScrollListener {
 
-	private MainDbHelper mDbHelper;
+	private DbHelper mDbHelper;
 	private MyAdapter mAdapter;
 	private Dao<Store, String> mStoreDao;
 	private Dao<Measure, String> mMeasureDao;
@@ -110,7 +111,7 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 		
 		getExpandableListView().addFooterView(progressBar); 
 		
-		mDbHelper = MainDbHelper.getInstance(getActivity(), account);
+		mDbHelper = DbHelper.getInstance(getActivity(), account);
 		
 		mAdapter = new MyAdapter();
 		
@@ -257,12 +258,14 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 			turnoverPreviousMonth.setTitle(storeStatistics.getTurnoverPreviousMonth().toString());  
 			turnoverPreviousMonth.setSubTitle(getResources().getString(R.string.turnoverPreviousMonth));  
 			
+			SimpleDateFormat format = new SimpleDateFormat("dd MMMM yyyy");
+			
 			StoreStatisticsView lastVisit = new StoreStatisticsView(getActivity()); 
-			lastVisit.setTitle(storeStatistics.getLastVisit());  
+			lastVisit.setTitle(format.format(storeStatistics.getLastVisit()));  
 			lastVisit.setSubTitle(getResources().getString(R.string.lastVisit));  
 			
 			StoreStatisticsView nextVisit = new StoreStatisticsView(getActivity()); 
-			nextVisit.setTitle(storeStatistics.getNextVisit());  
+			nextVisit.setTitle(format.format(storeStatistics.getNextVisit()));  
 			nextVisit.setSubTitle(getResources().getString(R.string.nextVisit));  
 			
 			linearLayout.addView(totalDistribution);

@@ -14,33 +14,29 @@ import android.widget.TextView;
 
 public class StoreView extends RelativeLayout {
 
-	private Store mStore;
-	
 	public StoreView(final Context context, Store store) {
 		super(context); 
-		
-		mStore = store;
 		
 		RelativeLayout relativeLayout = (RelativeLayout) LayoutInflater.from(context).inflate(R.layout.default_list_item, this, false);
 		
 		TextView name = (TextView) relativeLayout.findViewById(R.id.title); 
 		name.setTypeface(Fonts.getInstance(context).getDefaultTypeface());  
-		name.setText(mStore.getCustomer());   
+		name.setText(store.getCustomer().getName());   
 		
 		TextView address = (TextView) relativeLayout.findViewById(R.id.description); 
 		address.setTypeface(Fonts.getInstance(context).getDefaultTypeface());  
-		address.setText(Text.prepareAddress(mStore.getAddress())); 
+		address.setText(Text.prepareAddress(store.getAddress())); 
 		
 		TextView channel = (TextView) relativeLayout.findViewById(R.id.staticmaptitle); 
 		channel.setTypeface(Fonts.getInstance(context).getDefaultTypeface());  
-		channel.setText(Text.prepareAddress(mStore.getChannel())); 
+		channel.setText(store.getChannel()); 
 		
 		TextView goldenStatus = (TextView) relativeLayout.findViewById(R.id.subtitle); 
 		goldenStatus.setTypeface(Fonts.getInstance(context).getDefaultTypeface());  
 		goldenStatus.setText(""); 
 		
 		StaticMapView staticMapView = (StaticMapView) relativeLayout.findViewById(R.id.staticmap); 
-		staticMapView.setMappable(mStore); 
+		staticMapView.setMappable(store); 
 		
 		ImageView details = (ImageView) relativeLayout.findViewById(R.id.actions); 
 		details.setOnClickListener(new OnClickListener() {

@@ -7,7 +7,7 @@ import java.util.Random;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.auth.account.AccountHelper;
-import ru.magnat.smnavigator.data.MainDbHelper;
+import ru.magnat.smnavigator.data.DbHelper;
 import ru.magnat.smnavigator.map.geofence.Geofenceable;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Store;
@@ -62,7 +62,7 @@ public class LocationHelper {
 	
 	@SuppressWarnings("unused")
 	private void addRegion() {
-		MainDbHelper dbHelper = MainDbHelper.getInstance(mContext, mAccount);
+		DbHelper dbHelper = DbHelper.getInstance(mContext, mAccount);
 		
 		try {
 			PolygonOptions polygonOptions1 = new PolygonOptions();
@@ -460,7 +460,7 @@ public class LocationHelper {
 			e.printStackTrace();
 		}
 		
-		MainDbHelper.close();
+		DbHelper.close();
 	}
 	
 	private LocationHelper(Context context, GoogleMap map) {
@@ -478,7 +478,7 @@ public class LocationHelper {
 	
 	@SuppressWarnings("unused")
 	private void addHeatMap() {
-		MainDbHelper dbHelper = MainDbHelper.getInstance(mContext, mAccount);
+		DbHelper dbHelper = DbHelper.getInstance(mContext, mAccount);
 		
 		try {
 			List<LatLng> points = new ArrayList<LatLng>();
@@ -499,7 +499,7 @@ public class LocationHelper {
 			e.printStackTrace();
 		}
 		
-		MainDbHelper.close();
+		DbHelper.close();
 	}
 	
 	public void updateOverlays() {	
@@ -512,7 +512,7 @@ public class LocationHelper {
 	}
 	
 	private void addPsrMarkers() {
-		MainDbHelper dbHelper = MainDbHelper.getInstance(mContext, mAccount);
+		DbHelper dbHelper = DbHelper.getInstance(mContext, mAccount);
 		
 		try {
 			List<Psr> psrs = dbHelper.getPsrDao().queryForAll();
@@ -530,11 +530,11 @@ public class LocationHelper {
 			e.printStackTrace();
 		}
 		
-		MainDbHelper.close();
+		DbHelper.close();
 	}
 	
 	private void addStoreMarkers() {
-		MainDbHelper dbHelper = MainDbHelper.getInstance(mContext, mAccount);
+		DbHelper dbHelper = DbHelper.getInstance(mContext, mAccount);
 		
 		try {
 			List<Store> stores = dbHelper.getStoreDao().queryBuilder().query();
@@ -553,7 +553,7 @@ public class LocationHelper {
 			e.printStackTrace();
 		}
 		
-		MainDbHelper.close();
+		DbHelper.close();
 	}
 	
 }

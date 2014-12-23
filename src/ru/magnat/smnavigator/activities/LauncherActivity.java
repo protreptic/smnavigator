@@ -5,9 +5,6 @@ import java.io.IOException;
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.auth.account.AccountHelper;
 import ru.magnat.smnavigator.auth.account.AccountWrapper;
-import ru.magnat.smnavigator.update.Artifact;
-import ru.magnat.smnavigator.update.CentralRepository;
-import ru.magnat.smnavigator.update.DownloadArtifactActivity;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
@@ -16,18 +13,11 @@ import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Notification;
-import android.app.Notification.Builder;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
  
 public class LauncherActivity extends Activity {
@@ -36,68 +26,7 @@ public class LauncherActivity extends Activity {
 	private AccountHelper mAccountHelper;
 	
 	private void checkUpdates() {
-		new AsyncTask<Void, Void, Artifact>() {
-
-			private static final int NOTIFICATION_ID = 101; 
-			
-			private NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-			
-			private CentralRepository centralRepository;
-			
-			protected void onPreExecute() {
-				centralRepository = new CentralRepository(getBaseContext()); 
-				
-				Notification.Builder builder = new Builder(getBaseContext());
-				builder.setSmallIcon(R.drawable.logotype_small_icon);
-				builder.setContentTitle(getString(R.string.app_name));
-				builder.setContentText(getString(R.string.update_check)); 
-				builder.setProgress(0, 0, true);
-				builder.setAutoCancel(false);
-				builder.setOngoing(true);
-				
-				notificationManager.notify(NOTIFICATION_ID, builder.build()); 
-			};
-			
-			@Override
-			protected Artifact doInBackground(Void... params) {
-				return centralRepository.update();
-			}
-			
-			protected void onPostExecute(Artifact artifact) {
-				notificationManager.cancel(NOTIFICATION_ID);
-				
-				if (artifact != null) {
-					Intent intent = new Intent(getBaseContext(), DownloadArtifactActivity.class);
-					intent.putExtra("artifact", artifact);
-					
-					TaskStackBuilder stackBuilder = TaskStackBuilder.create(getBaseContext());
-					stackBuilder.addParentStack(DownloadArtifactActivity.class);
-					stackBuilder.addNextIntent(intent);
-					
-					PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-					
-					long[] pattern = {3, 1000, 1000};
-					
-					Notification.Builder builder = new Builder(getBaseContext());
-					builder.setSmallIcon(R.drawable.logotype_small_icon);
-					builder.setContentTitle(getString(R.string.app_name));
-					builder.setContentText(String.format(getString(R.string.update_update_available), artifact.getVersionName())); 
-					builder.setVibrate(pattern);					
-					builder.setContentIntent(pendingIntent);
-					
-					notificationManager.notify(NOTIFICATION_ID, builder.build()); 
-				} else {
-					Notification.Builder builder = new Builder(getBaseContext());
-					builder.setSmallIcon(R.drawable.logotype_small_icon);
-					builder.setContentTitle(getString(R.string.app_name));
-					builder.setContentText(getString(R.string.update_update_unavailable)); 
-					builder.setAutoCancel(false);
-					
-					notificationManager.notify(NOTIFICATION_ID, builder.build()); 
-				}
-			};
-			
-		}.execute(); 
+		//UpdateHelper.get(this).update();
 	}
 	
 	private void runApplication(Account account, String token) {
@@ -230,7 +159,6 @@ public class LauncherActivity extends Activity {
 		mAccountManager = AccountManager.get(this);
 		mAccountHelper = AccountHelper.get(this);
 		
-		// ��������� ����������
 		checkUpdates();
 	}
 	

@@ -18,11 +18,11 @@ public class Manager {
 	@DatabaseField(columnName = "tel")
 	private String tel;
 	
-	@DatabaseField(columnName = "branch")
-	private Integer branch;
+	@DatabaseField(columnName = "branch", foreign = true, foreignAutoRefresh = true)
+	private Branch branch;
 	
-	@DatabaseField(columnName = "department")
-	private Integer department;
+	@DatabaseField(columnName = "department", foreign = true, foreignAutoRefresh = true)
+	private Department department;
 	
 	public Integer getId() {
 		return id;
@@ -56,25 +56,25 @@ public class Manager {
 		this.tel = tel;
 	}
 
-	public Integer getBranch() {
+	public Branch getBranch() {
 		return branch;
 	}
 
-	public void setBranch(Integer branch) {
+	public void setBranch(Branch branch) {
 		this.branch = branch;
 	}
 
-	public Integer getDepartment() {
+	public Department getDepartment() {
 		return department;
 	}
 
-	public void setDepartment(Integer department) {
+	public void setDepartment(Department department) {
 		this.department = department;
 	}
 	
 	@Override
 	public String toString() {
-		return getClass().getName() + " [id=" + id + ", name=" + name + ", email=" + email + ", tel=" + tel + ", branch=" + branch + ", department=" + department + "]";
+		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + ", email=" + email + ", tel=" + tel + ", branch=" + branch + ", department=" + department + "]";
 	}
 	
 }
