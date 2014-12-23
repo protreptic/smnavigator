@@ -95,7 +95,7 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		
-		AccountHelper accountHelper = AccountHelper.getInstance(getActivity());
+		AccountHelper accountHelper = AccountHelper.get(getActivity());
 		Account account = accountHelper.getCurrentAccount();
 		
 		getExpandableListView().setGroupIndicator(null); 

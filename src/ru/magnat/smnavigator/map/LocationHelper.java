@@ -467,7 +467,7 @@ public class LocationHelper {
 		mContext = context; 
 		mMap = map;
 		
-		mAccountHelper = AccountHelper.getInstance(context);
+		mAccountHelper = AccountHelper.get(context);
 		
 		mAccount = mAccountHelper.getCurrentAccount();
 	} 

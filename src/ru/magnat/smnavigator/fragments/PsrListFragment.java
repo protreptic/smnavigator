@@ -78,7 +78,7 @@ public class PsrListFragment extends ExpandableListFragment {
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		
-		AccountHelper accountHelper = AccountHelper.getInstance(getActivity());
+		AccountHelper accountHelper = AccountHelper.get(getActivity());
 		Account account = accountHelper.getCurrentAccount();
 		
 		//getExpandableListView().setPadding(5, 5, 5, 5);

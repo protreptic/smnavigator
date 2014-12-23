@@ -1,6 +1,6 @@
 <resources>
 
-    <string name="app_name">Мобильный менеджер</string>
+    <string name="app_name">Мобильный менеджер [beta]</string>
     <string name="label_login">логин</string>
     <string name="label_password">пароль</string>
     <string name="button_login">Войти</string>
@@ -33,7 +33,7 @@
     
     <string name="syncServer">http://sfs.magnat.ru:8081</string>
     <string name="syncServerSecure">https://sfs.magnat.ru:8443</string>
-    
+
     <string name="syncSuccess">Синхронизация успешно завершена</string>
     <string name="syncError">Синхронизация не выполненна</string>
     <string name="syncCanceled">Синхронизация отменена</string>
@@ -84,7 +84,12 @@
     <string name="update_loading">Загрузка обновления</string>
     <string name="update_loading_complete">Загрузка обновления завершена</string>
     <string name="update_check">Проверка обновления</string>
+    <string name="update_update_unavailable">Установлена последняя версия приложения</string>
     <string name="update_update_available">Доступна новая версия: %s</string>
     <string name="update_install">Установить обновление сейчас?</string>
     
+    <string name="addUser">Новый пользователь</string>
+    <string name="addUserDescription">Добавить новую учетную запись</string>
+    <string name="chooseUser">Выберите пользователя:</string>
+    <string name="authError">Неправильная пара логин/пароль</string>
 </resources>

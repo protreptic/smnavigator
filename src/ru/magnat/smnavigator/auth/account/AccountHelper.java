@@ -3,6 +3,7 @@ package ru.magnat.smnavigator.auth.account;
 import java.util.ArrayList;
 import java.util.List;
 
+import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.util.Fonts;
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -59,7 +60,7 @@ public class AccountHelper {
 		return new AccountListAdapter();
 	}
 	
-	public synchronized static AccountHelper getInstance(Context context) {
+	public synchronized static AccountHelper get(Context context) {
 		if (sInstance == null) {
 			sInstance = new AccountHelper(context);
 		}
@@ -67,11 +68,17 @@ public class AccountHelper {
 		return sInstance;
 	}
 	
+	public synchronized static void release() {
+		if (sInstance != null) {
+			sInstance = null;
+		}
+	}
+	
 	public class AccountListAdapter extends BaseAdapter {
 
 		@Override
 		public int getCount() {
-			return mAccounts.size();
+			return mAccounts.size() + 1;
 		}
 
 		@Override
@@ -81,9 +88,13 @@ public class AccountHelper {
 
 		@Override
 		public long getItemId(int position) {
-			return mAccounts.get(position).hashCode();
+			if (position == mAccounts.size()) {
+				return 6666;
+			} else {
+				return mAccounts.get(position).hashCode();
+			}
 		}
-
+		
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
 			LinearLayout linearLayout = new LinearLayout(mContext);
@@ -93,12 +104,19 @@ public class AccountHelper {
 			TextView textView1 = new TextView(mContext);
 			textView1.setTypeface(Fonts.getInstance(mContext).getTypeface("RobotoCondensed-Regular"));
 			textView1.setTextSize(32); 
-			textView1.setText(mAccounts.get(position).name); 
+			
 			
 			TextView textView2 = new TextView(mContext);
 			textView2.setTypeface(Fonts.getInstance(mContext).getDefaultTypeface()); 
 			textView2.setTextSize(18); 
-			textView2.setText(mAccounts.get(position).type); 
+			
+			if (position == mAccounts.size()) {
+				textView1.setText(mContext.getString(R.string.addUser)); 
+				textView2.setText(mContext.getString(R.string.addUserDescription)); 
+			} else {
+				textView1.setText(mAccounts.get(position).name); 
+				textView2.setText(mAccounts.get(position).type); 
+			}
 			
 			linearLayout.addView(textView1);
 			linearLayout.addView(textView2);
@@ -106,6 +124,10 @@ public class AccountHelper {
 			return linearLayout;
 		}
 		
+	}
+
+	public void refresh() {
+		mAccounts = getAccounts();
 	}
 	
 }

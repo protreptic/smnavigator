@@ -13,31 +13,23 @@ import ru.magnat.smnavigator.data.MainDbHelper;
 import ru.magnat.smnavigator.fragments.MapFragment;
 import ru.magnat.smnavigator.fragments.PsrListFragment;
 import ru.magnat.smnavigator.fragments.StoreListFragment;
+import ru.magnat.smnavigator.model.Branch;
 import ru.magnat.smnavigator.model.Manager;
-import ru.magnat.smnavigator.update.Artifact;
-import ru.magnat.smnavigator.update.CentralRepository;
-import ru.magnat.smnavigator.update.DownloadArtifactActivity;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
-import android.app.Notification;
-import android.app.Notification.Builder;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
@@ -62,12 +54,10 @@ public class MainActivity extends FragmentActivity {
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
 
-    private AccountHelper mAccountHelper;
-    
     private Manager getManager() {
     	Manager manager = null;
     	
-		MainDbHelper dbHelper = MainDbHelper.getInstance(this, mAccountHelper.getCurrentAccount());
+		MainDbHelper dbHelper = MainDbHelper.getInstance(this, mAccount);
 		
 		try {
 			List<Manager> managers = dbHelper.getManagerDao().queryForAll();
@@ -84,14 +74,40 @@ public class MainActivity extends FragmentActivity {
     	return manager;
     }
     
+    private Branch getBranch() {
+    	Branch branch = null;
+    	
+		MainDbHelper dbHelper = MainDbHelper.getInstance(this, mAccount);
+		
+		try {
+			List<Branch> branches = dbHelper.getBranchDao().queryForAll();
+			
+			if (branches.size() > 0) {
+				branch = branches.get(0);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		MainDbHelper.close();
+    	
+    	return branch;
+    }
+    
+    private AccountHelper mAccountHelper;
+    private Account mAccount;
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState); 
 
         setContentView(R.layout.activity_main2);
 
-        mAccountHelper = AccountHelper.getInstance(this);
-		
+        mAccount = getIntent().getExtras().getParcelable("account");
+        
+        mAccountHelper = AccountHelper.get(this);
+        mAccountHelper.setCurrentAccount(mAccount); 
+        
         // set a custom shadow that overlays the main content when the drawer opens
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
@@ -105,13 +121,14 @@ public class MainActivity extends FragmentActivity {
         String subTitle;
         
         Manager manager = getManager();
+        Branch branch = getBranch();
         
-        if (manager != null) { 
+        if (manager != null && branch != null) { 
         	title = manager.getName();
-        	subTitle = "email: " + manager.getEmail();
+       		subTitle = branch.getName();
         } else {
-        	title = mAccountHelper.getCurrentAccount().name;
-        	subTitle = mAccountHelper.getCurrentAccount().type;
+        	title = mAccount.name;
+        	subTitle = mAccount.type;
         }
         
         // enable ActionBar app icon to behave as action to toggle nav drawer
@@ -127,61 +144,6 @@ public class MainActivity extends FragmentActivity {
 		
 		// register receivers
 		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 
-		
-		new AsyncTask<Void, Void, Artifact>() {
-
-			private static final int NOTIFICATION_ID = 101; 
-			
-			private NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-			
-			private CentralRepository centralRepository;
-			
-			protected void onPreExecute() {
-				centralRepository = new CentralRepository(getBaseContext()); 
-				
-				Notification.Builder builder = new Builder(getBaseContext());
-				builder.setSmallIcon(R.drawable.logotype_small);
-				builder.setContentTitle(getString(R.string.app_name));
-				builder.setContentText(getString(R.string.update_check)); 
-				builder.setProgress(0, 0, true);
-				builder.setAutoCancel(false);
-				builder.setOngoing(true);
-				
-				notificationManager.notify(NOTIFICATION_ID, builder.build()); 
-			};
-			
-			@Override
-			protected Artifact doInBackground(Void... params) {
-				return centralRepository.update();
-			}
-			
-			protected void onPostExecute(Artifact artifact) {
-				notificationManager.cancel(NOTIFICATION_ID);
-				
-				if (artifact != null) {
-					Intent intent = new Intent(getBaseContext(), DownloadArtifactActivity.class);
-					intent.putExtra("artifact", artifact);
-					
-					TaskStackBuilder stackBuilder = TaskStackBuilder.create(getBaseContext());
-					stackBuilder.addParentStack(DownloadArtifactActivity.class);
-					stackBuilder.addNextIntent(intent);
-					
-					PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-					
-					long[] pattern = {3, 1000, 1000};
-					
-					Notification.Builder builder = new Builder(getBaseContext());
-					builder.setSmallIcon(R.drawable.logotype_small);
-					builder.setContentTitle(getString(R.string.app_name));
-					builder.setContentText(String.format(getString(R.string.update_update_available), artifact.getVersionName())); 
-					builder.setVibrate(pattern);					
-					builder.setContentIntent(pendingIntent);
-					
-					notificationManager.notify(NOTIFICATION_ID, builder.build()); 
-				}
-			};
-			
-		}.execute(); 
 	}
 
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
@@ -258,13 +220,9 @@ public class MainActivity extends FragmentActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.actionSync: {
-				AccountHelper accountHelper = AccountHelper.getInstance(this); 
-				
-				final Account account = accountHelper.getCurrentAccount();
-						        
 				AccountManager accountManager = AccountManager.get(getBaseContext());
 				accountManager.invalidateAuthToken(AccountWrapper.ACCOUNT_TYPE, null); 
-				accountManager.getAuthToken(account, AccountWrapper.ACCOUNT_TYPE, null, getParent(), new AccountManagerCallback<Bundle>() {
+				accountManager.getAuthToken(mAccount, AccountWrapper.ACCOUNT_TYPE, null, getParent(), new AccountManagerCallback<Bundle>() {
 					
 					@Override
 					public void run(AccountManagerFuture<Bundle> future) {
@@ -280,7 +238,7 @@ public class MainActivity extends FragmentActivity {
 					        
 					        // Request the sync for the default account, authority, and
 					        // manual sync settings
-					        ContentResolver.requestSync(account, AccountWrapper.ACCOUNT_AUTHORITY, settingsBundle);
+					        ContentResolver.requestSync(mAccount, AccountWrapper.ACCOUNT_AUTHORITY, settingsBundle);
 						} catch (OperationCanceledException e) {
 							e.printStackTrace();
 						} catch (AuthenticatorException e) {
@@ -313,7 +271,7 @@ public class MainActivity extends FragmentActivity {
 		
 	    @Override
 	    public void onReceive(Context context, Intent intent) {
-	        if(intent.getAction().equals(ACTION_SYNC) && intent.getStringExtra("account").equals(AccountHelper.getInstance(getBaseContext()).getCurrentAccount().name)) { 
+	        if(intent.getAction().equals(ACTION_SYNC) && intent.getStringExtra("account").equals(AccountHelper.get(getBaseContext()).getCurrentAccount().name)) { 
 	        	Animation mRotate = AnimationUtils.loadAnimation(getBaseContext(), R.anim.rotate360);
 	        	
 	            String action = intent.getStringExtra("action");
