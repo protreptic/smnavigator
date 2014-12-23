@@ -10,6 +10,7 @@ import java.util.List;
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.util.Apps;
 import android.content.Context;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -69,8 +70,13 @@ public class CentralRepository {
 				artifacts = new Gson().fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Artifact>>() {}.getType());
 				
 				urlConnection.disconnect();
+				urlConnection = null;
 			} catch (Exception e) {
 				e.printStackTrace();
+			}
+			
+			for (Artifact artifact : artifacts) {
+				Log.d("", artifact.toString());
 			}
 			
 			return artifacts;

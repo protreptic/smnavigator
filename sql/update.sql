@@ -133,6 +133,7 @@ insert into "sm_release" ("artifact_name","package","description","version_code"
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',11,'1.0.0-alpha.10');
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',12,'1.0.0-alpha.11');
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',13,'1.0.0-beta.1');
+insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',13,'1.0.0-beta.2');
 
 /*
     
