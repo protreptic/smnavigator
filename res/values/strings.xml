@@ -82,6 +82,9 @@
     <string name="update_update_available">Доступна новая версия: %s</string>
     <string name="update_install">Установить обновление сейчас?</string>
     
+    <string name="sessionActive">Сессия действительна до </string>
+    <string name="sessionExpired">Сессия недействительна</string>
+    
     <string name="addUser">Новый пользователь</string>
     <string name="addUserDescription">Добавить учетную запись</string>
     <string name="chooseUser">Выберите пользователя:</string>

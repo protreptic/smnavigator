@@ -213,7 +213,7 @@ public class LauncherActivity extends ListActivity {
 				
 				SimpleDateFormat format = new SimpleDateFormat("dd MMMM yyyy HH:mm:ss", new Locale("ru", "RU"));
 				
-				String sessionStatus = (curentTimestamp.before(sessionTimestamp)) ? String.format("Сессия действительна до %s", format.format(sessionTimestamp)) : "Сессия просрочена";
+				String sessionStatus = (curentTimestamp.before(sessionTimestamp)) ? String.format(getString(R.string.sessionActive) + " %s", format.format(sessionTimestamp)) : getString(R.string.sessionExpired);
  				
 				holder.line1.setText(accountName);
 				holder.line2.setText(sessionStatus);  

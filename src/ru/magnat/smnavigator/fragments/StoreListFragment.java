@@ -6,13 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.data.DbHelper;
 import ru.magnat.smnavigator.model.Measure;
 import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.view.MeasureView;
 import ru.magnat.smnavigator.view.StoreView;
-import ru.magnat.smnavigator.widget.ExpandableListFragment;
-import android.accounts.Account;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -20,53 +17,43 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.AbsListView.OnScrollListener;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
 
 import com.j256.ormlite.dao.Dao;
 
-public class StoreListFragment extends ExpandableListFragment implements OnScrollListener {
+public class StoreListFragment extends BaseEndlessListFragment {
 
-	private DbHelper mDbHelper;
-	private MyAdapter mAdapter;
-	private Dao<Store, String> mStoreDao;
-	private Dao<Measure, String> mMeasureDao;
 	private List<Store> mGroupData = new ArrayList<Store>();
 	private List<List<Measure>> mChildData = new ArrayList<List<Measure>>();
 	
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
 		
-		setHasOptionsMenu(true); 
-	} 
-	
-	private String mQueryText = "";
+		mAdapter = new MyAdapter();
+		
+		setListAdapter(mAdapter);
+		
+		new LoadData().execute();
+ 	}
 	
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-		inflater.inflate(R.menu.store_fragment_menu, menu);
+		inflater.inflate(R.menu.psr_fragment_menu, menu);
 		
 	    SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
 	    searchView.setOnQueryTextListener(new OnQueryTextListener() {
 			
 			@Override
 			public boolean onQueryTextSubmit(String query) {
-				return true;
-			}
-			
-			@Override
-			public boolean onQueryTextChange(String newText) {
-				if (TextUtils.isEmpty(newText) || newText.length() < 3) {
+				if (TextUtils.isEmpty(query) || query.length() < 3) {
 					return false;
 				}
 				
-				mQueryText = newText;
+				mQueryText = query;
 				
 				mGroupData.clear();
 				mChildData.clear();
@@ -81,44 +68,24 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 				
 				return true;
 			}
+			
+			@Override
+			public boolean onQueryTextChange(String newText) {
+				return true;
+			}
 		});
 	}
-
-	private ProgressBar progressBar;
-	
-	@Override
-	public void onActivityCreated(Bundle savedInstanceState) {
-		super.onActivityCreated(savedInstanceState);
-		
-		Account account = getArguments().getParcelable("account");
-		
-		getExpandableListView().setGroupIndicator(null); 
-		getExpandableListView().setDivider(null); 
-		getExpandableListView().setDividerHeight(-6);
-		getExpandableListView().setBackgroundColor(getResources().getColor(R.color.gray)); 
-		getExpandableListView().setOnScrollListener(this); 
-		
-		progressBar = new ProgressBar(getActivity());
-		
-		getExpandableListView().addFooterView(progressBar); 
-		
-		mDbHelper = DbHelper.get(getActivity(), account);
-		
-		mAdapter = new MyAdapter();
-		
-		setListAdapter(mAdapter);
-		setEmptyText(getResources().getString(R.string.emptyList)); 
-		
-		new LoadData().execute();
- 	}
-	
-	private long offset;
-	private long count;
-	
-	private static final long LIMIT = 25; 
 	
 	private class LoadData extends AsyncTask<Void, Void, Void> {
-
+		
+		private Dao<Store, String> mStoreDao;
+		private Dao<Measure, String> mMeasureDao;
+		
+		public LoadData() {
+			mStoreDao = getDbHelper().getStoreDao();
+			mMeasureDao = getDbHelper().getMeasureDao();
+		}
+		
 		@Override
 		protected void onPreExecute() {
 			if (offset == 0) {
@@ -134,7 +101,7 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 				if (count == 0) 
 					count = mStoreDao.queryBuilder().where().like("name", "%" + mQueryText + "%").or().like("address", "%" + mQueryText + "%").countOf();
 				
-				List<Store> stores = mStoreDao.queryBuilder().offset(offset).limit(LIMIT).where().like("name", "%" + mQueryText + "%").or().like("address", "%" + mQueryText + "%").query();
+				List<Store> stores = mStoreDao.queryBuilder().offset(offset).limit(limit).where().like("name", "%" + mQueryText + "%").or().like("address", "%" + mQueryText + "%").query();
 				
 				offset += stores.size();
 				
@@ -175,11 +142,6 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 	}
 	
 	private class MyAdapter extends BaseExpandableListAdapter {
-		
-		public MyAdapter() {
-			mStoreDao = mDbHelper.getStoreDao();
-			mMeasureDao = mDbHelper.getMeasureDao();
-		}
 		
 		@Override
 		public int getGroupCount() {	
@@ -271,28 +233,5 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 		}
 		
 	}
-
-	private boolean mIsLoading;
 	
-	@Override
-	public void onScrollStateChanged(AbsListView view, int scrollState) {
-		if (scrollState == SCROLL_STATE_IDLE) { 
-			if (getExpandableListView().getFirstVisiblePosition() == 0) {
-			}
-			
-	        if (getExpandableListView().getLastVisiblePosition() >= getExpandableListView().getCount() - 1 && !mIsLoading) {
-	        	if (count != offset) {
-	        		new LoadData().execute();
-	        	} else {
-	        		if (progressBar != null) {
-	        			progressBar.setVisibility(View.GONE); 
-	        		}
-	        	}
-	        }
-	    }
-	}
-	
-	@Override
-	public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {}
-
 }

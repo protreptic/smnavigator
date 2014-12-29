@@ -3,19 +3,14 @@ package ru.magnat.smnavigator.fragments;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.data.DbHelper;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.util.Fonts;
 import ru.magnat.smnavigator.util.Text;
 import ru.magnat.smnavigator.view.RouteView;
-import ru.magnat.smnavigator.widget.ExpandableListFragment;
 import ru.magnat.smnavigator.widget.StaticMapView;
-import android.accounts.Account;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -27,28 +22,15 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.SearchView;
-import android.widget.SearchView.OnQueryTextListener;
 import android.widget.TextView;
+import android.widget.SearchView.OnQueryTextListener;
 
 import com.j256.ormlite.dao.Dao;
 
-public class PsrListFragment extends ExpandableListFragment {
+public class PsrListFragment extends BaseListFragment {
 	
-	private DbHelper mDbHelper;
-	private MyAdapter mAdapter;
-	private Dao<Psr, String> mPsrDao;
-	private Dao<Route, String> mRouteDao;
 	private List<Psr> mGroupData = new ArrayList<Psr>();
 	private List<List<Route>> mChildData = new ArrayList<List<Route>>();
-
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		
-		setHasOptionsMenu(true); 
-	}
-	
-	private String mQueryText = "%%";
 	
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -59,15 +41,15 @@ public class PsrListFragment extends ExpandableListFragment {
 			
 			@Override
 			public boolean onQueryTextSubmit(String query) {
+				mQueryText = "%" + query + "%";
+				
+				new LoadData().execute();
+				
 				return true;
 			}
 			
 			@Override
 			public boolean onQueryTextChange(String newText) {
-				mQueryText = "%" + newText + "%";
-				
-				new LoadData().execute();
-				
 				return true;
 			}
 		});
@@ -77,28 +59,21 @@ public class PsrListFragment extends ExpandableListFragment {
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		
-		Account account = getArguments().getParcelable("account");
-		
-		getExpandableListView().setGroupIndicator(null); 
-		getExpandableListView().setDivider(null); 
-		getExpandableListView().setDividerHeight(-5);
-		getExpandableListView().setBackgroundColor(getResources().getColor(R.color.gray)); 
-		
-		mDbHelper = DbHelper.get(getActivity(), account);
-		
 		mAdapter = new MyAdapter();
 		
 		setListAdapter(mAdapter);
-		setEmptyText(getResources().getString(R.string.emptyList)); 
 		
 		new LoadData().execute();
  	}
 	
-	private class LoadData extends AsyncTask<Void, Void, Void> {
+	private class LoadData extends BaseDataLoader {
 
-		@Override
-		protected void onPreExecute() {
-			setListShown(false); 
+		private Dao<Psr, String> mPsrDao;
+		private Dao<Route, String> mRouteDao;
+		
+		public LoadData() {
+			mPsrDao = getDbHelper().getPsrDao();
+			mRouteDao = getDbHelper().getRouteDao();
 		}
 		
 		@Override
@@ -106,12 +81,6 @@ public class PsrListFragment extends ExpandableListFragment {
 			mGroupData.clear();
 			mChildData.clear();
 
-			try {
-				TimeUnit.MILLISECONDS.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} 
-			
 			try {
 				List<Psr> psrs = mPsrDao.queryBuilder().where().like("name", mQueryText).or().like("project", mQueryText).query(); 
 
@@ -130,21 +99,9 @@ public class PsrListFragment extends ExpandableListFragment {
 			return null;
 		}
 		
-		@Override
-		protected void onPostExecute(Void result) {
-			mAdapter.notifyDataSetChanged();
-			
-			setListShown(true); 
-		}
-		
 	}
 	
 	private class MyAdapter extends BaseExpandableListAdapter {
-		
-		public MyAdapter() {
-			mPsrDao = mDbHelper.getPsrDao();
-			mRouteDao = mDbHelper.getRouteDao();
-		}
 		
 		@Override
 		public int getGroupCount() {	
