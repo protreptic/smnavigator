@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.auth;
+package ru.magnat.smnavigator.security;
 
 import java.security.KeyStore;
 import java.security.cert.CertificateException;

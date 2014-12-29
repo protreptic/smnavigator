@@ -7,21 +7,21 @@ import android.view.LayoutInflater;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-public class StoreStatisticsView extends RelativeLayout {
+public class MeasureView extends RelativeLayout {
 
 	private TextView title;
 	private TextView subTitle;
 	
-	public StoreStatisticsView(Context context) {
+	public MeasureView(Context context) {
 		super(context);
 		
 		RelativeLayout relativeLayout = (RelativeLayout) LayoutInflater.from(context).inflate(R.layout.store_statistics_view, this, false);
 		
 		title = (TextView) relativeLayout.findViewById(R.id.title); 
-		title.setTypeface(Fonts.getInstance(context).getDefaultTypeface());  
+		title.setTypeface(Fonts.get(context).getDefaultTypeface());  
 		
 		subTitle = (TextView) relativeLayout.findViewById(R.id.description); 
-		subTitle.setTypeface(Fonts.getInstance(context).getDefaultTypeface());  
+		subTitle.setTypeface(Fonts.get(context).getDefaultTypeface());  
 		
 		addView(relativeLayout); 
 	}

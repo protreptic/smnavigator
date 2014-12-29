@@ -50,7 +50,7 @@ public class Fonts {
 //		mTypefaces.put("Roboto-ThinItalic", Typeface.createFromAsset(context.getAssets(), "fonts/Roboto-ThinItalic.ttf"));
 	}
 	
-	public static Fonts getInstance(Context context) {
+	public static Fonts get(Context context) {
 		if (sInstance == null) {
 			sInstance = new Fonts(context);
 		}

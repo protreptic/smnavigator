@@ -1,17 +1,14 @@
 package ru.magnat.smnavigator.model;
 
 import ru.magnat.smnavigator.entities.Clusterable;
-import ru.magnat.smnavigator.entities.Jsonable;
 import ru.magnat.smnavigator.entities.Mappable;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "store")
-public class Store implements Mappable, Jsonable, Clusterable {
+public class Store implements Mappable, Clusterable {
 	
 	@DatabaseField(columnName = "id", id = true)
 	private Integer id;
@@ -110,15 +107,6 @@ public class Store implements Mappable, Jsonable, Clusterable {
 
 	public void setLongitude(Double longitude) {
 		this.longitude = longitude;
-	}
-
-	@Override
-	public String toJsonString() {
-		Gson gson = new GsonBuilder()
-        .setPrettyPrinting()
-        .create();
-		
-		return gson.toJson(this);
 	}
 
 	@Override

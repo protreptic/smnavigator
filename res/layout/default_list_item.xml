@@ -37,7 +37,7 @@
         android:text="@string/staticmaptitle"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textColor="@color/selected_caption1"
-        android:textSize="10sp" />
+        android:textSize="12sp" />
 
     <TextView
         android:id="@+id/subtitle"
@@ -73,24 +73,5 @@
         android:layout_marginTop="3dp"
         android:background="@drawable/details_button"
         android:contentDescription="@string/contentDescription" />
-
-    <ru.magnat.smnavigator.widget.ExpandingLayout
-        android:id="@+id/expanding_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone" >
-
-        <TextView
-            android:id="@+id/text_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center_horizontal"
-            android:paddingBottom="20dp"
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp"
-            android:textColor="#ffffff"
-            android:textSize="22sp"
-            android:textStyle="bold" />
-    </ru.magnat.smnavigator.widget.ExpandingLayout>
 
 </RelativeLayout>

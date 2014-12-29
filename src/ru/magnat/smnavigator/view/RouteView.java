@@ -21,17 +21,17 @@ public class RouteView extends RelativeLayout {
 		RelativeLayout relativeLayout = (RelativeLayout) LayoutInflater.from(context).inflate(R.layout.visit_list_item, this, false);
 		
 		TextView title = (TextView) relativeLayout.findViewById(R.id.title); 
-		title.setTypeface(Fonts.getInstance(context).getDefaultTypeface());  
+		title.setTypeface(Fonts.get(context).getDefaultTypeface());  
 		title.setText(route.getStore().getCustomer().getName());    
 		
 		SimpleDateFormat format = new SimpleDateFormat("dd MMMM yyyy HH:mm");
 		
 		TextView subtitle = (TextView) relativeLayout.findViewById(R.id.subtitle); 
-		subtitle.setTypeface(Fonts.getInstance(context).getDefaultTypeface());  
+		subtitle.setTypeface(Fonts.get(context).getDefaultTypeface());  
 		subtitle.setText(format.format(route.getVisitDate()));  
 		
 		TextView description = (TextView) relativeLayout.findViewById(R.id.description); 
-		description.setTypeface(Fonts.getInstance(context).getDefaultTypeface());  
+		description.setTypeface(Fonts.get(context).getDefaultTypeface());  
 		description.setText(Text.prepareAddress(route.getStore().getAddress())); 
 		
 		ImageView actions = (ImageView) relativeLayout.findViewById(R.id.actions); 

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.auth.account.AccountHelper;
 import ru.magnat.smnavigator.data.DbHelper;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
@@ -78,17 +77,14 @@ public class PsrListFragment extends ExpandableListFragment {
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		
-		AccountHelper accountHelper = AccountHelper.get(getActivity());
-		Account account = accountHelper.getCurrentAccount();
+		Account account = getArguments().getParcelable("account");
 		
-		//getExpandableListView().setPadding(5, 5, 5, 5);
 		getExpandableListView().setGroupIndicator(null); 
 		getExpandableListView().setDivider(null); 
 		getExpandableListView().setDividerHeight(-5);
 		getExpandableListView().setBackgroundColor(getResources().getColor(R.color.gray)); 
-		//getExpandableListView().setBackground(getResources().getDrawable(R.drawable.bg_2));  
 		
-		mDbHelper = DbHelper.getInstance(getActivity(), account);
+		mDbHelper = DbHelper.get(getActivity(), account);
 		
 		mAdapter = new MyAdapter();
 		
@@ -187,15 +183,15 @@ public class PsrListFragment extends ExpandableListFragment {
 			RelativeLayout relativeLayout = (RelativeLayout) LayoutInflater.from(getActivity()).inflate(R.layout.default_list_item, parent, false);
 			
 			TextView title = (TextView) relativeLayout.findViewById(R.id.title); 
-			title.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
+			title.setTypeface(Fonts.get(getActivity()).getDefaultTypeface());  
 			title.setText(psr.getName());   
 			
 			TextView subtitle = (TextView) relativeLayout.findViewById(R.id.subtitle); 
-			subtitle.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
+			subtitle.setTypeface(Fonts.get(getActivity()).getDefaultTypeface());  
 			subtitle.setText(psr.getBranch().getName());  
 			
 			TextView description = (TextView) relativeLayout.findViewById(R.id.description); 
-			description.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
+			description.setTypeface(Fonts.get(getActivity()).getDefaultTypeface());  
 			description.setText(psr.getDepartment().getName()); 
 			
 			StaticMapView staticmap = (StaticMapView) relativeLayout.findViewById(R.id.staticmap); 
@@ -209,7 +205,7 @@ public class PsrListFragment extends ExpandableListFragment {
 			});
 			
 			TextView staticmaptitle = (TextView) relativeLayout.findViewById(R.id.staticmaptitle); 
-			staticmaptitle.setTypeface(Fonts.getInstance(getActivity()).getDefaultTypeface());  
+			staticmaptitle.setTypeface(Fonts.get(getActivity()).getDefaultTypeface());  
 			staticmaptitle.setText(Text.prepareAddress(psr.getProject())); 
 			
 			ImageView details = (ImageView) relativeLayout.findViewById(R.id.actions); 

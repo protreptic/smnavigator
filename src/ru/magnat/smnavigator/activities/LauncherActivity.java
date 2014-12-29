@@ -1,38 +1,41 @@
 package ru.magnat.smnavigator.activities;
 
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.auth.account.AccountHelper;
-import ru.magnat.smnavigator.auth.account.AccountWrapper;
+import ru.magnat.smnavigator.auth.AccountWrapper;
+import ru.magnat.smnavigator.auth.Authenticator;
+import ru.magnat.smnavigator.util.Fonts;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
-import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ListActivity;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.TextView;
  
-public class LauncherActivity extends Activity {
+public class LauncherActivity extends ListActivity {
 	
 	private AccountManager mAccountManager;
-	private AccountHelper mAccountHelper;
 	
-	private void checkUpdates() {
-		//UpdateHelper.get(this).update();
-	}
-	
-	private void runApplication(Account account, String token) {
+	private void runApplication(Account account) {
 		Intent intent = new Intent(getBaseContext(), MainActivity.class);
 		intent.putExtra("account", account);
-		intent.putExtra("accountToken", token);
 		
 		startActivity(intent); 
 	}
@@ -54,7 +57,7 @@ public class LauncherActivity extends Activity {
 					
 					signUp(account);
 				} catch (OperationCanceledException e) {
-					showChooseAccountDialog();
+					e.printStackTrace();
 				} catch (AuthenticatorException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
@@ -76,10 +79,9 @@ public class LauncherActivity extends Activity {
 	}
 	
 	private void signUp(Account account) {	
-		String accountToken = mAccountManager.peekAuthToken(account, AccountWrapper.ACCOUNT_TYPE);
-		
-		mAccountManager.invalidateAuthToken(AccountWrapper.ACCOUNT_TYPE, accountToken);
-		mAccountManager.getAuthToken(account, AccountWrapper.ACCOUNT_TYPE, null, getParent(), new AccountManagerCallback<Bundle>() {
+		Authenticator.validateSession(getBaseContext(), account);
+ 		
+		mAccountManager.getAuthToken(account, account.type, null, getParent(), new AccountManagerCallback<Bundle>() {
 			
 			@Override
 			public void run(AccountManagerFuture<Bundle> future) {
@@ -95,11 +97,13 @@ public class LauncherActivity extends Activity {
 					} else {
 						String accountName = bundle.getString(AccountManager.KEY_ACCOUNT_NAME);
 						String accountType = bundle.getString(AccountManager.KEY_ACCOUNT_TYPE);
+						
+						@SuppressWarnings("unused")
 						String accountToken = bundle.getString(AccountManager.KEY_AUTHTOKEN);
 						
 						Account account = new Account(accountName, accountType);
 						
-						runApplication(account, accountToken); 
+						runApplication(account); 
 					}
 				} catch (OperationCanceledException e) {
 					e.printStackTrace();
@@ -113,21 +117,19 @@ public class LauncherActivity extends Activity {
 	}
 	
 	private void showChooseAccountDialog() {
-		mAccountHelper.refresh();
+		final AccountListAdapter accountListAdapter = new AccountListAdapter();
 		
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder
-        	.setTitle(getString(R.string.chooseUser))
-        	.setSingleChoiceItems(mAccountHelper.getAccountListAdapter(), -1, new OnClickListener() {
+        	.setTitle(null)
+        	.setSingleChoiceItems(accountListAdapter, -1, new OnClickListener() {
 				
 				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					dialog.dismiss();
-					
-					if (which == mAccountHelper.getAccounts().size()) {
+				public void onClick(DialogInterface dialog, int position) {
+					if (position == accountListAdapter.getCount() - 1) {
 						addAccount();
 					} else {
-						Account account = mAccountHelper.getAccounts().get(which);
+						Account account = (Account) accountListAdapter.getItem(position);
 						
 						signUp(account);
 					}
@@ -150,23 +152,88 @@ public class LauncherActivity extends Activity {
 		showChooseAccountDialog();
 	}
 	
+	private class AccountListAdapter extends BaseAdapter {
+
+		private Account[] mAccounts;
+		
+		public AccountListAdapter() {
+			mAccounts = mAccountManager.getAccountsByType(AccountWrapper.ACCOUNT_TYPE);
+		}
+		
+		@Override
+		public int getCount() {
+			return mAccounts.length + 1;
+		}
+
+		@Override
+		public Object getItem(int position) {
+			if (position == mAccounts.length) 
+				return null;
+			
+			return mAccounts[position];
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return 0;
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			ViewHolder holder;
+			
+			if (convertView == null) {
+				convertView = getLayoutInflater().inflate(R.layout.account_item, parent, false);
+				
+				Typeface typeface = Fonts.get(getBaseContext()).getTypeface("RobotoCondensed-Regular");
+				
+				holder = new ViewHolder();
+				holder.line1 = (TextView) convertView.findViewById(R.id.line1);
+				holder.line1.setTypeface(typeface);
+				
+				holder.line2 = (TextView) convertView.findViewById(R.id.line2);
+				holder.line2.setTypeface(typeface);
+				
+				convertView.setTag(holder); 
+			} else {
+				holder = (ViewHolder) convertView.getTag();
+			}
+			
+			if (position == mAccounts.length) {
+				holder.line1.setText(getString(R.string.addUser));
+				holder.line2.setText(getString(R.string.addUserDescription));
+			} else {
+				Account account = (Account) getItem(position);
+				
+				String accountName = account.name;
+				String accountExpire = mAccountManager.getUserData(account, "sessionExpiration");
+				
+				Timestamp curentTimestamp = new Timestamp(System.currentTimeMillis());
+				Timestamp sessionTimestamp = Timestamp.valueOf(accountExpire);
+				
+				SimpleDateFormat format = new SimpleDateFormat("dd MMMM yyyy HH:mm:ss", new Locale("ru", "RU"));
+				
+				String sessionStatus = (curentTimestamp.before(sessionTimestamp)) ? String.format("Сессия действительна до %s", format.format(sessionTimestamp)) : "Сессия просрочена";
+ 				
+				holder.line1.setText(accountName);
+				holder.line2.setText(sessionStatus);  
+			}
+			
+			return convertView;
+		}
+		
+	}
+	
+	private static class ViewHolder {
+		TextView line1;
+		TextView line2;
+	}
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		setContentView(R.layout.launcher_activity_layout); 
-		
 		mAccountManager = AccountManager.get(this);
-		mAccountHelper = AccountHelper.get(this);
-		
-		checkUpdates();
-	}
-	
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		
-		AccountHelper.release(); 
 	}
 	
 }

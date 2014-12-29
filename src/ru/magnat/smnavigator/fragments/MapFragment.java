@@ -2,12 +2,11 @@ package ru.magnat.smnavigator.fragments;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.map.LocationHelper;
+import android.accounts.Account;
 import android.location.Location;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.widget.SearchView;
-import android.widget.SearchView.OnQueryTextListener;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -36,7 +35,9 @@ public class MapFragment extends SupportMapFragment {
 			}
 		});
 		
-		mLocationHelper = LocationHelper.get(getActivity(), map);
+		Account account = getArguments().getParcelable("account");
+		
+		mLocationHelper = LocationHelper.get(getActivity(), map, account);
 	}	
 	 
 	@Override
