@@ -1,20 +1,16 @@
 package ru.magnat.smnavigator;
 
 import org.acra.ACRA;
+import org.acra.ACRAConfiguration;
+import org.acra.ACRAConfigurationException;
 import org.acra.ReportingInteractionMode;
 import org.acra.annotation.ReportsCrashes;
 
-import android.app.Application;
 import ru.magnat.smnavigator.util.Device;
 import ru.magnat.smnavigator.util.Network;
+import android.app.Application;
 
-@ReportsCrashes(
-		formKey = "", 
-		formUri = "http://mob1.magnat.ru:8081/ws_acra_submit_crash_report",
-		mode = ReportingInteractionMode.TOAST,
-	    resToastText = R.string.crash_message,
-		socketTimeout = 5000
-	)
+@ReportsCrashes(formKey = "", resToastText = R.string.crash_message) 
 public class SmNavigator extends Application {
 	
 	@Override
@@ -26,6 +22,22 @@ public class SmNavigator extends Application {
 	
 	private void initAcra() {
         ACRA.init(this);
+        
+		ACRAConfiguration configuration = ACRA.getConfig();
+		
+		try {
+			configuration.setFormUri("https://sfs.magnat.ru:8443/ws_acra_submit_crash_report"); 
+			configuration.setDisableSSLCertValidation(true); 
+			configuration.setSocketTimeout(5000); 
+			configuration.setConnectionTimeout(5000); 
+			
+			configuration.setMode(ReportingInteractionMode.TOAST);
+		} catch (ACRAConfigurationException e) {
+			e.printStackTrace();
+		}
+        
+        ACRA.setConfig(configuration); 
+        
         ACRA.getErrorReporter().putCustomData("device_id", Device.getDeviceId(this));
         ACRA.getErrorReporter().putCustomData("mac_wlan0", Network.getMACAddress("wlan0"));
         ACRA.getErrorReporter().putCustomData("mac_eth0", Network.getMACAddress("eth0"));

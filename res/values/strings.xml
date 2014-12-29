@@ -16,6 +16,7 @@
 	<string name="showLegend">Показать легенду</string>
     <string name="showMyself">Текущее местоположение</string>
     <string name="refresh">Обновить данные</string>
+    <string name="actionChangeUser">Сменить пользователя</string>
     <string name="search">Поиск</string>
     
     <string name="loading">Загрузка</string>
@@ -28,7 +29,7 @@
     <string name="contentDescription" />
     
     <string name="syncServer">http://sfs.magnat.ru:8081</string>
-    <string name="syncServerSecure">https://sfs.magnat.ru:8443</string>
+    <string name="syncServerSecure">https://sfs.magnat.ru:8443/</string>
 
     <string name="syncSuccess">Синхронизация успешно завершена</string>
     <string name="syncError">Синхронизация не выполненна</string>
@@ -89,4 +90,7 @@
     <string name="addUserDescription">Добавить учетную запись</string>
     <string name="chooseUser">Выберите пользователя:</string>
     <string name="authError">Неправильная пара логин/пароль</string>
+    <string name="target">цель</string>
+    <string name="fact">факт</string>
+    <string name="index">индекс</string>
 </resources>

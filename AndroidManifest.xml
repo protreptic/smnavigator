@@ -35,7 +35,8 @@
 
         <activity
             android:name=".activities.MainActivity"
-            android:theme="@android:style/Theme.Holo.Light" >
+            android:theme="@android:style/Theme.Holo.Light"
+            android:clearTaskOnLaunch="true" >
         </activity>
         <activity
             android:name=".activities.LauncherActivity"

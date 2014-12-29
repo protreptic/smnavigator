@@ -1,0 +1,98 @@
+12-30 17:42:29 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "CREATE TABLE TARGET (
+	ID INTEGER PRIMARY KEY DEFAULT[*] AUTOINCREMENT,
+	STORE INTEGER,
+	NAME VARCHAR (255),
+	TARGET FLOAT,
+	FACT FLOAT,
+	INDEX FLOAT
+) "; expected "HASH, AUTO_INCREMENT, NOT, NULL, CHECK, REFERENCES, ,, )"; SQL statement:
+create table target (
+	id integer primary key default autoincrement,
+	store integer,
+	name varchar (255),
+	target float,
+	fact float,
+	index float
+) [42001-176]
+12-30 17:42:45 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Column "AUTO_INCREMENT" not found; SQL statement:
+create table target (
+	id integer default auto_increment primary key ,
+	store integer,
+	name varchar (255),
+	target float,
+	fact float,
+	index float
+) [42122-176]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:344)
+	at org.h2.message.DbException.get(DbException.java:178)
+	at org.h2.message.DbException.get(DbException.java:154)
+	at org.h2.expression.ExpressionColumn.optimize(ExpressionColumn.java:148)
+	at org.h2.table.Column.setDefaultExpression(Column.java:217)
+	at org.h2.command.Parser.parseColumnForTable(Parser.java:3845)
+	at org.h2.command.Parser.parseCreateTable(Parser.java:5723)
+	at org.h2.command.Parser.parseCreate(Parser.java:4122)
+	at org.h2.command.Parser.parsePrepared(Parser.java:351)
+	at org.h2.command.Parser.parse(Parser.java:306)
+	at org.h2.command.Parser.parse(Parser.java:278)
+	at org.h2.command.Parser.prepareCommand(Parser.java:243)
+	at org.h2.engine.Session.prepareLocal(Session.java:442)
+	at org.h2.engine.Session.prepareCommand(Session.java:384)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1188)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:172)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:160)
+	at workbench.sql.commands.DdlCommand.execute(DdlCommand.java:150)
+	at workbench.sql.StatementRunner.runStatement(StatementRunner.java:471)
+	at workbench.gui.sql.SqlPanel.displayResult(SqlPanel.java:3226)
+	at workbench.gui.sql.SqlPanel.runStatement(SqlPanel.java:2081)
+	at workbench.gui.sql.SqlPanel$14.run(SqlPanel.java:2033)
+12-30 17:42:51 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Column "AUTO_INCREMENT" not found; SQL statement:
+create table target (
+	id integer default auto_increment primary key,
+	store integer,
+	name varchar (255),
+	target float,
+	fact float,
+	index float
+) [42122-176]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:344)
+	at org.h2.message.DbException.get(DbException.java:178)
+	at org.h2.message.DbException.get(DbException.java:154)
+	at org.h2.expression.ExpressionColumn.optimize(ExpressionColumn.java:148)
+	at org.h2.table.Column.setDefaultExpression(Column.java:217)
+	at org.h2.command.Parser.parseColumnForTable(Parser.java:3845)
+	at org.h2.command.Parser.parseCreateTable(Parser.java:5723)
+	at org.h2.command.Parser.parseCreate(Parser.java:4122)
+	at org.h2.command.Parser.parsePrepared(Parser.java:351)
+	at org.h2.command.Parser.parse(Parser.java:306)
+	at org.h2.command.Parser.parse(Parser.java:278)
+	at org.h2.command.Parser.prepareCommand(Parser.java:243)
+	at org.h2.engine.Session.prepareLocal(Session.java:442)
+	at org.h2.engine.Session.prepareCommand(Session.java:384)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1188)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:172)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:160)
+	at workbench.sql.commands.DdlCommand.execute(DdlCommand.java:150)
+	at workbench.sql.StatementRunner.runStatement(StatementRunner.java:471)
+	at workbench.gui.sql.SqlPanel.displayResult(SqlPanel.java:3226)
+	at workbench.gui.sql.SqlPanel.runStatement(SqlPanel.java:2081)
+	at workbench.gui.sql.SqlPanel$14.run(SqlPanel.java:2033)
+12-30 17:44:57 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLException: Syntax error in SQL statement "CREATE TABLE TARGET (
+	ID INTEGER PRIMARY KEY DEFAULT[*] AUTO_INCREMENT,
+	STORE INTEGER,
+	NAME VARCHAR (255),
+	TARGET FLOAT,
+	FACT FLOAT,
+	INDEX FLOAT
+) "; expected "HASH, AUTO_INCREMENT, NOT, NULL, CHECK, REFERENCES, ,, )"; SQL statement:
+create table target (
+	id integer primary key default AUTO_INCREMENT,
+	store integer,
+	name varchar (255),
+	target float,
+	fact float,
+	index float
+) [42001-176]

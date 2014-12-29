@@ -1,7 +1,6 @@
 package ru.magnat.smnavigator.sync;
 
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -10,10 +9,16 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.auth.Authenticator;
-import ru.magnat.smnavigator.data.DbHelper;
+import ru.magnat.smnavigator.data.DbHelperSecured;
 import ru.magnat.smnavigator.model.Branch;
 import ru.magnat.smnavigator.model.Customer;
 import ru.magnat.smnavigator.model.Department;
@@ -22,16 +27,15 @@ import ru.magnat.smnavigator.model.Measure;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.model.Store;
+import ru.magnat.smnavigator.model.Target;
 import ru.magnat.smnavigator.model.json.BranchDeserializer;
-import ru.magnat.smnavigator.model.json.BranchSerializer;
 import ru.magnat.smnavigator.model.json.CustomerDeserializer;
 import ru.magnat.smnavigator.model.json.CustomerSerializer;
 import ru.magnat.smnavigator.model.json.DepartmentDeserializer;
-import ru.magnat.smnavigator.model.json.DepartmentSerializer;
 import ru.magnat.smnavigator.model.json.PsrDeserializer;
-import ru.magnat.smnavigator.model.json.PsrSerializer;
 import ru.magnat.smnavigator.model.json.StoreDeserializer;
-import ru.magnat.smnavigator.model.json.StoreSerializer;
+import ru.magnat.smnavigator.security.KeyStoreManager;
+import ru.magnat.smnavigator.security.MyTrustManager;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.AbstractThreadedSyncAdapter;
@@ -56,10 +60,31 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     @SuppressWarnings("unused")
 	private ContentResolver mContentResolver;
     
-    private DbHelper mMainDbHelper;
+    private DbHelperSecured mMainDbHelper;
     private Account mAccount;
-    private String sessionToken;
     
+    private String sessionToken;
+    private SSLContext sslContext;
+    private HostnameVerifier hostnameVerifier = new HostnameVerifier () {
+
+		@Override
+		public boolean verify(String hostname, SSLSession session) {
+			return true;
+		}
+		
+	};
+    
+	private HttpsURLConnection prepareConnection(String serviceName) throws Exception {
+		URL url = new URL(getContext().getResources().getString(R.string.syncServerSecure) + serviceName + "?token=" + sessionToken);
+		 
+		HttpsURLConnection httpsURLConnection = (HttpsURLConnection) url.openConnection(); 
+		httpsURLConnection.setSSLSocketFactory(sslContext.getSocketFactory());
+		httpsURLConnection.setHostnameVerifier(hostnameVerifier); 
+		httpsURLConnection.addRequestProperty("token", sessionToken); 
+		
+		return httpsURLConnection;
+	}
+	
     public SyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
 
@@ -94,7 +119,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		try {
 			TimeUnit.SECONDS.sleep(2);
 		
-			mMainDbHelper = DbHelper.get(getContext(), account);
+			mMainDbHelper = DbHelperSecured.get(getContext(), account);
+			
+			sslContext = SSLContext.getInstance("TLS");
+			sslContext.init(null, new TrustManager[] { new MyTrustManager(KeyStoreManager.getInstance(getContext()).getKeyStore()) } , null);
 			
 			getManager();
 			getBranch();
@@ -103,9 +131,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			getRoute();
 			getStore();
 			getCustomer();
-			getMeasure();
+			//getMeasure();
+			getTarget();
 			
-			DbHelper.close();
+			DbHelperSecured.close();
 			
 			TimeUnit.SECONDS.sleep(2);
 		} catch (Exception e) {
@@ -137,14 +166,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
     
     private void getManager() throws Exception {
-		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getManager?token=" + sessionToken);
+		HttpsURLConnection urlConnection = prepareConnection("sm_getManager");
 		
-		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
-    	
 		GsonBuilder gsonBuilder = new GsonBuilder();
-		gsonBuilder.registerTypeAdapter(Branch.class, new BranchSerializer());
 		gsonBuilder.registerTypeAdapter(Branch.class, new BranchDeserializer()); 
-		gsonBuilder.registerTypeAdapter(Department.class, new DepartmentSerializer());
 		gsonBuilder.registerTypeAdapter(Department.class, new DepartmentDeserializer()); 
 		gsonBuilder.serializeNulls();
 		
@@ -167,10 +192,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
     
     private void getBranch() throws Exception {
-		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getBranch?token=" + sessionToken);
+		HttpsURLConnection urlConnection = prepareConnection("sm_getBranch");
 		
-		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
-    	
 		GsonBuilder gsonBuilder = new GsonBuilder();
 		gsonBuilder.serializeNulls();
 		
@@ -193,10 +216,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
     
     private void getDepartment() throws Exception {
-		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getDepartment?token=" + sessionToken);
+		HttpsURLConnection urlConnection = prepareConnection("sm_getDepartment");
 		
-		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
-    	
 		GsonBuilder gsonBuilder = new GsonBuilder();
 		gsonBuilder.serializeNulls();
 		
@@ -219,14 +240,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
     
     private void getPsr() throws Exception {
-		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getPsr?token=" + sessionToken);
+		HttpsURLConnection urlConnection = prepareConnection("sm_getPsr");
 		
-		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
-    	
 		GsonBuilder gsonBuilder = new GsonBuilder();
-		gsonBuilder.registerTypeAdapter(Branch.class, new BranchSerializer());
 		gsonBuilder.registerTypeAdapter(Branch.class, new BranchDeserializer()); 
-		gsonBuilder.registerTypeAdapter(Department.class, new DepartmentSerializer());
 		gsonBuilder.registerTypeAdapter(Department.class, new DepartmentDeserializer()); 
 		gsonBuilder.serializeNulls();
 		
@@ -249,17 +266,13 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
     
     private void getRoute() throws Exception {
-		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getRoute?token=" + sessionToken);
-		
-		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
+		HttpsURLConnection urlConnection = prepareConnection("sm_getRoute");
     	
 		GsonBuilder gsonBuilder = new GsonBuilder();
-		gsonBuilder.registerTypeAdapter(Psr.class, new PsrSerializer()); 
 		gsonBuilder.registerTypeAdapter(Psr.class, new PsrDeserializer()); 
-		gsonBuilder.registerTypeAdapter(Store.class, new StoreSerializer()); 
 		gsonBuilder.registerTypeAdapter(Store.class, new StoreDeserializer());
+		gsonBuilder.setDateFormat("yyyy-MM-dd HH:mm:ss.SSS"); 
 		gsonBuilder.serializeNulls();
-	    gsonBuilder.setDateFormat("yyyy-MM-dd HH:mm:ss.SSS"); 
 		
 		Gson gson = gsonBuilder.create();
 		
@@ -280,13 +293,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
     
 	private void getStore() throws Exception { 
-		URL url = new URL(getContext().getResources().getString(R.string.syncServer) + "/sm_getStore?token=" + sessionToken);
-		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
+		HttpsURLConnection urlConnection = prepareConnection("sm_getStore");
 		
 		GsonBuilder gsonBuilder = new GsonBuilder();
 		gsonBuilder.registerTypeAdapter(Customer.class, new CustomerSerializer()); 
 		gsonBuilder.registerTypeAdapter(Customer.class, new CustomerDeserializer());
-		
 		gsonBuilder.serializeNulls();
 		
 		Gson gson = gsonBuilder.create();
@@ -308,9 +319,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 	}
 	
 	private void getCustomer() throws Exception { 
-		URL url = new URL(getContext().getResources().getString(R.string.syncServer) + "/sm_getCustomer?token=" + sessionToken);
-		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
-
+		HttpsURLConnection urlConnection = prepareConnection("sm_getCustomer");
+		
 		GsonBuilder gsonBuilder = new GsonBuilder();
 		gsonBuilder.serializeNulls();
 		
@@ -332,13 +342,13 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private void getMeasure() throws Exception {   
-		URL url = new URL(getContext().getResources().getString(R.string.syncServer) + "/sm_getMeasure?token=" + sessionToken);
-		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
-
+		HttpsURLConnection urlConnection = prepareConnection("sm_getMeasure");
+		
 		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.setDateFormat("yyyy-MM-dd");
 		gsonBuilder.serializeNulls();
-	    gsonBuilder.setDateFormat("yyyy-MM-dd"); 
 		
 		Gson gson = gsonBuilder.create();
 		
@@ -355,6 +365,31 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			measureDao.createOrUpdate(measure);
 			
 			Log.d("", measure.toString()); 
+		}
+	}
+	
+	private void getTarget() throws Exception {   
+		HttpsURLConnection urlConnection = prepareConnection("sm_getTarget");
+		
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(Store.class, new StoreDeserializer());
+		gsonBuilder.serializeNulls();
+		
+		Gson gson = gsonBuilder.create();
+		
+		List<Target> targets = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Target>>() {}.getType());
+		
+		urlConnection.disconnect();
+		urlConnection = null;
+		
+		Dao<Target, String> targetDao = mMainDbHelper.getTargetDao();
+		targetDao.setObjectCache(false); 
+		targetDao.delete(targetDao.queryForAll());
+		
+		for (Target target : targets) {
+			targetDao.createOrUpdate(target);
+			
+			Log.d("", target.toString()); 
 		}
 	}
 

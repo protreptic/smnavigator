@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Random;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.data.DbHelper;
+import ru.magnat.smnavigator.data.DbHelperSecured;
 import ru.magnat.smnavigator.map.geofence.Geofenceable;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Store;
@@ -60,7 +60,7 @@ public class LocationHelper {
 	
 	@SuppressWarnings("unused")
 	private void addRegion() {
-		DbHelper dbHelper = DbHelper.get(mContext, mAccount);
+		DbHelperSecured dbHelper = DbHelperSecured.get(mContext, mAccount);
 		
 		try {
 			PolygonOptions polygonOptions1 = new PolygonOptions();
@@ -458,7 +458,7 @@ public class LocationHelper {
 			e.printStackTrace();
 		}
 		
-		DbHelper.close();
+		DbHelperSecured.close();
 	}
 	
 	private LocationHelper(Context context, GoogleMap map, Account account) {
@@ -473,7 +473,7 @@ public class LocationHelper {
 	
 	@SuppressWarnings("unused")
 	private void addHeatMap() {
-		DbHelper dbHelper = DbHelper.get(mContext, mAccount);
+		DbHelperSecured dbHelper = DbHelperSecured.get(mContext, mAccount);
 		
 		try {
 			List<LatLng> points = new ArrayList<LatLng>();
@@ -494,7 +494,7 @@ public class LocationHelper {
 			e.printStackTrace();
 		}
 		
-		DbHelper.close();
+		DbHelperSecured.close();
 	}
 	
 	public void updateOverlays() {	
@@ -507,7 +507,7 @@ public class LocationHelper {
 	}
 	
 	private void addPsrMarkers() {
-		DbHelper dbHelper = DbHelper.get(mContext, mAccount);
+		DbHelperSecured dbHelper = DbHelperSecured.get(mContext, mAccount);
 		
 		try {
 			List<Psr> psrs = dbHelper.getPsrDao().queryForAll();
@@ -525,11 +525,11 @@ public class LocationHelper {
 			e.printStackTrace();
 		}
 		
-		DbHelper.close();
+		DbHelperSecured.close();
 	}
 	
 	private void addStoreMarkers() {
-		DbHelper dbHelper = DbHelper.get(mContext, mAccount);
+		DbHelperSecured dbHelper = DbHelperSecured.get(mContext, mAccount);
 		
 		try {
 			List<Store> stores = dbHelper.getStoreDao().queryBuilder().query();
@@ -548,7 +548,7 @@ public class LocationHelper {
 			e.printStackTrace();
 		}
 		
-		DbHelper.close();
+		DbHelperSecured.close();
 	}
 	
 }

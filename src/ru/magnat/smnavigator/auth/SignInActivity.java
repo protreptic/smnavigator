@@ -101,7 +101,6 @@ public class SignInActivity extends AccountAuthenticatorActivity {
 						String accountType = AccountWrapper.ACCOUNT_TYPE;
 						String accountToken = authenticationResponse.getSessionToken();
 						
-						
 						AccountManager accountManager = AccountManager.get(getBaseContext());
 						
 						Account account = new Account(accountName, accountType);

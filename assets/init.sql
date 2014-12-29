@@ -1,13 +1,9 @@
-drop schema "SM_NAVIGATOR" if exists;
-drop schema "sm_navigator" if exists;
-create schema "sm_navigator";
+drop schema smnavigator if exists;
+create schema smnavigator;
 
-set schema "sm_navigator";
+set schema smnavigator;
 
-/*
-	
-*/
-create table "sm_navigator"."manager" (
+create table manager (
 	id integer primary key,
 	name varchar(255),
 	email varchar(255),
@@ -16,34 +12,22 @@ create table "sm_navigator"."manager" (
 	department integer
 );
 
-/*
-	
-*/
-create table "sm_navigator"."branch" (
+create table branch (
 	id integer primary key,
 	name varchar(255)
 );
 
-/*
-	
-*/
-create table "sm_navigator"."customer" (
+create table customer (
 	id integer primary key,
 	name varchar(255)
 );
 
-/*
-	
-*/
-create table "sm_navigator"."department" (
+create table department (
 	id integer primary key,
 	name varchar(255)
 );
 
-/*
-	
-*/
-create table "sm_navigator"."psr" (
+create table psr (
 	id integer primary key,
 	name varchar (255),
 	project varchar (255),
@@ -55,20 +39,14 @@ create table "sm_navigator"."psr" (
 	longitude double,
 );
 
-/*
-	
-*/
-create table "sm_navigator"."route" (
+create table route (
 	id integer primary key,
 	visit_date timestamp,
 	psr integer,
 	store integer
 );
 
-/*
-	
-*/
-create table "sm_navigator"."store" (
+create table store (
 	id integer primary key,
 	name varchar (255),
 	customer integer,
@@ -80,10 +58,7 @@ create table "sm_navigator"."store" (
 	longitude double
 );
 
-/*
-	
-*/
-create table "sm_navigator"."measure" (
+create table measure (
 	id integer primary key,
 	visit_frequency integer,
 	last_visit timestamp,
@@ -95,10 +70,16 @@ create table "sm_navigator"."measure" (
 	golden_status varchar (255)
 );
 
-/*
-	
-*/
-create table "sm_navigator"."georegion" (
+create table target (
+	id integer primary key auto_increment,
+	store integer,
+	name varchar (255),
+	target float,
+	fact float,
+	index float
+);
+
+create table georegion (
 	id integer,
 	latitude double,
 	longitude double		

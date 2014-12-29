@@ -1,7 +1,7 @@
 package ru.magnat.smnavigator.fragments;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.data.DbHelper;
+import ru.magnat.smnavigator.data.DbHelperSecured;
 import ru.magnat.smnavigator.widget.ExpandableListFragment;
 import android.accounts.Account;
 import android.os.AsyncTask;
@@ -13,13 +13,13 @@ public class BaseListFragment extends ExpandableListFragment {
 	private Account mAccount;
 	protected BaseExpandableListAdapter mAdapter;
 	protected String mQueryText = "%%";
-	private DbHelper mDbHelper;
+	private DbHelperSecured mDbHelper;
 	
 	public Account getAccount() {
 		return mAccount;
 	}
 	
-	public DbHelper getDbHelper() {
+	public DbHelperSecured getDbHelper() {
 		return mDbHelper;
 	}
 	
@@ -29,7 +29,7 @@ public class BaseListFragment extends ExpandableListFragment {
 		
 		mAccount = getArguments().getParcelable("account");
 		
-		mDbHelper = DbHelper.get(getActivity(), mAccount);
+		mDbHelper = DbHelperSecured.get(getActivity(), mAccount);
 		
 		getExpandableListView().setGroupIndicator(null); 
 		getExpandableListView().setDivider(null); 

@@ -5,7 +5,7 @@ import java.util.List;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.auth.AccountWrapper;
-import ru.magnat.smnavigator.data.DbHelper;
+import ru.magnat.smnavigator.data.DbHelperSecured;
 import ru.magnat.smnavigator.fragments.MapFragment;
 import ru.magnat.smnavigator.fragments.PsrListFragment;
 import ru.magnat.smnavigator.fragments.StoreListFragment;
@@ -45,7 +45,7 @@ public class MainActivity extends FragmentActivity {
     private Manager getManager() {
     	Manager manager = null;
     	
-		DbHelper dbHelper = DbHelper.get(this, mAccount);
+    	DbHelperSecured dbHelper = DbHelperSecured.get(this, mAccount);
 		
 		try {
 			List<Manager> managers = dbHelper.getManagerDao().queryForAll();
@@ -57,7 +57,7 @@ public class MainActivity extends FragmentActivity {
 			e.printStackTrace();
 		}
 		
-		DbHelper.close();
+		DbHelperSecured.close();
     	
     	return manager;
     }
@@ -81,23 +81,10 @@ public class MainActivity extends FragmentActivity {
         mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, new String[] { getString(R.string.titleMap), getString(R.string.titlePsrs), getString(R.string.titleStores) }));
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
-        String title;
-        String subTitle;
-        
-        Manager manager = getManager();
-        
-        if (manager != null) { 
-        	title = manager.getName();
-       		subTitle = manager.getBranch().getName();
-        } else {
-        	title = mAccount.name;
-        	subTitle = mAccount.type;
-        }
+        updateUserInfo();
         
         getActionBar().setDisplayHomeAsUpEnabled(false);
         getActionBar().setHomeButtonEnabled(false);
-		getActionBar().setTitle(title); 
-		getActionBar().setSubtitle(subTitle); 
 		getActionBar().setIcon(getResources().getDrawable(R.drawable.logotype_small_beta));  
 
         if (savedInstanceState == null) {
@@ -123,6 +110,14 @@ public class MainActivity extends FragmentActivity {
         if (lastSync.equals("unknown")) {
         	requestSync(); 
         }
+	}
+	
+	private void requestChangeUser() {
+		Intent intent = new Intent(getBaseContext(), LauncherActivity.class);
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		
+		startActivity(intent); 
 	}
 	
 	private void requestSync() {
@@ -240,6 +235,9 @@ public class MainActivity extends FragmentActivity {
 		switch (item.getItemId()) {
 			case R.id.actionSync: {
 				requestSync();
+			} break;
+			case R.id.actionChangeUser: {
+				requestChangeUser();
 			} break;
 			case R.id.checkUpdates: {
 				requestUpdate();

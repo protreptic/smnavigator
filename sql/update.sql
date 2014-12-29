@@ -598,7 +598,7 @@ end;
 create or replace procedure "sm_getMeasure" ("token" sm_token) 
     result (
         "id" integer, "lastVisit" datetime, "nextVisit" datetime, 
-        "turnoverPreviousMonth" double, "turnoverCurrentMonth" double,
+        "turnoverPreviousMonth" numeric(10,2), "turnoverCurrentMonth" numeric(10,2),
         "totalDistribution" integer, "goldenDistribution" integer, 
         "goldenStatus" nvarchar(255), "frequencyOfVisits" integer)
 begin
@@ -633,3 +633,37 @@ create service "sm_getMeasure"
     user dba
     methods 'GET,POST'
     as call "sm_getMeasure" (:token);
+
+create or replace procedure "sm_getTarget" ("token" sm_token) 
+    result (
+        "store" integer, 
+        "name" nvarchar(255), 
+        "target" numeric(10,2), 
+        "fact" numeric(10,2),
+        "index" integer)
+begin
+    if ("sm_validateToken" ("token") >= 0) then    
+        select
+            a."id",
+            b."Kpi",
+            b."Target",
+            b."Fact",
+            cast(b."KpiIndex" as integer)
+        from
+            "sm_getStore" ("token") a 
+            join "RegOutletTarget" b 
+                on b."Outlet" = a."id"; 
+    endif;
+end;
+
+/*
+    
+*/
+drop service "sm_getTarget";
+create service "sm_getTarget" 
+    type 'json'
+    authorization off
+    secure off
+    user dba
+    methods 'GET,POST'
+    as call "sm_getTarget" (:token);
