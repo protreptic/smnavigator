@@ -20,19 +20,19 @@ public class StoreView extends RelativeLayout {
 		RelativeLayout relativeLayout = (RelativeLayout) LayoutInflater.from(context).inflate(R.layout.default_list_item, this, false);
 		
 		TextView name = (TextView) relativeLayout.findViewById(R.id.title); 
-		name.setTypeface(Fonts.getInstance(context).getDefaultTypeface());  
+		name.setTypeface(Fonts.get(context).getDefaultTypeface());  
 		name.setText(store.getCustomer().getName());   
 		
 		TextView address = (TextView) relativeLayout.findViewById(R.id.description); 
-		address.setTypeface(Fonts.getInstance(context).getDefaultTypeface());  
+		address.setTypeface(Fonts.get(context).getDefaultTypeface());  
 		address.setText(Text.prepareAddress(store.getAddress())); 
 		
 		TextView channel = (TextView) relativeLayout.findViewById(R.id.staticmaptitle); 
-		channel.setTypeface(Fonts.getInstance(context).getDefaultTypeface());  
+		channel.setTypeface(Fonts.get(context).getDefaultTypeface());  
 		channel.setText(store.getChannel()); 
 		
 		TextView goldenStatus = (TextView) relativeLayout.findViewById(R.id.subtitle); 
-		goldenStatus.setTypeface(Fonts.getInstance(context).getDefaultTypeface());  
+		goldenStatus.setTypeface(Fonts.get(context).getDefaultTypeface());  
 		goldenStatus.setText(""); 
 		
 		StaticMapView staticMapView = (StaticMapView) relativeLayout.findViewById(R.id.staticmap); 

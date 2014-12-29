@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.auth.account;
+package ru.magnat.smnavigator.auth;
 
 public class AccountWrapper {
 	

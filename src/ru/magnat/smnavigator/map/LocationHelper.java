@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Random;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.auth.account.AccountHelper;
 import ru.magnat.smnavigator.data.DbHelper;
 import ru.magnat.smnavigator.map.geofence.Geofenceable;
 import ru.magnat.smnavigator.model.Psr;
@@ -34,12 +33,11 @@ public class LocationHelper {
 
 	private ClusterManager<AbstractMarker> mClusterManager;
 	
-	private AccountHelper mAccountHelper;
 	private Account mAccount;
 	
-	public synchronized static LocationHelper get(Context context, GoogleMap map) {
+	public synchronized static LocationHelper get(Context context, GoogleMap map, Account account) {
 		if (sInstance == null) {
-			sInstance = new LocationHelper(context, map);
+			sInstance = new LocationHelper(context, map, account);
 		}
 		
 		return sInstance;
@@ -62,7 +60,7 @@ public class LocationHelper {
 	
 	@SuppressWarnings("unused")
 	private void addRegion() {
-		DbHelper dbHelper = DbHelper.getInstance(mContext, mAccount);
+		DbHelper dbHelper = DbHelper.get(mContext, mAccount);
 		
 		try {
 			PolygonOptions polygonOptions1 = new PolygonOptions();
@@ -463,13 +461,10 @@ public class LocationHelper {
 		DbHelper.close();
 	}
 	
-	private LocationHelper(Context context, GoogleMap map) {
+	private LocationHelper(Context context, GoogleMap map, Account account) {
 		mContext = context; 
 		mMap = map;
-		
-		mAccountHelper = AccountHelper.get(context);
-		
-		mAccount = mAccountHelper.getCurrentAccount();
+		mAccount = account;
 	} 
 	
 	public void moveToPoint(double latitude, double longitude) {
@@ -478,7 +473,7 @@ public class LocationHelper {
 	
 	@SuppressWarnings("unused")
 	private void addHeatMap() {
-		DbHelper dbHelper = DbHelper.getInstance(mContext, mAccount);
+		DbHelper dbHelper = DbHelper.get(mContext, mAccount);
 		
 		try {
 			List<LatLng> points = new ArrayList<LatLng>();
@@ -512,7 +507,7 @@ public class LocationHelper {
 	}
 	
 	private void addPsrMarkers() {
-		DbHelper dbHelper = DbHelper.getInstance(mContext, mAccount);
+		DbHelper dbHelper = DbHelper.get(mContext, mAccount);
 		
 		try {
 			List<Psr> psrs = dbHelper.getPsrDao().queryForAll();
@@ -534,7 +529,7 @@ public class LocationHelper {
 	}
 	
 	private void addStoreMarkers() {
-		DbHelper dbHelper = DbHelper.getInstance(mContext, mAccount);
+		DbHelper dbHelper = DbHelper.get(mContext, mAccount);
 		
 		try {
 			List<Store> stores = dbHelper.getStoreDao().queryBuilder().query();

@@ -61,6 +61,46 @@ comment on procedure "sm_authenticate" is '
     и генерирует сессионный токен для клинета при каждом запросе
     вне зависимости от того просрочен он или нет.';
 
+create or replace procedure "sm_auth2" ("login" nvarchar(255), "password" nvarchar(255))
+    result ("result" text)
+begin
+    if (("login" is null) or ("login" = '') or ("password" is null) or ("password" = '')) then       
+        call sa_set_http_header('@HttpStatus', '403');
+    elseif ((select top 1 count(a."wi_login") from "RefUser" a where a."wi_login" = "login") = 0) then     
+        call sa_set_http_header('@HttpStatus', '403');
+    elseif ((select top 1 count(a."wi_login") from "RefUser" a where a."wi_login" = "login" and a."wi_password" = "password") = 0) then
+        call sa_set_http_header('@HttpStatus', '403');
+    else
+        update 
+            "RefUser" a 
+        set 
+            a."sessionToken" = "sm_generateToken"(), 
+            a."sessionExpiration" = dateadd(hour, 5, now()) 
+        where 
+            a."wi_login" = "login" 
+                and 
+            a."wi_password" = "password"; 
+
+        select 
+            string('{"sessionToken":"', a."sessionToken", '","sessionExpiration":"',a."sessionExpiration",'"}')            
+        from 
+            "RefUser" a 
+        where 
+            a."wi_login" = "login" 
+                and 
+            a."wi_password" = "password";               
+    endif;  
+end;
+
+drop service "sm_auth2";
+create service "sm_auth2" 
+    type 'json'
+    authorization off
+    secure off
+    user dba
+    methods 'GET,POST'
+    as call "sm_auth2" (:login,:password); 
+
 /*
     Процедура валидации токена
 */
@@ -133,7 +173,7 @@ insert into "sm_release" ("artifact_name","package","description","version_code"
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',11,'1.0.0-alpha.10');
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',12,'1.0.0-alpha.11');
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',13,'1.0.0-beta.1');
-insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',13,'1.0.0-beta.2');
+insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',14,'1.0.0-beta.2');
 
 /*
     
@@ -276,6 +316,8 @@ begin
             "sm_getManager" ("token") a
             join "RefBranch" b 
                 on b."Id" = a."branch"
+        order by
+            b."Descr" asc;
     endif;
 end;
 comment on procedure "sm_getBranch" is '
@@ -309,6 +351,8 @@ begin
             "sm_getManager" ("token") a
             join "RefDepartment" b 
                 on b."Id" = a."department"
+        order by
+            b."Descr" asc;
     endif;
 end;
 
@@ -348,6 +392,9 @@ begin
         where
             d."IsMark" = 0
             and d."TestUser" = 0
+            and d."IsMark" = 0
+        order by
+            d."Descr" asc;
     endif;
 end;
 
@@ -415,7 +462,11 @@ begin
             left join "RefStoreChannel" d
                 on d."Id" = b."Channel"
             left join "RefContact" e
-                on e."Id" = c."Contact" 
+                on e."Id" = c."Contact"
+        where
+            b."IsMark" = 0
+        order by
+            b."Descr" asc; 
     endif;
 end;
 
@@ -444,7 +495,11 @@ begin
             join "RefOutlet" b
                 on b."Id" = a."id" 
             join "RefCustomer" c
-                on c."Id" = b."ParentExt" 
+                on c."Id" = b."ParentExt"
+        where
+            c."IsMark" = 0
+        order by
+            c."Descr" asc; 
     endif;
 end;
 
@@ -461,39 +516,39 @@ create service "sm_getCustomer"
     as call "sm_getCustomer" (:token);
 
 // Возвращает товарооборот точки за прошлый месяц по ее идентификатору
-create or replace function "sm_getTurnoverPreviousMonth" ("store_id" integer) returns double
+create or replace function "sm_getTurnoverPreviousMonth" ("store_id" integer) returns numeric(10,2)
 begin
-    declare "turnover" double;    
+    declare "turnover" numeric(10,2);    
 
     select sum(a."Shipments") into "turnover" from "RegSales" a where a."Outlet" = "store_id" and datediff(month, dateadd(month, -1, now()), now()) = 1;
 
-    return round("turnover",2);
+    return isnull("turnover",0);
 end;
 
 // Возвращает товарооборот точки за текущий месяц по ее идентификатору
-create or replace function "sm_getTurnoverCurrentMonth" ("store_id" integer) returns double
+create or replace function "sm_getTurnoverCurrentMonth" ("store_id" integer) returns numeric(10,2)
 begin
-    declare "turnover" double;    
+    declare "turnover" numeric(10,2);    
 
     select sum(a."Shipments") into "turnover" from "RegSales" a where a."Outlet" = "store_id" and datediff(month, now(), now()) = 0;
 
-    return round("turnover",2);
+    return isnull("turnover",0);
 end;
 
 // Возвращает товарооборот точки за период по ее идентификатору
-create or replace function "sm_getTurnover" ("store_id" integer, "period" date) returns double
+create or replace function "sm_getTurnover" ("store_id" integer, "period" date) returns numeric(10,2)
 begin
-    declare "turnover" double;    
+    declare "turnover" numeric(10,2);    
 
     select sum(a."Shipments") into "turnover" from "RegSales" a where a."Outlet" = "store_id" and datediff(month, "period", now()) = 0;
 
-    return "turnover";
+    return isnull("turnover",0);
 end;
 
 // Возвращает ОПД точки по ее идентификатору
 create or replace function "sm_getTotalDistribution" ("store_id" integer) returns integer
 begin
-    declare "distribution" double;    
+    declare "distribution" integer;    
     
     select count(distinct a."Csku") into "distribution" from "RegSales" a where a."Outlet" = "store_id" and datediff(month, now(), now()) < 3;
 
@@ -503,7 +558,7 @@ end;
 // Возвращает ЗПД точки по ее идентификатору
 create or replace function "sm_getGoldenDistribution" ("store_id" integer) returns integer
 begin
-    declare "distribution" double;    
+    declare "distribution" integer;    
     
     select count(distinct a."Csku") into "distribution" from "RegSales" a where a."Outlet" = "store_id" and a."Abc" = 1 and datediff(month, now(), now()) < 3;
 

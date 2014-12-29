@@ -1,13 +1,10 @@
 package ru.magnat.smnavigator.activities;
 
-import java.sql.Date;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.auth.account.AccountHelper;
-import ru.magnat.smnavigator.auth.account.AccountWrapper;
+import ru.magnat.smnavigator.auth.AccountWrapper;
 import ru.magnat.smnavigator.data.DbHelper;
 import ru.magnat.smnavigator.fragments.MapFragment;
 import ru.magnat.smnavigator.fragments.PsrListFragment;
@@ -17,36 +14,30 @@ import ru.magnat.smnavigator.update.UpdateHelper;
 import ru.magnat.smnavigator.util.Apps;
 import android.accounts.Account;
 import android.app.AlertDialog;
+import android.app.backup.BackupManager;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
-import android.widget.RelativeLayout.LayoutParams;
 import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity {
-	
-	private MenuItem mSyncItem;
 	
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
@@ -54,7 +45,7 @@ public class MainActivity extends FragmentActivity {
     private Manager getManager() {
     	Manager manager = null;
     	
-		DbHelper dbHelper = DbHelper.getInstance(this, mAccount);
+		DbHelper dbHelper = DbHelper.get(this, mAccount);
 		
 		try {
 			List<Manager> managers = dbHelper.getManagerDao().queryForAll();
@@ -71,25 +62,21 @@ public class MainActivity extends FragmentActivity {
     	return manager;
     }
     
-    private AccountHelper mAccountHelper;
     private Account mAccount;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState); 
 
+		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+		
         setContentView(R.layout.activity_main2);
 
         mAccount = getIntent().getExtras().getParcelable("account");
         
-        mAccountHelper = AccountHelper.get(this);
-        mAccountHelper.setCurrentAccount(mAccount); 
-        
-        // set a custom shadow that overlays the main content when the drawer opens
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
         
-        // set up the drawer's list view with items and click listener
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, new String[] { getString(R.string.titleMap), getString(R.string.titlePsrs), getString(R.string.titleStores) }));
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
@@ -107,23 +94,68 @@ public class MainActivity extends FragmentActivity {
         	subTitle = mAccount.type;
         }
         
-        // enable ActionBar app icon to behave as action to toggle nav drawer
         getActionBar().setDisplayHomeAsUpEnabled(false);
         getActionBar().setHomeButtonEnabled(false);
 		getActionBar().setTitle(title); 
 		getActionBar().setSubtitle(subTitle); 
 		getActionBar().setIcon(getResources().getDrawable(R.drawable.logotype_small_beta));  
 
-		mFragmentManager = getSupportFragmentManager();
-		
         if (savedInstanceState == null) {
             selectItem(0);
         }
         
 		// register receivers
 		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 
+		
+		requestBackup();
+		requestInitialSync();
 	}
 
+	private void requestUpdate() {
+		Toast.makeText(getBaseContext(), getString(R.string.update_check), Toast.LENGTH_LONG).show();
+		UpdateHelper.get(this).update();
+	}
+	
+	private void requestInitialSync() {
+        SharedPreferences sharedPreferences = getSharedPreferences(mAccount.name + ".global", Context.MODE_MULTI_PROCESS);
+        String lastSync = sharedPreferences.getString("lastSync", "unknown");
+        
+        if (lastSync.equals("unknown")) {
+        	requestSync(); 
+        }
+	}
+	
+	private void requestSync() {
+        Bundle settingsBundle = new Bundle();
+        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+        
+        ContentResolver.requestSync(mAccount, AccountWrapper.ACCOUNT_AUTHORITY, settingsBundle);
+	}
+	
+	private void requestBackup() {
+		BackupManager backupManager = new BackupManager(this);
+		backupManager.dataChanged();
+	}
+	
+	private void updateUserInfo() {
+        String title;
+        String subTitle;
+        
+        Manager manager = getManager();
+        
+        if (manager != null) { 
+        	title = manager.getName();
+       		subTitle = manager.getBranch().getName();
+        } else {
+        	title = mAccount.name;
+        	subTitle = mAccount.type;
+        }
+        
+		getActionBar().setTitle(title); 
+		getActionBar().setSubtitle(subTitle); 
+	}
+	
 	@Override
 	protected void onStart() {
 		super.onStart();
@@ -140,18 +172,14 @@ public class MainActivity extends FragmentActivity {
         
     }
 	
-    private FragmentManager mFragmentManager;
-    
     private MapFragment mMapFragment;
     private PsrListFragment mPsrListFragment;
     private StoreListFragment mStoreListFragment;
     
     private void selectItem(int position) {
-        // update selected item and title, then close the drawer
         mDrawerList.setItemChecked(position, true);
         mDrawerLayout.closeDrawer(mDrawerList);
     	       
-        // update the main content by replacing fragments
         Fragment fragment = null;
         
         switch (position) {
@@ -182,7 +210,12 @@ public class MainActivity extends FragmentActivity {
 			}
 		}
         
-        FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
+        Bundle arguments = new Bundle();
+        arguments.putParcelable("account", mAccount); 
+        
+        fragment.setArguments(arguments);
+        
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.content_frame, fragment);
         fragmentTransaction.commit();
     }
@@ -199,8 +232,6 @@ public class MainActivity extends FragmentActivity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.main_activity_menu, menu); 
 		
-		mSyncItem = menu.findItem(R.id.actionSync);
-		
 		return true;
 	}
 	
@@ -208,15 +239,10 @@ public class MainActivity extends FragmentActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 			case R.id.actionSync: {
-		        Bundle settingsBundle = new Bundle();
-		        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-		        settingsBundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
-		        
-		        ContentResolver.requestSync(mAccount, AccountWrapper.ACCOUNT_AUTHORITY, settingsBundle);
+				requestSync();
 			} break;
 			case R.id.checkUpdates: {
-				Toast.makeText(getBaseContext(), "Проверка обновления", Toast.LENGTH_LONG).show();
-				UpdateHelper.get(this).update();
+				requestUpdate();
 			} break;
 			case R.id.actionAbout: {
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -240,69 +266,44 @@ public class MainActivity extends FragmentActivity {
 		
 	    @Override
 	    public void onReceive(Context context, Intent intent) {
-	        if(intent.getAction().equals(ACTION_SYNC) && intent.getStringExtra("account").equals(AccountHelper.get(getBaseContext()).getCurrentAccount().name)) { 
-	        	Animation mRotate = AnimationUtils.loadAnimation(getBaseContext(), R.anim.rotate360);
-	        	
+	        if(intent.getAction().equals(ACTION_SYNC) && intent.getStringExtra("account").equals(mAccount.name)) { 
 	            String action = intent.getStringExtra("action");
 	            
-	            if (action.equals("started") && mSyncItem != null) {
+	            if (action.equals("started")) {
 	            	Log.d(TAG, "sync:started->" + intent.getStringExtra("account"));
 	            	
-	    			LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-	    			RelativeLayout view = (RelativeLayout) inflater.inflate(R.layout.animated_refresh_icon, new LinearLayout(getBaseContext()), false); 
-
-	    		    view.startAnimation(mRotate);
-	    		    view.setLayoutParams(new LayoutParams(54, 54)); 
-	    			if (mSyncItem.getActionView() != null) { 
-		    			mSyncItem.getActionView().clearAnimation();
-		    			mSyncItem.setActionView(null);
-	    			}
-		    			
-	    			mSyncItem.setActionView(view);
+	            	setProgressBarIndeterminateVisibility(true); 
 	            }
-	            if (action.equals("ask") && mSyncItem != null) {
-	            	Log.d(TAG, "sync:ask->" + intent.getStringExtra("account"));
+	            if (action.equals("ack")) {
+	            	Log.d(TAG, "sync:ack->" + intent.getStringExtra("account"));
 	            	
-	    			LayoutInflater inflater = (LayoutInflater) getBaseContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-	    			RelativeLayout view = (RelativeLayout) inflater.inflate(R.layout.animated_refresh_icon, new LinearLayout(getBaseContext()), false); 
-
-	    		    view.startAnimation(mRotate);
-	    		    view.setLayoutParams(new LayoutParams(54, 54)); 
-	    			
-	    		    if (mSyncItem.getActionView() == null) {
-	    		    	mSyncItem.setActionView(view);
-	    		    }
+	            	setProgressBarIndeterminateVisibility(true); 
 	            }
-	            if (action.equals("completed") && mSyncItem != null && mSyncItem.getActionView() != null) {
+	            if (action.equals("completed")) {
 	            	Log.d(TAG, "sync:completed->" + intent.getStringExtra("account")); 
-	            	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncSuccess), Toast.LENGTH_LONG).show(); 
 	            	
-	    			mSyncItem.getActionView().clearAnimation();
-	    			mSyncItem.setActionView(null);
-	    			
-	    			SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-	    			
-	    			mSyncItem.setIcon(getResources().getDrawable(R.drawable.ic_action_refresh_ok));
-	    			mSyncItem.setTitle(getResources().getString(R.string.syncLastSuccessAttempt) + " " + dateFormat.format(new Date(System.currentTimeMillis()))); 
-	    			
+	            	setProgressBarIndeterminateVisibility(false); 
+	            	
 	    			if (mMapFragment != null) 
 	    				mMapFragment.updateMap();
+	    			
+	    			updateUserInfo();
+	    			
+	            	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncSuccess), Toast.LENGTH_LONG).show(); 
 	            }
-	            if (action.equals("canceled") && mSyncItem != null && mSyncItem.getActionView() != null) {
+	            if (action.equals("canceled")) {
 	            	Log.d(TAG, "sync:canceled->" + intent.getStringExtra("account"));  
+	            	
+	            	setProgressBarIndeterminateVisibility(false); 
+	            	
 	            	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncCanceled), Toast.LENGTH_LONG).show();	
-	            	
-	    			mSyncItem.getActionView().clearAnimation();
-	    			mSyncItem.setActionView(null);
 	            }
-	            if (action.equals("error") && mSyncItem != null && mSyncItem.getActionView() != null) {
+	            if (action.equals("error")) {
 	            	Log.d(TAG, "sync:error->" + intent.getStringExtra("account"));  
-	            	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncError), Toast.LENGTH_LONG).show();	
+
+	            	setProgressBarIndeterminateVisibility(false); 
 	            	
-	    			mSyncItem.getActionView().clearAnimation();
-	    			mSyncItem.setActionView(null);
-	    			 
-	    			mSyncItem.setIcon(getResources().getDrawable(R.drawable.ic_action_refresh_error));
+	            	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncError), Toast.LENGTH_LONG).show();	
 	            }
 	        }
 	    }

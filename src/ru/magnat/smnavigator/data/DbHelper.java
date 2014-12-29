@@ -7,8 +7,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
 
-import org.h2.engine.DbSettings;
-
 import ru.magnat.smnavigator.map.geofence.Geofenceable;
 import ru.magnat.smnavigator.model.Branch;
 import ru.magnat.smnavigator.model.Customer;
@@ -21,7 +19,6 @@ import ru.magnat.smnavigator.model.Measure;
 import ru.magnat.smnavigator.util.Apps;
 import android.accounts.Account;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
@@ -54,42 +51,42 @@ public class DbHelper {
 	private DbHelper(Context context, Account account) {
 		mContext = context;
 		
-		SharedPreferences sharedPreferences = context.getSharedPreferences("global.storage", 0);
+		//SharedPreferences sharedPreferences = context.getSharedPreferences("global.storage", 0);
 		
 		// 
-		boolean databaseToUpper = sharedPreferences.getBoolean("global.storage.databaseToUpper", false);
-		boolean ifExists = sharedPreferences.getBoolean("global.storage.ifExists", true);
-		boolean ignoreCase = sharedPreferences.getBoolean("global.storage.ignoreCase", true);
-		boolean autoCommit = sharedPreferences.getBoolean("global.storage.autoCommit", true);
-		boolean compress = sharedPreferences.getBoolean("global.storage.compress", false);
-		
-		String fileLock = sharedPreferences.getString("global.storage.fileLock", "no");
-		DbSettings.getInstance(null);
-		int pageSize = sharedPreferences.getInt("global.storage.pageSize", 1024);
-		int cacheSize = sharedPreferences.getInt("global.storage.cacheSize", 1024);
+//		boolean databaseToUpper = sharedPreferences.getBoolean("global.storage.databaseToUpper", false);
+//		boolean ifExists = sharedPreferences.getBoolean("global.storage.ifExists", true);
+//		boolean ignoreCase = sharedPreferences.getBoolean("global.storage.ignoreCase", true);
+//		boolean autoCommit = sharedPreferences.getBoolean("global.storage.autoCommit", true);
+//		boolean compress = sharedPreferences.getBoolean("global.storage.compress", false);
+//		
+//		String fileLock = sharedPreferences.getString("global.storage.fileLock", "no");
+//		DbSettings.getInstance(null);
+//		int pageSize = sharedPreferences.getInt("global.storage.pageSize", 1024);
+//		int cacheSize = sharedPreferences.getInt("global.storage.cacheSize", 1024);
 		
 		DB_PATH = context.getDir("data", Context.MODE_PRIVATE).getPath() + "/" + account.name + "/";
 		DB_NAME = context.getPackageName() + "-" + Apps.getVersionName(context);
 		DB_FULL_NAME = DB_PATH + DB_NAME;
 		DB_URL = "jdbc:h2:file:" + DB_FULL_NAME + ";database_to_upper=false;file_lock=no;ifexists=true;ignorecase=true;page_size=1024;cache_size=1024;autocommit=on;init=set schema sm_navigator;";
 		
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("jdbc:h2:file:");
-		stringBuilder.append(DB_FULL_NAME + ";");
-		stringBuilder.append("database_to_upper=no;");
-		stringBuilder.append("file_lock=no;");
-		stringBuilder.append("ifexists=true;");
-		stringBuilder.append("ignorecase=true;");
-		stringBuilder.append("page_size=1024;");
-		stringBuilder.append("cache_size=1024;");
-		stringBuilder.append("autocommit=on;");
+//		StringBuilder stringBuilder = new StringBuilder();
+//		stringBuilder.append("jdbc:h2:file:");
+//		stringBuilder.append(DB_FULL_NAME + ";");
+//		stringBuilder.append("database_to_upper=no;");
+//		stringBuilder.append("file_lock=no;");
+//		stringBuilder.append("ifexists=true;");
+//		stringBuilder.append("ignorecase=true;");
+//		stringBuilder.append("page_size=1024;");
+//		stringBuilder.append("cache_size=1024;");
+//		stringBuilder.append("autocommit=on;");
 		
 		Log.d(TAG, "storage:instantiate->" + DB_FULL_NAME);
 		
 		initDb();
 	}
 	
-	public synchronized static DbHelper getInstance(Context context, Account account) {
+	public synchronized static DbHelper get(Context context, Account account) {
 		if (sInstance == null) {
 			sInstance = new DbHelper(context, account);
 		}
@@ -160,7 +157,7 @@ public class DbHelper {
 		Log.d(TAG, "storage:init->ok"); 
 	}
 
-	public static void close() {
+	public synchronized static void close() {
 		if (sInstance != null) {
 			try {
 				sInstance.mConnectionSource.close();

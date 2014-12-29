@@ -3,6 +3,7 @@ package ru.magnat.smnavigator.sync;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
 import java.util.Timer;
@@ -11,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.activities.MainActivity;
-import ru.magnat.smnavigator.auth.account.AccountWrapper;
+import ru.magnat.smnavigator.auth.Authenticator;
 import ru.magnat.smnavigator.data.DbHelper;
 import ru.magnat.smnavigator.model.Branch;
 import ru.magnat.smnavigator.model.Customer;
@@ -38,6 +39,8 @@ import android.content.ContentProviderClient;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.SyncResult;
 import android.os.Bundle;
 import android.util.Log;
@@ -55,7 +58,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     
     private DbHelper mMainDbHelper;
     private Account mAccount;
-    private String mAuthToken;
+    private String sessionToken;
     
     public SyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
@@ -75,21 +78,23 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     	
     	sendNotification("started");
     	
-    	mAuthToken = AccountManager.get(getContext()).peekAuthToken(account, AccountWrapper.ACCOUNT_TYPE);
+    	Authenticator.validateSession(getContext(), account);
+		
+    	sessionToken = AccountManager.get(getContext()).peekAuthToken(account, account.type);
     	
-    	Timer timer = new Timer("askSender");
+    	Timer timer = new Timer("ackSender");
     	timer.schedule(new TimerTask() {
 			
 			@Override
 			public void run() {
-				sendNotification("ask");
+				sendNotification("ack");
 			}
 		}, 0, 1500);
     	
 		try {
 			TimeUnit.SECONDS.sleep(2);
 		
-			mMainDbHelper = DbHelper.getInstance(getContext(), account);
+			mMainDbHelper = DbHelper.get(getContext(), account);
 			
 			getManager();
 			getBranch();
@@ -110,7 +115,17 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		
 		timer.cancel();
 		
+		saveLastSync();
+		
 		sendNotification("completed");
+    }
+    
+    private void saveLastSync() {
+        SharedPreferences sharedPreferences = getContext().getSharedPreferences(mAccount.name + ".global", Context.MODE_MULTI_PROCESS);
+        
+        Editor editor = sharedPreferences.edit();
+        editor.putString("lastSync", new Timestamp(System.currentTimeMillis()).toString());
+        editor.commit();
     }
     
     private void sendNotification(String action) {
@@ -122,7 +137,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
     
     private void getManager() throws Exception {
-		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getManager?token=" + mAuthToken);
+		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getManager?token=" + sessionToken);
 		
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
     	
@@ -152,7 +167,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
     
     private void getBranch() throws Exception {
-		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getBranch?token=" + mAuthToken);
+		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getBranch?token=" + sessionToken);
 		
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
     	
@@ -178,7 +193,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
     
     private void getDepartment() throws Exception {
-		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getDepartment?token=" + mAuthToken);
+		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getDepartment?token=" + sessionToken);
 		
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
     	
@@ -204,7 +219,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
     
     private void getPsr() throws Exception {
-		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getPsr?token=" + mAuthToken);
+		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getPsr?token=" + sessionToken);
 		
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
     	
@@ -234,7 +249,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
     
     private void getRoute() throws Exception {
-		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getRoute?token=" + mAuthToken);
+		URL url = new URL(getContext().getString(R.string.syncServer) + "/sm_getRoute?token=" + sessionToken);
 		
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
     	
@@ -265,7 +280,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
     
 	private void getStore() throws Exception { 
-		URL url = new URL(getContext().getResources().getString(R.string.syncServer) + "/sm_getStore?token=" + mAuthToken);
+		URL url = new URL(getContext().getResources().getString(R.string.syncServer) + "/sm_getStore?token=" + sessionToken);
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 		
 		GsonBuilder gsonBuilder = new GsonBuilder();
@@ -293,7 +308,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 	}
 	
 	private void getCustomer() throws Exception { 
-		URL url = new URL(getContext().getResources().getString(R.string.syncServer) + "/sm_getCustomer?token=" + mAuthToken);
+		URL url = new URL(getContext().getResources().getString(R.string.syncServer) + "/sm_getCustomer?token=" + sessionToken);
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 
 		GsonBuilder gsonBuilder = new GsonBuilder();
@@ -318,7 +333,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 	}
 	
 	private void getMeasure() throws Exception {   
-		URL url = new URL(getContext().getResources().getString(R.string.syncServer) + "/sm_getMeasure?token=" + mAuthToken);
+		URL url = new URL(getContext().getResources().getString(R.string.syncServer) + "/sm_getMeasure?token=" + sessionToken);
 		HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(); 
 
 		GsonBuilder gsonBuilder = new GsonBuilder();

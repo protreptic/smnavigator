@@ -145,7 +145,7 @@ public class ExpandableListFragment extends Fragment {
         }
         mStandardEmptyView.setText(text);
         mStandardEmptyView.setTextSize(14); 
-        mStandardEmptyView.setTypeface(Fonts.getInstance(getActivity()).getTypeface("RobotoCondensed-Light")); 
+        mStandardEmptyView.setTypeface(Fonts.get(getActivity()).getTypeface("RobotoCondensed-Light")); 
         mStandardEmptyView.setTextColor(getResources().getColor(android.R.color.darker_gray));  
         if (mEmptyText == null) { 
             mList.setEmptyView(mStandardEmptyView);

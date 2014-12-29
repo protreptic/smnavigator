@@ -4,21 +4,18 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.auth.account.AccountHelper;
 import ru.magnat.smnavigator.data.DbHelper;
-import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.model.Measure;
-import ru.magnat.smnavigator.view.StoreStatisticsView;
+import ru.magnat.smnavigator.model.Store;
+import ru.magnat.smnavigator.view.MeasureView;
 import ru.magnat.smnavigator.view.StoreView;
 import ru.magnat.smnavigator.widget.ExpandableListFragment;
 import android.accounts.Account;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
@@ -77,10 +74,7 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 				count = 0;
 				
 				if (progressBar == null) {
-					progressBar = (ProgressBar) LayoutInflater.from(getActivity()).inflate(R.layout.progress_bar, null, false); 
-					progressBar.setPadding(6, -7, 6, -6); 
-					
-					getExpandableListView().addFooterView(progressBar); 
+					progressBar.setVisibility(View.VISIBLE);
 				}
 				
 				new LoadData().execute();
@@ -96,22 +90,19 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		
-		AccountHelper accountHelper = AccountHelper.get(getActivity());
-		Account account = accountHelper.getCurrentAccount();
+		Account account = getArguments().getParcelable("account");
 		
 		getExpandableListView().setGroupIndicator(null); 
 		getExpandableListView().setDivider(null); 
-		getExpandableListView().setDividerHeight(-5);
+		getExpandableListView().setDividerHeight(-6);
 		getExpandableListView().setBackgroundColor(getResources().getColor(R.color.gray)); 
-		//getExpandableListView().setBackground(getResources().getDrawable(R.drawable.endless_list_background));
 		getExpandableListView().setOnScrollListener(this); 
 		
-		progressBar = (ProgressBar) LayoutInflater.from(getActivity()).inflate(R.layout.progress_bar, null, false); 
-		progressBar.setPadding(6, -7, 6, -6); 
+		progressBar = new ProgressBar(getActivity());
 		
 		getExpandableListView().addFooterView(progressBar); 
 		
-		mDbHelper = DbHelper.getInstance(getActivity(), account);
+		mDbHelper = DbHelper.get(getActivity(), account);
 		
 		mAdapter = new MyAdapter();
 		
@@ -124,7 +115,7 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 	private long offset;
 	private long count;
 	
-	private static final long LIMIT = 15; 
+	private static final long LIMIT = 25; 
 	
 	private class LoadData extends AsyncTask<Void, Void, Void> {
 
@@ -139,12 +130,6 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 		
 		@Override
 		protected Void doInBackground(Void... params) {
-			try {
-				TimeUnit.MILLISECONDS.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} 
-			
 			try { 
 				if (count == 0) 
 					count = mStoreDao.queryBuilder().where().like("name", "%" + mQueryText + "%").or().like("address", "%" + mQueryText + "%").countOf();
@@ -181,10 +166,7 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 			}
 			
 	        if (count == getExpandableListView().getCount() - 1) {
-        		if (progressBar != null) {
-        			getExpandableListView().removeFooterView(progressBar);
-        			progressBar = null;
-        		}
+	        	progressBar.setVisibility(View.GONE); 
 	        }
 	        
 	        mIsLoading = false;
@@ -242,29 +224,29 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 			linearLayout.setOrientation(LinearLayout.VERTICAL); 
 			linearLayout.setBackground(getResources().getDrawable(R.drawable.frame_2)); 
 			 
-			StoreStatisticsView totalDistribution = new StoreStatisticsView(getActivity()); 
+			MeasureView totalDistribution = new MeasureView(getActivity()); 
 			totalDistribution.setTitle(storeStatistics.getTotalDistribution().toString());  
 			totalDistribution.setSubTitle(getResources().getString(R.string.totalDistribution));  
 			
-			StoreStatisticsView goldenDistribution = new StoreStatisticsView(getActivity()); 
+			MeasureView goldenDistribution = new MeasureView(getActivity()); 
 			goldenDistribution.setTitle(storeStatistics.getGoldenDistribution().toString());  
 			goldenDistribution.setSubTitle(getResources().getString(R.string.goldenDistribution));  
 			
-			StoreStatisticsView turnoverCurrentMonth = new StoreStatisticsView(getActivity()); 
+			MeasureView turnoverCurrentMonth = new MeasureView(getActivity()); 
 			turnoverCurrentMonth.setTitle(storeStatistics.getTurnoverCurrentMonth().toString());  
 			turnoverCurrentMonth.setSubTitle(getResources().getString(R.string.turnoverCurrentMonth));  
 			
-			StoreStatisticsView turnoverPreviousMonth = new StoreStatisticsView(getActivity()); 
+			MeasureView turnoverPreviousMonth = new MeasureView(getActivity()); 
 			turnoverPreviousMonth.setTitle(storeStatistics.getTurnoverPreviousMonth().toString());  
 			turnoverPreviousMonth.setSubTitle(getResources().getString(R.string.turnoverPreviousMonth));  
 			
 			SimpleDateFormat format = new SimpleDateFormat("dd MMMM yyyy");
 			
-			StoreStatisticsView lastVisit = new StoreStatisticsView(getActivity()); 
+			MeasureView lastVisit = new MeasureView(getActivity()); 
 			lastVisit.setTitle(format.format(storeStatistics.getLastVisit()));  
 			lastVisit.setSubTitle(getResources().getString(R.string.lastVisit));  
 			
-			StoreStatisticsView nextVisit = new StoreStatisticsView(getActivity()); 
+			MeasureView nextVisit = new MeasureView(getActivity()); 
 			nextVisit.setTitle(format.format(storeStatistics.getNextVisit()));  
 			nextVisit.setSubTitle(getResources().getString(R.string.nextVisit));  
 			
@@ -303,8 +285,7 @@ public class StoreListFragment extends ExpandableListFragment implements OnScrol
 	        		new LoadData().execute();
 	        	} else {
 	        		if (progressBar != null) {
-	        			getExpandableListView().removeFooterView(progressBar);
-	        			progressBar = null;
+	        			progressBar.setVisibility(View.GONE); 
 	        		}
 	        	}
 	        }

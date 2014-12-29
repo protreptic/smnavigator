@@ -1,15 +1,12 @@
 package ru.magnat.smnavigator.map.geofence;
 
-import ru.magnat.smnavigator.entities.Jsonable;
 import ru.magnat.smnavigator.entities.Mappable;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "georegion")
-public class Geofenceable implements Mappable, Jsonable {
+public class Geofenceable implements Mappable {
 
 	@DatabaseField(columnName = "id")
 	private Integer id;
@@ -36,13 +33,4 @@ public class Geofenceable implements Mappable, Jsonable {
 		this.longitude = longitude;
 	}
 
-	@Override
-	public String toJsonString() {
-		Gson gson = new GsonBuilder()
-        .setPrettyPrinting()
-        .create();
-		
-		return gson.toJson(this);
-	}
-	
 }

@@ -1,13 +1,12 @@
 <resources>
 
-    <string name="app_name">Мобильный менеджер [beta]</string>
+    <string name="app_name">MobiMen</string>
     <string name="label_login">логин</string>
     <string name="label_password">пароль</string>
-    <string name="button_login">Войти</string>
+    <string name="button_login">ВОЙТИ В СИСТЕМУ</string>
+    <string name="authEmptyCredentials">Введите корректный логин и пароль</string>
     <string name="please_wait">Выполняется операция</string>
     <string name="i_got_it">Я понял</string>
-    <string name="bad_login_password1">Введите логин и пароль!</string>
-    <string name="bad_login_password2">Некорректный логин или пароль!</string>
     <string name="google_maps_api_key">0n7IqmcMRCnDYfxEdmJWdykrbYwOBFa2xylOxIw</string>
 
     <!-- Main menu items -->
@@ -16,13 +15,9 @@
 	<string name="showObjects">Объекты управления</string>
 	<string name="showLegend">Показать легенду</string>
     <string name="showMyself">Текущее местоположение</string>
-    <string name="refresh">Синхронизировать данные</string>
+    <string name="refresh">Обновить данные</string>
     <string name="search">Поиск</string>
     
-    <!-- Preferrences -->
-    <string name="preference_location_update_interval">preference_location_update_interval</string>
-    <string name="preference_location_accuracy">preference_location_accuracy</string>
-	
     <string name="loading">Загрузка</string>
     <string name="waiting">Ожидайте</string>
    	<string name="cancel">Отмена</string>
@@ -38,8 +33,6 @@
     <string name="syncSuccess">Синхронизация успешно завершена</string>
     <string name="syncError">Синхронизация не выполненна</string>
     <string name="syncCanceled">Синхронизация отменена</string>
-    
-    <string name="locationUnknown">Местоположение не задано</string>
     
     <string name="titleMap">Карта</string>
     <string name="titlePsrs">Торговые агенты</string>
@@ -85,12 +78,12 @@
     <string name="update_loading">Загрузка обновления</string>
     <string name="update_loading_complete">Загрузка обновления завершена</string>
     <string name="update_check">Проверка обновления</string>
-    <string name="update_update_unavailable">Установлена последняя версия приложения</string>
+    <string name="update_update_unavailable">Обновлений нет</string>
     <string name="update_update_available">Доступна новая версия: %s</string>
     <string name="update_install">Установить обновление сейчас?</string>
     
     <string name="addUser">Новый пользователь</string>
-    <string name="addUserDescription">Добавить новую учетную запись</string>
+    <string name="addUserDescription">Добавить учетную запись</string>
     <string name="chooseUser">Выберите пользователя:</string>
     <string name="authError">Неправильная пара логин/пароль</string>
 </resources>
