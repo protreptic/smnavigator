@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.fragments;
+package ru.magnat.smnavigator.fragments.base;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.data.DbHelperSecured;
@@ -68,5 +68,4 @@ public class BaseListFragment extends ExpandableListFragment {
 		}
 		
 	}
-	
 }

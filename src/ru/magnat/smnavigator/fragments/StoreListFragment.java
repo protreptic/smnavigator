@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.magnat.smnavigator.R;
+import ru.magnat.smnavigator.fragments.base.BaseEndlessListFragment;
 import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.model.Target;
 import ru.magnat.smnavigator.view.StoreView;
 import ru.magnat.smnavigator.view.TargetView;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
@@ -19,9 +19,11 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ProgressBar;
-import android.widget.SearchView;
 import android.widget.AbsListView.OnScrollListener;
-import android.widget.SearchView.OnQueryTextListener;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.SearchView;
+import android.support.v7.widget.SearchView.OnQueryTextListener;
+import android.text.TextUtils;
 
 import com.j256.ormlite.dao.Dao;
 
@@ -48,18 +50,18 @@ public class StoreListFragment extends BaseEndlessListFragment implements OnScro
 	
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-		inflater.inflate(R.menu.psr_fragment_menu, menu);
+		inflater.inflate(R.menu.store_fragment, menu);
 		
-	    SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+		SearchView searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.actionSearch));
 	    searchView.setOnQueryTextListener(new OnQueryTextListener() {
 			
 			@Override
 			public boolean onQueryTextSubmit(String query) {
-				if (TextUtils.isEmpty(query) || query.length() < 3) {
-					return false;
+				if (!TextUtils.isEmpty(query) && query.length() > 3) { 
+					mQueryText = "%" + query + "%";
+				} else {
+					mQueryText = "%%";
 				}
-				
-				mQueryText = query;
 				
 				mGroupData.clear();
 				mChildData.clear();
@@ -105,9 +107,9 @@ public class StoreListFragment extends BaseEndlessListFragment implements OnScro
 		protected Void doInBackground(Void... params) {
 			try { 
 				if (count == 0) 
-					count = mStoreDao.queryBuilder().where().like("name", "%" + mQueryText + "%").or().like("address", "%" + mQueryText + "%").countOf();
+					count = mStoreDao.queryBuilder().where().like("name", mQueryText).or().like("address", mQueryText).countOf();
 				
-				List<Store> stores = mStoreDao.queryBuilder().offset(offset).limit(limit).where().like("name", "%" + mQueryText + "%").or().like("address", "%" + mQueryText + "%").query();
+				List<Store> stores = mStoreDao.queryBuilder().offset(offset).limit(limit).where().like("name", mQueryText).or().like("address", mQueryText).query();
 				
 				offset += stores.size();
 				

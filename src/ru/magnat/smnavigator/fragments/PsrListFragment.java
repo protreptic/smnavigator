@@ -8,11 +8,16 @@ import org.javaprotrepticon.android.androidutils.Fonts;
 import org.javaprotrepticon.android.androidutils.Text;
 
 import ru.magnat.smnavigator.R;
+import ru.magnat.smnavigator.fragments.base.BaseListFragment;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.view.RouteView;
 import ru.magnat.smnavigator.widget.StaticMapView;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.SearchView;
+import android.support.v7.widget.SearchView.OnQueryTextListener;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -22,9 +27,7 @@ import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.SearchView;
 import android.widget.TextView;
-import android.widget.SearchView.OnQueryTextListener;
 
 import com.j256.ormlite.dao.Dao;
 
@@ -35,14 +38,18 @@ public class PsrListFragment extends BaseListFragment {
 	
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-		inflater.inflate(R.menu.psr_fragment_menu, menu);
+		inflater.inflate(R.menu.psr_fragment, menu);
 		
-	    SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+		SearchView searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.actionSearch));
 	    searchView.setOnQueryTextListener(new OnQueryTextListener() {
 			
 			@Override
 			public boolean onQueryTextSubmit(String query) {
-				mQueryText = "%" + query + "%";
+				if (!TextUtils.isEmpty(query) && query.length() > 3) { 
+					mQueryText = "%" + query + "%";
+				} else {
+					mQueryText = "%%";
+				}
 				
 				new LoadData().execute();
 				

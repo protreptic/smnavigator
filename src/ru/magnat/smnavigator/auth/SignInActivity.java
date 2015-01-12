@@ -42,7 +42,7 @@ public class SignInActivity extends AccountAuthenticatorActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		setContentView(R.layout.signin_activity_layout); 
+		setContentView(R.layout.signin_activity); 
 		
 		mSingInFormWapper = (LinearLayout) findViewById(R.id.signInFormWapper);
 		

@@ -30,5 +30,5 @@ public class StoreMarker extends AbstractMarker {
 	public MarkerOptions getMarker() {
 		return marker;
 	}
-    
+	
 }

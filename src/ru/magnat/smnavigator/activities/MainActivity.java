@@ -24,10 +24,10 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -38,11 +38,11 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends ActionBarActivity {
 	
     private DrawerLayout mDrawerLayout;
-    private ListView mDrawerList;
-
+    private ListView mDrawer;
+    
     private Manager getManager() {
     	Manager manager = null;
     	
@@ -69,24 +69,23 @@ public class MainActivity extends FragmentActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState); 
 
-		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+		supportRequestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		
-        setContentView(R.layout.activity_main2);
+        setContentView(R.layout.main_activity);
 
         mAccount = getIntent().getExtras().getParcelable("account");
         
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
         
-        mDrawerList = (ListView) findViewById(R.id.left_drawer);
-        mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, new String[] { getString(R.string.titleMap), getString(R.string.titlePsrs), getString(R.string.titleStores) }));
-        mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+        mDrawer = (ListView) findViewById(R.id.left_drawer);
+        mDrawer.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, new String[] { getString(R.string.titleMap), getString(R.string.titlePsrs), getString(R.string.titleStores) }));
+        mDrawer.setOnItemClickListener(new DrawerItemClickListener());
 
         updateUserInfo();
         
-        getActionBar().setDisplayHomeAsUpEnabled(false);
-        getActionBar().setHomeButtonEnabled(false);
-		getActionBar().setIcon(getResources().getDrawable(R.drawable.logotype_small_beta));  
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
 
         if (savedInstanceState == null) {
             selectItem(0);
@@ -148,8 +147,8 @@ public class MainActivity extends FragmentActivity {
         	subTitle = mAccount.type;
         }
         
-		getActionBar().setTitle(title); 
-		getActionBar().setSubtitle(subTitle); 
+		getSupportActionBar().setTitle(title); 
+		getSupportActionBar().setSubtitle(subTitle); 
 	}
 	
 	@Override
@@ -173,8 +172,8 @@ public class MainActivity extends FragmentActivity {
     private StoreListFragment mStoreListFragment;
     
     private void selectItem(int position) {
-        mDrawerList.setItemChecked(position, true);
-        mDrawerLayout.closeDrawer(mDrawerList);
+        mDrawer.setItemChecked(position, true);
+        mDrawerLayout.closeDrawer(mDrawer);
     	       
         Fragment fragment = null;
         
@@ -226,7 +225,7 @@ public class MainActivity extends FragmentActivity {
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		getMenuInflater().inflate(R.menu.main_activity_menu, menu); 
+		getMenuInflater().inflate(R.menu.main_activity, menu); 
 		
 		return true;
 	}

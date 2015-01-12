@@ -2,8 +2,6 @@ package ru.magnat.smnavigator.activities;
 
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 
 import org.javaprotrepticon.android.androidutils.Fonts;
 
@@ -16,8 +14,8 @@ import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
+import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ListActivity;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.DialogInterface.OnClickListener;
@@ -30,7 +28,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
  
-public class LauncherActivity extends ListActivity {
+public class LauncherActivity extends Activity {
 	
 	private AccountManager mAccountManager;
 	
@@ -212,9 +210,7 @@ public class LauncherActivity extends ListActivity {
 				Timestamp curentTimestamp = new Timestamp(System.currentTimeMillis());
 				Timestamp sessionTimestamp = Timestamp.valueOf(accountExpire);
 				
-				SimpleDateFormat format = new SimpleDateFormat("dd MMMM yyyy HH:mm:ss", new Locale("ru", "RU"));
-				
-				String sessionStatus = (curentTimestamp.before(sessionTimestamp)) ? String.format(getString(R.string.sessionActive) + " %s", format.format(sessionTimestamp)) : getString(R.string.sessionExpired);
+				String sessionStatus = (curentTimestamp.before(sessionTimestamp)) ? getString(R.string.sessionActive) : getString(R.string.sessionExpired);
  				
 				holder.line1.setText(accountName);
 				holder.line2.setText(sessionStatus);  

@@ -2,6 +2,7 @@ package ru.magnat.smnavigator.map;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
@@ -10,18 +11,25 @@ import ru.magnat.smnavigator.data.DbHelperSecured;
 import ru.magnat.smnavigator.map.geofence.Geofenceable;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Store;
+import ru.magnat.smnavigator.view.StoreView;
 import android.accounts.Account;
 import android.content.Context;
 import android.graphics.Color;
+import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.InfoWindowAdapter;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.maps.android.clustering.ClusterManager;
+import com.google.maps.android.clustering.ClusterManager.OnClusterItemInfoWindowClickListener;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 
 public class LocationHelper {
@@ -467,6 +475,22 @@ public class LocationHelper {
 		mAccount = account;
 	} 
 	
+	public void showShop(Store store) {
+		CameraPosition cameraPosition = CameraPosition.fromLatLngZoom(new LatLng(store.getLatitude(), store.getLongitude()), 20);
+		
+		Collection<Marker> storeMarkers = mClusterManager.getMarkerCollection().getMarkers();
+		
+		for (Marker marker : storeMarkers) {
+			LatLng position =  marker.getPosition();
+			
+			if (store.getLatitude() == position.latitude && store.getLongitude() == position.longitude) {
+				marker.showInfoWindow(); break;
+			} 
+		}
+		
+		mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+	}
+	
 	public void moveToPoint(double latitude, double longitude) {
 		mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude, longitude)));
 	}
@@ -528,6 +552,20 @@ public class LocationHelper {
 		DbHelperSecured.close();
 	}
 	
+	private class ShopInfoWindowAdapter implements InfoWindowAdapter {
+
+		@Override
+		public View getInfoContents(Marker marker) {
+			return null;
+		}
+		
+		@Override
+		public View getInfoWindow(Marker marker) {
+			return new StoreView(mContext, null);
+		}
+		
+	}
+	
 	private void addStoreMarkers() {
 		DbHelperSecured dbHelper = DbHelperSecured.get(mContext, mAccount);
 		
@@ -536,6 +574,13 @@ public class LocationHelper {
 			
 			mClusterManager = new ClusterManager<AbstractMarker>(mContext, mMap);
 			mClusterManager.setRenderer(new StoreClusterRenderer(mContext, mMap, mClusterManager));
+			mClusterManager.setOnClusterItemInfoWindowClickListener(new OnClusterItemInfoWindowClickListener<AbstractMarker>() {
+
+				@Override
+				public void onClusterItemInfoWindowClick(AbstractMarker item) {
+					Toast.makeText(mContext, "", Toast.LENGTH_LONG).show();
+				}
+			});
 			
 			for (Store store : stores) {
 				if (store.getLatitude() == 0 || store.getLongitude() == 0) continue;
@@ -544,6 +589,7 @@ public class LocationHelper {
 			}
 			
 			mMap.setOnCameraChangeListener(mClusterManager);
+			mMap.setOnMarkerClickListener(mClusterManager); 
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

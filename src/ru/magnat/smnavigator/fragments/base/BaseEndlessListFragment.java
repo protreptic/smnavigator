@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.fragments;
+package ru.magnat.smnavigator.fragments.base;
 
 import android.widget.ProgressBar;
 
