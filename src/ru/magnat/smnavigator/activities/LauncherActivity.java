@@ -34,6 +34,8 @@ public class LauncherActivity extends Activity {
 	
 	private void runApplication(Account account) {
 		Intent intent = new Intent(getBaseContext(), MainActivity.class);
+		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
+		
 		intent.putExtra("account", account);
 		
 		startActivity(intent); 
