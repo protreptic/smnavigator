@@ -72,6 +72,7 @@
     
     <string name="chooseAccount">Выберите учетную запись:</string>
     
+    <string name="drawer_title">Navigation</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
     

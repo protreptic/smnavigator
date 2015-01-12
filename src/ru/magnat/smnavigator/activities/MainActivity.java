@@ -4,6 +4,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.javaprotrepticon.android.androidutils.Apps;
+import org.javaprotrepticon.android.androidutils.Fonts;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.auth.AccountWrapper;
@@ -22,12 +23,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,13 +39,18 @@ import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends ActionBarActivity {
 	
     private DrawerLayout mDrawerLayout;
-    private ListView mDrawer;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private ActionBarHelper mActionBar;
+    private LinearLayout mDrawer;
+    private ListView mDrawerList;
     
     private Manager getManager() {
     	Manager manager = null;
@@ -77,19 +86,28 @@ public class MainActivity extends ActionBarActivity {
         
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
+        mDrawerLayout.setDrawerListener(new DemoDrawerListener());
+        mDrawerLayout.setDrawerTitle(GravityCompat.START, getString(R.string.drawer_title));
         
-        mDrawer = (ListView) findViewById(R.id.left_drawer);
-        mDrawer.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, new String[] { getString(R.string.titleMap), getString(R.string.titlePsrs), getString(R.string.titleStores) }));
-        mDrawer.setOnItemClickListener(new DrawerItemClickListener());
+        mActionBar = createActionBarHelper();
+        mActionBar.init();
+        
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close);
+        
+        mDrawer = (LinearLayout) findViewById(R.id.left_drawer);
+        
+        mDrawerList = (ListView) findViewById(R.id.left_drawer_list);
+        mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, new String[] { getString(R.string.titleMap), getString(R.string.titlePsrs), getString(R.string.titleStores) }));
+        mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
         updateUserInfo();
         
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
-
         if (savedInstanceState == null) {
-            selectItem(0);
+            selectItem(1);
         }
+        
+        setSupportProgressBarIndeterminate(true); 
+        setSupportProgressBarIndeterminateVisibility(true); 
         
 		// register receivers
 		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 
@@ -98,6 +116,72 @@ public class MainActivity extends ActionBarActivity {
 		requestInitialSync();
 	}
 
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+
+        mDrawerToggle.syncState();
+    }
+    
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mDrawerToggle.onConfigurationChanged(newConfig);
+    }
+    
+	private class DemoDrawerListener implements DrawerLayout.DrawerListener {
+		
+        @Override
+        public void onDrawerOpened(View drawerView) {
+            mDrawerToggle.onDrawerOpened(drawerView);
+            mActionBar.onDrawerOpened();
+        }
+
+        @Override
+        public void onDrawerClosed(View drawerView) {
+            mDrawerToggle.onDrawerClosed(drawerView);
+            mActionBar.onDrawerClosed();
+        }
+
+        @Override
+        public void onDrawerSlide(View drawerView, float slideOffset) {
+            mDrawerToggle.onDrawerSlide(drawerView, slideOffset);
+        }
+
+        @Override
+        public void onDrawerStateChanged(int newState) {
+            mDrawerToggle.onDrawerStateChanged(newState);
+        }
+    }
+
+    private ActionBarHelper createActionBarHelper() {
+        return new ActionBarHelper();
+    }
+
+    private class ActionBarHelper {
+    	
+        private final ActionBar mActionBar;
+
+        ActionBarHelper() {
+            mActionBar = getSupportActionBar();
+        }
+
+        public void init() {
+            mActionBar.setDisplayHomeAsUpEnabled(true);
+            mActionBar.setDisplayShowHomeEnabled(false);
+            
+            mActionBar.setTitle(""); 
+            mActionBar.setSubtitle(""); 
+        }
+
+        public void onDrawerClosed() {
+        }
+
+        public void onDrawerOpened() {
+        }
+
+    }
+	
 	private void requestUpdate() {
 		Toast.makeText(getBaseContext(), getString(R.string.update_check), Toast.LENGTH_LONG).show();
 		UpdateHelper.get(this).update();
@@ -114,8 +198,7 @@ public class MainActivity extends ActionBarActivity {
 	
 	private void requestChangeUser() {
 		Intent intent = new Intent(getBaseContext(), LauncherActivity.class);
-		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
 		
 		startActivity(intent); 
 	}
@@ -147,15 +230,21 @@ public class MainActivity extends ActionBarActivity {
         	subTitle = mAccount.type;
         }
         
-		getSupportActionBar().setTitle(title); 
-		getSupportActionBar().setSubtitle(subTitle); 
+        TextView userName = (TextView) findViewById(R.id.userName);
+        userName.setTypeface(Fonts.get(getBaseContext()).getDefaultTypeface()); 
+        userName.setText(title); 
+        
+        TextView userBranch = (TextView) findViewById(R.id.userBranch);
+        userBranch.setTypeface(Fonts.get(getBaseContext()).getDefaultTypeface()); 
+        userBranch.setText(subTitle); 
 	}
 	
 	@Override
 	protected void onStart() {
 		super.onStart();
 		
-		mMapFragment.updateMap();
+		if (mMapFragment != null) 
+			mMapFragment.updateMap();
 	}
 	
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
@@ -172,7 +261,7 @@ public class MainActivity extends ActionBarActivity {
     private StoreListFragment mStoreListFragment;
     
     private void selectItem(int position) {
-        mDrawer.setItemChecked(position, true);
+    	mDrawerList.setItemChecked(position, true);
         mDrawerLayout.closeDrawer(mDrawer);
     	       
         Fragment fragment = null;
@@ -208,11 +297,21 @@ public class MainActivity extends ActionBarActivity {
         Bundle arguments = new Bundle();
         arguments.putParcelable("account", mAccount); 
         
-        fragment.setArguments(arguments);
+        if (!fragment.isVisible())
+        	fragment.setArguments(arguments);
         
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.content_frame, fragment);
         fragmentTransaction.commit();
+    }
+    
+    @Override
+    public void onBackPressed() {
+    	if (mDrawerLayout.isDrawerOpen(mDrawer)) {
+    		mDrawerLayout.closeDrawer(mDrawer); return;
+    	}
+    	
+    	super.onBackPressed();
     }
     
 	@Override
@@ -269,18 +368,12 @@ public class MainActivity extends ActionBarActivity {
 	            
 	            if (action.equals("started")) {
 	            	Log.d(TAG, "sync:started->" + intent.getStringExtra("account"));
-	            	
-	            	setProgressBarIndeterminateVisibility(true); 
 	            }
 	            if (action.equals("ack")) {
 	            	Log.d(TAG, "sync:ack->" + intent.getStringExtra("account"));
-	            	
-	            	setProgressBarIndeterminateVisibility(true); 
 	            }
 	            if (action.equals("completed")) {
 	            	Log.d(TAG, "sync:completed->" + intent.getStringExtra("account")); 
-	            	
-	            	setProgressBarIndeterminateVisibility(false); 
 	            	
 	    			if (mMapFragment != null) 
 	    				mMapFragment.updateMap();
@@ -292,14 +385,10 @@ public class MainActivity extends ActionBarActivity {
 	            if (action.equals("canceled")) {
 	            	Log.d(TAG, "sync:canceled->" + intent.getStringExtra("account"));  
 	            	
-	            	setProgressBarIndeterminateVisibility(false); 
-	            	
 	            	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncCanceled), Toast.LENGTH_LONG).show();	
 	            }
 	            if (action.equals("error")) {
 	            	Log.d(TAG, "sync:error->" + intent.getStringExtra("account"));  
-
-	            	setProgressBarIndeterminateVisibility(false); 
 	            	
 	            	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncError), Toast.LENGTH_LONG).show();	
 	            }
