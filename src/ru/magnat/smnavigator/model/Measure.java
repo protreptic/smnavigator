@@ -20,21 +20,6 @@ public class Measure {
 	@DatabaseField(columnName = "next_visit")
 	private Timestamp nextVisit;
 	
-	@DatabaseField(columnName = "turnover_previous_month")
-	private Double turnoverPreviousMonth;
-	
-	@DatabaseField(columnName = "turnover_current_month")
-	private Double turnoverCurrentMonth;
-	
-	@DatabaseField(columnName = "total_distribution")
-	private Integer totalDistribution;
-	
-	@DatabaseField(columnName = "golden_distribution")
-	private Integer goldenDistribution;
-
-	@DatabaseField(columnName = "golden_status")
-	private String goldenStatus;
-	
 	public Integer getId() {
 		return id;
 	}
@@ -59,46 +44,6 @@ public class Measure {
 		this.nextVisit = nextVisit;
 	}
 
-	public Double getTurnoverPreviousMonth() {
-		return turnoverPreviousMonth;
-	}
-
-	public void setTurnoverPreviousMonth(Double turnoverPreviousMonth) {
-		this.turnoverPreviousMonth = turnoverPreviousMonth;
-	}
-
-	public Double getTurnoverCurrentMonth() {
-		return turnoverCurrentMonth;
-	}
-
-	public void setTurnoverCurrentMonth(Double turnoverCurrentMonth) {
-		this.turnoverCurrentMonth = turnoverCurrentMonth;
-	}
-
-	public Integer getTotalDistribution() {
-		return totalDistribution;
-	}
-
-	public void setTotalDistribution(Integer totalDistribution) {
-		this.totalDistribution = totalDistribution;
-	}
-
-	public Integer getGoldenDistribution() {
-		return goldenDistribution;
-	}
-
-	public void setGoldenDistribution(Integer goldenDistribution) {
-		this.goldenDistribution = goldenDistribution;
-	}
-	
-	public String getGoldenStatus() {
-		return goldenStatus;
-	}
-
-	public void setGoldenStatus(String goldenStatus) {
-		this.goldenStatus = goldenStatus;
-	}
-
 	public Integer getFrequencyOfVisits() {
 		return frequencyOfVisits;
 	}
@@ -109,7 +54,7 @@ public class Measure {
 	
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " [id=" + id + ", frequencyOfVisits=" + frequencyOfVisits + ", lastVisit=" + lastVisit + ", nextVisit=" + nextVisit + ", turnoverPreviousMonth=" + turnoverPreviousMonth + ", turnoverCurrentMonth=" + turnoverCurrentMonth + ", totalDistribution=" + totalDistribution + ", goldenDistribution=" + goldenDistribution + ", goldenStatus=" + goldenStatus + "]";	
+		return getClass().getSimpleName() + " [id=" + id + ", frequencyOfVisits=" + frequencyOfVisits + ", lastVisit=" + lastVisit + ", nextVisit=" + nextVisit + "]";	
 	}
 	
 }

@@ -22,11 +22,13 @@ import ru.magnat.smnavigator.data.DbHelperSecured;
 import ru.magnat.smnavigator.model.Branch;
 import ru.magnat.smnavigator.model.Customer;
 import ru.magnat.smnavigator.model.Department;
+import ru.magnat.smnavigator.model.Georegion;
 import ru.magnat.smnavigator.model.Manager;
 import ru.magnat.smnavigator.model.Measure;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.model.Store;
+import ru.magnat.smnavigator.model.StoreProperty;
 import ru.magnat.smnavigator.model.Target;
 import ru.magnat.smnavigator.model.json.BranchDeserializer;
 import ru.magnat.smnavigator.model.json.CustomerDeserializer;
@@ -34,6 +36,8 @@ import ru.magnat.smnavigator.model.json.CustomerSerializer;
 import ru.magnat.smnavigator.model.json.DepartmentDeserializer;
 import ru.magnat.smnavigator.model.json.PsrDeserializer;
 import ru.magnat.smnavigator.model.json.StoreDeserializer;
+import ru.magnat.smnavigator.model.json.StorePropertyDeserializer;
+import ru.magnat.smnavigator.model.json.StorePropertySerializer;
 import ru.magnat.smnavigator.security.KeyStoreManager;
 import ru.magnat.smnavigator.security.MyTrustManager;
 import android.accounts.Account;
@@ -130,14 +134,18 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			getPsr();
 			getRoute();
 			getStore();
+			getStoreProperties();
+			getMeasure();
 			getCustomer();
-			//getMeasure();
 			getTarget();
+			getGeoregion();
 			
 			DbHelperSecured.close();
 			
 			TimeUnit.SECONDS.sleep(2);
 		} catch (Exception e) {
+			DbHelperSecured.close();
+			
 			e.printStackTrace();
 			sendNotification("error");	
 	    }
@@ -149,7 +157,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		sendNotification("completed");
     }
     
-    private void saveLastSync() {
+	private void saveLastSync() {
         SharedPreferences sharedPreferences = getContext().getSharedPreferences(mAccount.name + ".global", Context.MODE_MULTI_PROCESS);
         
         Editor editor = sharedPreferences.edit();
@@ -298,6 +306,8 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		GsonBuilder gsonBuilder = new GsonBuilder();
 		gsonBuilder.registerTypeAdapter(Customer.class, new CustomerSerializer()); 
 		gsonBuilder.registerTypeAdapter(Customer.class, new CustomerDeserializer());
+		gsonBuilder.registerTypeAdapter(StoreProperty.class, new StorePropertySerializer()); 
+		gsonBuilder.registerTypeAdapter(StoreProperty.class, new StorePropertyDeserializer());
 		gsonBuilder.serializeNulls();
 		
 		Gson gson = gsonBuilder.create();
@@ -315,6 +325,30 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			storeDao.createOrUpdate(store);
 			
 			Log.d("", store.toString()); 
+		}
+	}
+	
+	private void getStoreProperties() throws Exception { 
+		HttpsURLConnection urlConnection = prepareConnection("sm_getStoreProperty");
+		
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.serializeNulls();
+		
+		Gson gson = gsonBuilder.create();
+		
+		List<StoreProperty> storeProperties = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<StoreProperty>>() {}.getType());
+
+		urlConnection.disconnect();
+		urlConnection = null;
+		
+		Dao<StoreProperty, String> storePropertyDao = mMainDbHelper.getStorePropertyDao();
+		storePropertyDao.setObjectCache(false); 
+		storePropertyDao.delete(storePropertyDao.queryForAll());
+		
+		for (StoreProperty storeProperty : storeProperties) {
+			storePropertyDao.createOrUpdate(storeProperty);
+			
+			Log.d("", storeProperty.toString()); 
 		}
 	}
 	
@@ -342,7 +376,6 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		}
 	}
 	
-	@SuppressWarnings("unused")
 	private void getMeasure() throws Exception {   
 		HttpsURLConnection urlConnection = prepareConnection("sm_getMeasure");
 		
@@ -393,6 +426,30 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		}
 	}
 
+    private void getGeoregion() throws Exception {
+		HttpsURLConnection urlConnection = prepareConnection("sm_getGeoregion");
+		
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.serializeNulls();
+		
+		Gson gson = gsonBuilder.create();
+		
+		List<Georegion> georegions = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Georegion>>() {}.getType());
+		
+		urlConnection.disconnect();
+		urlConnection = null;
+		
+		Dao<Georegion, String> georegionDao = mMainDbHelper.getGeoregionDao();
+		georegionDao.setObjectCache(false); 
+		georegionDao.delete(georegionDao.queryForAll());
+		
+		for (Georegion georegion : georegions) {
+			georegionDao.createOrUpdate(georegion);
+			
+			Log.d("", georegion.toString()); 
+		}
+	}
+	
 	@Override
 	public void onSyncCanceled() {
 		super.onSyncCanceled();

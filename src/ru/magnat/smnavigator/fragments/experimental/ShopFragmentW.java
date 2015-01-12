@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.fragments;
+package ru.magnat.smnavigator.fragments.experimental;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -7,11 +7,9 @@ import java.util.List;
 import org.javaprotrepticon.android.androidutils.Fonts;
 import org.javaprotrepticon.android.androidutils.Text;
 
-import com.j256.ormlite.dao.Dao;
-
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.data.DbHelperSecured;
-import ru.magnat.smnavigator.model.Psr;
+import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.widget.StaticMapView;
 import android.accounts.Account;
 import android.graphics.Typeface;
@@ -30,14 +28,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-public class PsrFragmentW extends Fragment {
+import com.j256.ormlite.dao.Dao;
+
+public class ShopFragmentW extends Fragment {
 
 	private Account mAccount;
 	
 	private RecyclerView mRecyclerView;
-	private PsrAdapter 	mAdapter;
+	private ShopAdapter	mAdapter;
 	private static Typeface sTypeface;
-		
+	
 	private String mQueryText = "%%";
 	
 	@Override
@@ -86,7 +86,7 @@ public class PsrFragmentW extends Fragment {
 		LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
 		layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
 		
-		mAdapter = new PsrAdapter();
+		mAdapter = new ShopAdapter();
 		
 		mRecyclerView = (RecyclerView) getView().findViewById(R.id.cardList);
 		mRecyclerView.setHasFixedSize(true);
@@ -96,24 +96,24 @@ public class PsrFragmentW extends Fragment {
 		new LoadData().execute();
 	}
 	
-	private List<Psr> mPsrs = new ArrayList<Psr>();
+	private List<Store> mShops = new ArrayList<Store>();
 	
-	public class PsrAdapter extends RecyclerView.Adapter<PsrViewHolder> {
+	public class ShopAdapter extends RecyclerView.Adapter<PsrViewHolder> {
 		
 		@Override
 		public int getItemCount() {
-			return mPsrs.size();
+			return mShops.size();
 		}
 
 		@Override
 		public void onBindViewHolder(PsrViewHolder holder, int position) {
-			Psr psr = mPsrs.get(position);
+			Store store = mShops.get(position);
 			
-			holder.title.setText(psr.getName());
-			holder.subtitle.setText(psr.getBranch().getName());
-			holder.description.setText(psr.getDepartment().getName()); 
-			holder.staticmap.setMappable(psr); 
-			holder.staticmaptitle.setText(Text.prepareAddress(psr.getProject()));
+			holder.title.setText(store.getCustomer().getName());
+			holder.subtitle.setText("");
+			holder.description.setText(Text.prepareAddress(store.getAddress())); 
+			holder.staticmap.setMappable(store); 
+			holder.staticmaptitle.setText(store.getChannel());
 		}
 
 		@Override
@@ -127,20 +127,20 @@ public class PsrFragmentW extends Fragment {
 	
 	public class LoadData extends AsyncTask<Void, Void, Void> {
 
-		private Dao<Psr, String> mPsrDao;
+		private Dao<Store, String> mStoreDao;
 		
 		public LoadData() {
-			mPsrDao = DbHelperSecured.get(getActivity(), mAccount).getPsrDao();
+			mStoreDao = DbHelperSecured.get(getActivity(), mAccount).getStoreDao();
 		}
 		
 		@Override
 		protected Void doInBackground(Void... params) {
-			mPsrs.clear();
+			mShops.clear();
 
 			try {
-				List<Psr> psrs = mPsrDao.queryBuilder().where().like("name", mQueryText).or().like("project", mQueryText).query(); 
+				List<Store> shops = mStoreDao.queryBuilder().where().like("name", "%" + mQueryText + "%").or().like("address", "%" + mQueryText + "%").query();
 				
-				mPsrs.addAll(psrs);
+				mShops.addAll(shops);
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}

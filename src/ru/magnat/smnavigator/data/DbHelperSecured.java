@@ -9,15 +9,16 @@ import java.sql.SQLException;
 
 import org.javaprotrepticon.android.androidutils.Apps;
 
-import ru.magnat.smnavigator.map.geofence.Geofenceable;
 import ru.magnat.smnavigator.model.Branch;
 import ru.magnat.smnavigator.model.Customer;
 import ru.magnat.smnavigator.model.Department;
+import ru.magnat.smnavigator.model.Georegion;
 import ru.magnat.smnavigator.model.Manager;
 import ru.magnat.smnavigator.model.Measure;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.model.Store;
+import ru.magnat.smnavigator.model.StoreProperty;
 import ru.magnat.smnavigator.model.Target;
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -59,15 +60,15 @@ public class DbHelperSecured {
 			accountDirectory.mkdirs();
 		}
 		
-		if (!new File(accountFolder + "init.sql").exists()) {
-			copyInitialScript(context, accountFolder);
+		if (!new File(accountFolder + "initial-script.sql").exists()) {
+			copyInitialScripts(context, accountFolder);
 		}
 		
 		StringBuilder urlBuilder = new StringBuilder();
 		urlBuilder.append("jdbc:h2:file:");
 		urlBuilder.append(accountStorage + ";");
 		urlBuilder.append("database_to_upper=false;");
-		urlBuilder.append("file_lock=no;");
+		urlBuilder.append("file_lock=file;");
 		urlBuilder.append("ifexists=false;");
 		urlBuilder.append("ignorecase=true;");
 		urlBuilder.append("page_size=1024;");
@@ -79,7 +80,7 @@ public class DbHelperSecured {
 		urlBuilder.append("password=" + accountPassword + " " + accountPassword + ";");
 		
 		if (!new File(accountStorage + ".h2.db").exists()) {	
-			urlBuilder.append("init=runscript from '" + accountFolder + "init.sql" + "';");
+			urlBuilder.append("init=runscript from '" + accountFolder + "initial-script.sql" + "';");
 		} else {
 			urlBuilder.append("init=set schema smnavigator;");
 		}
@@ -95,19 +96,20 @@ public class DbHelperSecured {
 			mPsrDao = DaoManager.createDao(mConnectionSource, Psr.class);
 			mRouteDao = DaoManager.createDao(mConnectionSource, Route.class);
 			mStoreDao = DaoManager.createDao(mConnectionSource, Store.class);
+			mStorePropertyDao = DaoManager.createDao(mConnectionSource, StoreProperty.class);
 			mCustomerDao = DaoManager.createDao(mConnectionSource, Customer.class);
 			mMeasureDao = DaoManager.createDao(mConnectionSource, Measure.class);
 			mTargetDao = DaoManager.createDao(mConnectionSource, Target.class);
-			mGeoregionDao = DaoManager.createDao(mConnectionSource, Geofenceable.class);
+			mGeoregionDao = DaoManager.createDao(mConnectionSource, Georegion.class);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	private void copyInitialScript(Context context, String accountFolder) {
+	private void copyInitialScripts(Context context, String accountFolder) {
 		try {
-			InputStream is = context.getAssets().open("init.sql");
-			OutputStream os = new FileOutputStream(accountFolder + "init.sql"); 
+			InputStream is = context.getAssets().open("initial-scripts/initial-script.sql");
+			OutputStream os = new FileOutputStream(accountFolder + "initial-script.sql"); 
 			
 			byte[] buffer = new byte[1024];
 			int count = -1;
@@ -129,10 +131,11 @@ public class DbHelperSecured {
 	private Dao<Psr, String> mPsrDao;
 	private Dao<Route, String> mRouteDao;
 	private Dao<Store, String> mStoreDao;
+	private Dao<StoreProperty, String> mStorePropertyDao;
 	private Dao<Customer, String> mCustomerDao;
 	private Dao<Measure, String> mMeasureDao;
 	private Dao<Target, String> mTargetDao;
-	private Dao<Geofenceable, String> mGeoregionDao;
+	private Dao<Georegion, String> mGeoregionDao;
 	
 	public synchronized static DbHelperSecured get(Context context, Account account) {
 		if (sInstance == null) {
@@ -171,8 +174,8 @@ public class DbHelperSecured {
 		return mStoreDao;
 	}
 
-	public Dao<Measure, String> getMeasureDao() {
-		return mMeasureDao;
+	public Dao<StoreProperty, String> getStorePropertyDao() {
+		return mStorePropertyDao;
 	}
 	
 	public Dao<Psr, String> getPsrDao() {
@@ -187,12 +190,16 @@ public class DbHelperSecured {
 		return mTargetDao;
 	}
 	
-	public Dao<Geofenceable, String> getGeoregionDao() {
+	public Dao<Georegion, String> getGeoregionDao() {
 		return mGeoregionDao;
 	}
 
 	public Dao<Customer, String> getCustomerDao() {
 		return mCustomerDao; 
+	}
+
+	public Dao<Measure, String> getMeasureDao() {
+		return mMeasureDao;
 	}
 	
 }

@@ -36,7 +36,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
@@ -78,8 +77,6 @@ public class MainActivity extends ActionBarActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState); 
 
-		supportRequestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-		
         setContentView(R.layout.main_activity);
 
         mAccount = getIntent().getExtras().getParcelable("account");
@@ -105,9 +102,6 @@ public class MainActivity extends ActionBarActivity {
         if (savedInstanceState == null) {
             selectItem(1);
         }
-        
-        setSupportProgressBarIndeterminate(true); 
-        setSupportProgressBarIndeterminateVisibility(true); 
         
 		// register receivers
 		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 

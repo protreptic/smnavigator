@@ -1,13 +1,9 @@
-drop schema "SM_NAVIGATOR" if exists;
-drop schema "sm_navigator" if exists;
-create schema "sm_navigator";
+drop schema smnavigator if exists;
+create schema smnavigator;
 
-set schema "sm_navigator";
+set schema smnavigator;
 
-/*
-	
-*/
-create table "sm_navigator"."manager" (
+create table manager (
 	id integer primary key,
 	name varchar(255),
 	email varchar(255),
@@ -16,34 +12,22 @@ create table "sm_navigator"."manager" (
 	department integer
 );
 
-/*
-	
-*/
-create table "sm_navigator"."branch" (
+create table branch (
 	id integer primary key,
 	name varchar(255)
 );
 
-/*
-	
-*/
-create table "sm_navigator"."customer" (
+create table customer (
 	id integer primary key,
 	name varchar(255)
 );
 
-/*
-	
-*/
-create table "sm_navigator"."department" (
+create table department (
 	id integer primary key,
 	name varchar(255)
 );
 
-/*
-	
-*/
-create table "sm_navigator"."psr" (
+create table psr (
 	id integer primary key,
 	name varchar (255),
 	project varchar (255),
@@ -55,51 +39,50 @@ create table "sm_navigator"."psr" (
 	longitude double,
 );
 
-/*
-	
-*/
-create table "sm_navigator"."route" (
+create table route (
 	id integer primary key,
 	visit_date timestamp,
 	psr integer,
 	store integer
 );
 
-/*
-	
-*/
-create table "sm_navigator"."store" (
+create table store (
 	id integer primary key,
 	name varchar (255),
 	customer integer,
 	address varchar (255),
 	tel varchar (255),
+	store_property integer,
 	channel varchar (255),
 	coverage_type varchar (255),
 	latitude double,
 	longitude double
 );
 
-/*
-	
-*/
-create table "sm_navigator"."measure" (
+create table store_property (
+	id integer primary key,
+	golden_status varchar (255)
+);
+
+create table measure (
 	id integer primary key,
 	visit_frequency integer,
 	last_visit timestamp,
 	next_visit timestamp,
-	turnover_previous_month float,
-	turnover_current_month float,
-	total_distribution integer,
-	golden_distribution integer,
-	golden_status varchar (255)
 );
 
-/*
-	
-*/
-create table "sm_navigator"."georegion" (
-	id integer,
+create table target (
+	id integer primary key auto_increment,
+	store integer,
+	name varchar (255),
+	target float,
+	fact float,
+	index float
+);
+
+create table georegion (
+	id integer primary key auto_increment,
+	branch_id integer,
 	latitude double,
 	longitude double		
 );

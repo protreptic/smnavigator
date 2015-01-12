@@ -32,5 +32,5 @@ public class Branch {
 	public String toString() {
 		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + "]";
 	}
-	
+
 }

@@ -25,6 +25,9 @@ public class Store implements Mappable, Clusterable {
 	@DatabaseField(columnName = "tel")
 	private String tel;
 	
+	@DatabaseField(columnName = "store_property", foreign = true, foreignAutoRefresh = true)
+	private StoreProperty storeProperty;
+	
 	@DatabaseField(columnName = "channel")
 	private String channel;
 	
@@ -117,6 +120,14 @@ public class Store implements Mappable, Clusterable {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + ", customer=" + customer + ", address=" + address + ", tel=" + tel + ", channel=" + channel + ", coverageType=" + coverageType + ", latitude=" + latitude + ", longitude=" + longitude + "]";	
+	}
+
+	public StoreProperty getStoreProperty() {
+		return storeProperty;
+	}
+
+	public void setStoreProperty(StoreProperty storeProperty) {
+		this.storeProperty = storeProperty;
 	}
 
 }

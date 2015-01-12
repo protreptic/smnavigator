@@ -30,7 +30,7 @@ public class KeyStoreManager {
 	public KeyStoreManager(Context context) {
 		try {
 			CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-			InputStream caInput = new BufferedInputStream(context.getAssets().open("cert.pem"));
+			InputStream caInput = new BufferedInputStream(context.getAssets().open("server-certificate.pem"));
 			Certificate certificate;
 			try {
 			    certificate = certificateFactory.generateCertificate(caInput);

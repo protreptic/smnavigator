@@ -444,13 +444,13 @@ create service "sm_getRoute"
 create or replace procedure "sm_getStore" ("token" sm_token) 
     result (
         "id" integer, "name" nvarchar(255), "customer" integer, 
-        "address" nvarchar(255), "tel" nvarchar(255), "channel" nvarchar(255), 
+        "address" nvarchar(255), "tel" nvarchar(255), "storeProperty" integer, "channel" nvarchar(255), 
         "coverageType" nvarchar(255), "latitude" double, "longitude" double)
 begin
     if ("sm_validateToken" ("token") >= 0) then    
         select distinct
             b."Id", b."Descr", c."Id", 
-            b."Address", ifnull(e."Phone",'Нет'), ifnull(d."Descr",'',d."Descr"),
+            b."Address", ifnull(e."Phone",'Нет'), b."Id", ifnull(d."Descr",'',d."Descr"),
             "sm_explainCoverageType" (c."CoverageType"),
             ifnull(b."LocationLat",0,b."LocationLat"), ifnull(b."LocationLon",0,b."LocationLon")
         from
@@ -481,6 +481,37 @@ create service "sm_getStore"
     user dba
     methods 'GET,POST'
     as call "sm_getStore" (:token);
+
+create or replace procedure "sm_getStoreProperty" ("token" sm_token) 
+    result (
+        "id" integer, 
+        "goldenStatus" nvarchar(255))
+begin
+    if ("sm_validateToken" ("token") >= 0) then    
+        select
+            a."id",
+            isnull(c."Descr", 'Статус недоступен')
+        from
+            "sm_getStore" ("token") a 
+            join "RefOutlet" b 
+                on b."Id" = a."id"
+            left join "RefStoreType" c
+                on c."Id" = b.StoreType; 
+    endif;
+end;
+
+/*
+    
+*/
+drop service "sm_getStoreProperty";
+create service "sm_getStoreProperty" 
+    type 'json'
+    authorization off
+    secure off
+    user dba
+    methods 'GET,POST'
+    as call "sm_getStoreProperty" (:token);
+
 
 /*
         
@@ -667,3 +698,58 @@ create service "sm_getTarget"
     user dba
     methods 'GET,POST'
     as call "sm_getTarget" (:token);
+
+drop table if exists #georegion ;
+create table #georegion (
+    "branch_id" integer,
+    "latitude" double,
+    "longitude" double
+);
+
+drop table if exists "sm_georegion";
+create table "sm_georegion" (
+    "id" integer primary key default autoincrement,
+    "branch_id" integer,
+    "branch_name" nvarchar(255) not null,
+    "latitude" double not null,
+    "longitude" double not null
+);
+
+load into table #georegion from '/home/petr_bu/geodata.csv' 
+    format text 
+    delimited by ';' 
+    encoding 'utf-8';
+
+insert into "sm_georegion" ("branch_name", "latitude", "longitude") select "branch_id", "latitude", "longitude" from #georegion;
+
+create or replace procedure "sm_getGeoregion" ("token" sm_token) 
+    result (
+        "branchId" integer, 
+        "latitude" double, 
+        "longitude" double)
+begin
+    if ("sm_validateToken" ("token") >= 0) then    
+        select
+            a."id",
+            c."latitude",
+            c."longitude"
+        from
+            "sm_getBranch" ("token") a 
+            join "RefBranch" b 
+                on b."Id" = a."id"
+            join "sm_georegion" c
+                on b."Id" = c."branch_id";
+    endif;
+end;
+
+/*
+    
+*/
+drop service "sm_getGeoregion";
+create service "sm_getGeoregion" 
+    type 'json'
+    authorization off
+    secure off
+    user dba
+    methods 'GET,POST'
+    as call "sm_getGeoregion" (:token);

@@ -34,7 +34,7 @@ public class StoreView extends RelativeLayout {
 		
 		TextView goldenStatus = (TextView) relativeLayout.findViewById(R.id.subtitle); 
 		goldenStatus.setTypeface(Fonts.get(context).getDefaultTypeface());  
-		goldenStatus.setText(""); 
+		goldenStatus.setText(store.getStoreProperty().getGoldenStatus()); 
 		
 		StaticMapView staticMapView = (StaticMapView) relativeLayout.findViewById(R.id.staticmap); 
 		staticMapView.setMappable(store); 
