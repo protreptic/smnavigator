@@ -5,10 +5,11 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
+import org.javaprotrepticon.android.androidutils.Fonts;
+
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.auth.AccountWrapper;
 import ru.magnat.smnavigator.auth.Authenticator;
-import ru.magnat.smnavigator.util.Fonts;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;

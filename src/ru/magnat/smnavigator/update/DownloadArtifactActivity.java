@@ -7,8 +7,9 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import org.javaprotrepticon.android.androidutils.Apps;
+
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.util.Apps;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Notification;

@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
 
+import org.javaprotrepticon.android.androidutils.Apps;
+
 import ru.magnat.smnavigator.map.geofence.Geofenceable;
 import ru.magnat.smnavigator.model.Branch;
 import ru.magnat.smnavigator.model.Customer;
@@ -17,7 +19,6 @@ import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.model.Target;
-import ru.magnat.smnavigator.util.Apps;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.Context;

@@ -2,10 +2,11 @@ package ru.magnat.smnavigator.view;
 
 import java.text.SimpleDateFormat;
 
+import org.javaprotrepticon.android.androidutils.Fonts;
+import org.javaprotrepticon.android.androidutils.Text;
+
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.model.Route;
-import ru.magnat.smnavigator.util.Fonts;
-import ru.magnat.smnavigator.util.Text;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;

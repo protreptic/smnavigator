@@ -3,10 +3,10 @@ package ru.magnat.smnavigator.auth;
 import java.sql.Timestamp;
 
 import org.apache.http.Header;
+import org.javaprotrepticon.android.androidutils.Fonts;
 import org.json.JSONObject;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.util.Fonts;
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorActivity;
 import android.accounts.AccountManager;

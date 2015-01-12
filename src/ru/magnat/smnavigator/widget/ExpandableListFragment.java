@@ -1,7 +1,8 @@
 package ru.magnat.smnavigator.widget;
 
+import org.javaprotrepticon.android.androidutils.Fonts;
+
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.util.Fonts;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;

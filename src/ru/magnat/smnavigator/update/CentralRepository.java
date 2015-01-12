@@ -7,8 +7,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.javaprotrepticon.android.androidutils.Apps;
+
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.util.Apps;
 import android.content.Context;
 import android.util.Log;
 

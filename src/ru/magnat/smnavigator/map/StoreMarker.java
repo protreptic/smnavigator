@@ -1,8 +1,9 @@
 package ru.magnat.smnavigator.map;
 
+import org.javaprotrepticon.android.androidutils.Text;
+
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.model.Store;
-import ru.magnat.smnavigator.util.Text;
 
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;

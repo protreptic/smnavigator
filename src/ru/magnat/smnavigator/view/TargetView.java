@@ -1,8 +1,9 @@
 package ru.magnat.smnavigator.view;
 
+import org.javaprotrepticon.android.androidutils.Fonts;
+
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.model.Target;
-import ru.magnat.smnavigator.util.Fonts;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.widget.RelativeLayout;

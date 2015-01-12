@@ -4,11 +4,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.javaprotrepticon.android.androidutils.Fonts;
+import org.javaprotrepticon.android.androidutils.Text;
+
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
-import ru.magnat.smnavigator.util.Fonts;
-import ru.magnat.smnavigator.util.Text;
 import ru.magnat.smnavigator.view.RouteView;
 import ru.magnat.smnavigator.widget.StaticMapView;
 import android.os.Bundle;

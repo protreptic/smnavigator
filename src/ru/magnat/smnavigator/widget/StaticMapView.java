@@ -11,9 +11,10 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.javaprotrepticon.android.androidutils.Crypto;
+
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.entities.Mappable;
-import ru.magnat.smnavigator.util.Crypto;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;

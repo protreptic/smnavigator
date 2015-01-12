@@ -3,6 +3,8 @@ package ru.magnat.smnavigator.activities;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.javaprotrepticon.android.androidutils.Apps;
+
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.auth.AccountWrapper;
 import ru.magnat.smnavigator.data.DbHelperSecured;
@@ -11,7 +13,6 @@ import ru.magnat.smnavigator.fragments.PsrListFragment;
 import ru.magnat.smnavigator.fragments.StoreListFragment;
 import ru.magnat.smnavigator.model.Manager;
 import ru.magnat.smnavigator.update.UpdateHelper;
-import ru.magnat.smnavigator.util.Apps;
 import android.accounts.Account;
 import android.app.AlertDialog;
 import android.app.backup.BackupManager;

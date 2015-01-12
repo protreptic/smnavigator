@@ -5,9 +5,9 @@ import org.acra.ACRAConfiguration;
 import org.acra.ACRAConfigurationException;
 import org.acra.ReportingInteractionMode;
 import org.acra.annotation.ReportsCrashes;
+import org.javaprotrepticon.android.androidutils.Device;
+import org.javaprotrepticon.android.androidutils.Network;
 
-import ru.magnat.smnavigator.util.Device;
-import ru.magnat.smnavigator.util.Network;
 import android.app.Application;
 
 @ReportsCrashes(formKey = "", resToastText = R.string.crash_message) 

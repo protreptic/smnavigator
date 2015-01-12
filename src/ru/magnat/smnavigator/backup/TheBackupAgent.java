@@ -2,7 +2,8 @@ package ru.magnat.smnavigator.backup;
 
 import java.io.IOException;
 
-import ru.magnat.smnavigator.util.Apps;
+import org.javaprotrepticon.android.androidutils.Apps;
+
 import android.app.backup.BackupAgentHelper;
 import android.app.backup.BackupDataInput;
 import android.app.backup.BackupDataOutput;
