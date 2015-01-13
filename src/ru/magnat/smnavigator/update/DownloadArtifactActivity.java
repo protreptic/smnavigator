@@ -118,7 +118,7 @@ public class DownloadArtifactActivity extends Activity {
 					            if (connection != null)
 					                connection.disconnect();
 					        }
-							
+					        
 							return fileName;
 						}
 						
