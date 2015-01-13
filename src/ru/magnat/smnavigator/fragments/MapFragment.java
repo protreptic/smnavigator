@@ -48,6 +48,8 @@ public class MapFragment extends SupportMapFragment {
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		
+		Bundle arguments = getArguments();
+		
 		GoogleMap map = getMap();
 		map.setMyLocationEnabled(true);
 		map.setOnMyLocationChangeListener(new OnMyLocationChangeListener() {
@@ -61,10 +63,19 @@ public class MapFragment extends SupportMapFragment {
 			}
 		});
 		
-		mAccount = getArguments().getParcelable("account");
+		mAccount = arguments.getParcelable("account");
 		mSearchAdapter = new SearchAdapter();
 		
 		mLocationHelper = LocationHelper.get(getActivity(), map, mAccount);
+		
+		if (arguments.getBoolean("moveCamera")) { 
+			getMap().setOnMyLocationChangeListener(null); 
+			
+			double latitude = arguments.getDouble("latitude");
+			double longitude = arguments.getDouble("longitude");
+			
+			mLocationHelper.moveCameraToLocation(latitude, longitude); 
+		}
 	}	
 	 
 	private String mQueryText = "%%";

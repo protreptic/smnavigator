@@ -36,12 +36,15 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.maps.GoogleMapOptions;
 
 public class MainActivity extends ActionBarActivity {
 	
@@ -77,6 +80,8 @@ public class MainActivity extends ActionBarActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState); 
 
+		supportRequestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+		
         setContentView(R.layout.main_activity);
 
         mAccount = getIntent().getExtras().getParcelable("account");
@@ -108,6 +113,8 @@ public class MainActivity extends ActionBarActivity {
 		
 		requestBackup();
 		requestInitialSync();
+		
+		setSupportProgressBarIndeterminateVisibility(true);
 	}
 
     @Override
@@ -263,6 +270,9 @@ public class MainActivity extends ActionBarActivity {
         switch (position) {
 			case 0: {
 				if (mMapFragment == null) {
+					GoogleMapOptions options = new GoogleMapOptions();
+					options.compassEnabled(true);
+					
 					mMapFragment = new MapFragment();
 				}
 				
@@ -358,7 +368,7 @@ public class MainActivity extends ActionBarActivity {
 	    @Override
 	    public void onReceive(Context context, Intent intent) {
 	        if(intent.getAction().equals(ACTION_SYNC) && intent.getStringExtra("account").equals(mAccount.name)) { 
-	            String action = intent.getStringExtra("action");
+	        	String action = intent.getStringExtra("action");
 	            
 	            if (action.equals("started")) {
 	            	Log.d(TAG, "sync:started->" + intent.getStringExtra("account"));
@@ -386,6 +396,8 @@ public class MainActivity extends ActionBarActivity {
 	            	
 	            	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncError), Toast.LENGTH_LONG).show();	
 	            }
+	            
+	            getSupportActionBar().invalidateOptionsMenu();
 	        }
 	    }
 	    

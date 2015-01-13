@@ -4,22 +4,33 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.javaprotrepticon.android.androidutils.Fonts;
+import org.javaprotrepticon.android.androidutils.Text;
+
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.fragments.base.BaseEndlessListFragment;
 import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.model.Target;
-import ru.magnat.smnavigator.view.StoreView;
 import ru.magnat.smnavigator.view.TargetView;
+import ru.magnat.smnavigator.widget.StaticMapView;
+import android.accounts.Account;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.View.OnClickListener;
 import android.widget.AbsListView;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.AbsListView.OnScrollListener;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.SearchView.OnQueryTextListener;
@@ -32,9 +43,13 @@ public class StoreListFragment extends BaseEndlessListFragment implements OnScro
 	private List<Store> mGroupData = new ArrayList<Store>();
 	private List<List<Target>> mChildData = new ArrayList<List<Target>>();
 	
+	private Account mAccount;
+	
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
+		
+		mAccount = getArguments().getParcelable("account");
 		
 		progressBar = new ProgressBar(getActivity());
 		
@@ -176,7 +191,56 @@ public class StoreListFragment extends BaseEndlessListFragment implements OnScro
  
 		@Override
 		public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
-			return new StoreView(getActivity(), (Store) getGroup(groupPosition)); 
+			final Store store = (Store) getGroup(groupPosition);
+			
+			RelativeLayout relativeLayout = (RelativeLayout) LayoutInflater.from(getActivity()).inflate(R.layout.default_list_item, parent, false);
+			
+			TextView name = (TextView) relativeLayout.findViewById(R.id.title); 
+			name.setTypeface(Fonts.get(getActivity()).getDefaultTypeface());  
+			name.setText(store.getCustomer().getName());   
+			
+			TextView address = (TextView) relativeLayout.findViewById(R.id.description); 
+			address.setTypeface(Fonts.get(getActivity()).getDefaultTypeface());  
+			address.setText(Text.prepareAddress(store.getAddress())); 
+			
+			TextView channel = (TextView) relativeLayout.findViewById(R.id.staticmaptitle); 
+			channel.setTypeface(Fonts.get(getActivity()).getDefaultTypeface());  
+			channel.setText(store.getChannel()); 
+			
+			TextView goldenStatus = (TextView) relativeLayout.findViewById(R.id.subtitle); 
+			goldenStatus.setTypeface(Fonts.get(getActivity()).getDefaultTypeface());  
+			goldenStatus.setText(store.getStoreProperty().getGoldenStatus()); 
+			
+			StaticMapView staticMapView = (StaticMapView) relativeLayout.findViewById(R.id.staticmap); 
+			staticMapView.setMappable(store); 
+			staticMapView.setOnClickListener(new OnClickListener() {
+				
+				@Override
+				public void onClick(View view) {
+					double latitude = store.getLatitude();
+					double longitude = store.getLongitude();
+					
+					if (latitude == 0 || longitude == 0) {
+						Toast.makeText(getActivity(), getString(R.string.locationUnavailable), Toast.LENGTH_LONG).show(); return;
+					}
+					
+					Bundle arguments = new Bundle();
+			        arguments.putParcelable("account", mAccount); 
+			        arguments.putBoolean("moveCamera", true);
+			        arguments.putDouble("latitude", latitude); 
+			        arguments.putDouble("longitude", longitude); 
+			        
+			        Fragment fragment = new MapFragment();
+			        fragment.setArguments(arguments); 
+			        
+			        FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
+			        fragmentTransaction.replace(R.id.content_frame, fragment);
+			        fragmentTransaction.addToBackStack(null);
+			        fragmentTransaction.commit();
+				}
+			});
+			
+			return relativeLayout; 
 		}
 
 		@Override

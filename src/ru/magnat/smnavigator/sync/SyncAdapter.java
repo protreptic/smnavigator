@@ -145,9 +145,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			TimeUnit.SECONDS.sleep(2);
 		} catch (Exception e) {
 			DbHelperSecured.close();
-			
+			timer.cancel();
+			sendNotification("error"); 
 			e.printStackTrace();
-			sendNotification("error");	
+			return;
 	    }
 		
 		timer.cancel();

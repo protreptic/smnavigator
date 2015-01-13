@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
 
     <item
         android:id="@+id/actionChangeUser"
         android:icon="@drawable/ic_action_person"
-        android:showAsAction="ifRoom"
-        android:title="@string/actionChangeUser"/>
+        android:title="@string/actionChangeUser"
+        app:showAsAction="never"/>
     <item
         android:id="@+id/actionSync"
-        android:icon="@android:drawable/ic_menu_rotate"
-        android:showAsAction="ifRoom"
-        android:title="@string/refresh"/>
+        android:icon="@android:drawable/ic_popup_sync"
+        android:title="@string/refresh"
+        app:showAsAction="never"/>
     <item
         android:id="@+id/checkUpdates"
         android:icon="@drawable/ic_action_refresh"
-        android:showAsAction="ifRoom"
-        android:title="@string/update"/>
+        android:title="@string/update"
+        app:showAsAction="never"/>
     <item
         android:id="@+id/actionAbout"
-        android:showAsAction="ifRoom"
-        android:title="@string/about"/>
+        android:title="@string/about"
+        app:showAsAction="never"/>
 
 </menu>

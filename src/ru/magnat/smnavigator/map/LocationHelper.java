@@ -63,8 +63,14 @@ public class LocationHelper {
 		mAccount = account;
 	} 
 	
+	public void moveCameraToLocation(double latitude, double longitude) {
+		CameraPosition cameraPosition = CameraPosition.fromLatLngZoom(new LatLng(latitude, longitude), 19);
+		
+		mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+	}
+	
 	public void showShop(Store store) {
-		CameraPosition cameraPosition = CameraPosition.fromLatLngZoom(new LatLng(store.getLatitude(), store.getLongitude()), 20);
+		CameraPosition cameraPosition = CameraPosition.fromLatLngZoom(new LatLng(store.getLatitude(), store.getLongitude()), 19);
 		
 		Collection<Marker> storeMarkers = mClusterManager.getMarkerCollection().getMarkers();
 		

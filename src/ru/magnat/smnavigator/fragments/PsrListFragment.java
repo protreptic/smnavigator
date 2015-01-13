@@ -13,7 +13,10 @@ import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.view.RouteView;
 import ru.magnat.smnavigator.widget.StaticMapView;
+import android.accounts.Account;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.SearchView.OnQueryTextListener;
@@ -28,6 +31,7 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.j256.ormlite.dao.Dao;
 
@@ -63,9 +67,13 @@ public class PsrListFragment extends BaseListFragment {
 		});
 	}
 	
+	private Account mAccount;
+	
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
+		
+		mAccount = getArguments().getParcelable("account");
 		
 		mAdapter = new MyAdapter();
 		
@@ -164,7 +172,27 @@ public class PsrListFragment extends BaseListFragment {
 			staticmap.setOnClickListener(new OnClickListener() {
 				
 				@Override
-				public void onClick(View view) {				
+				public void onClick(View view) {	
+					double latitude = psr.getLatitude();
+					double longitude = psr.getLongitude();
+					
+					if (latitude == 0 || longitude == 0) {
+						Toast.makeText(getActivity(), getString(R.string.locationUnavailable), Toast.LENGTH_LONG).show(); return;
+					}
+					
+					Bundle arguments = new Bundle(); 
+			        arguments.putParcelable("account", mAccount); 
+			        arguments.putBoolean("moveCamera", true);
+			        arguments.putDouble("latitude", latitude); 
+			        arguments.putDouble("longitude", longitude); 
+			        
+			        Fragment fragment = new MapFragment();
+			        fragment.setArguments(arguments); 
+			        
+			        FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
+			        fragmentTransaction.replace(R.id.content_frame, fragment);
+			        fragmentTransaction.addToBackStack(null);
+			        fragmentTransaction.commit();
 				}
 				
 			});

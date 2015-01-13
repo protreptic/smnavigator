@@ -44,7 +44,7 @@ public class StoreView extends RelativeLayout {
 			
 			@Override
 			public void onClick(View view) {
-				
+ 
 			}
 		});
 		
