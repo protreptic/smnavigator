@@ -4,7 +4,6 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.javaprotrepticon.android.androidutils.Apps;
-import org.javaprotrepticon.android.androidutils.Fonts;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.auth.AccountWrapper;
@@ -14,6 +13,7 @@ import ru.magnat.smnavigator.fragments.PsrListFragment;
 import ru.magnat.smnavigator.fragments.StoreListFragment;
 import ru.magnat.smnavigator.model.Manager;
 import ru.magnat.smnavigator.update.UpdateHelper;
+import ru.magnat.smnavigator.view.UserInfoView;
 import android.accounts.Account;
 import android.app.AlertDialog;
 import android.app.backup.BackupManager;
@@ -36,12 +36,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMapOptions;
@@ -218,26 +218,22 @@ public class MainActivity extends ActionBarActivity {
 	}
 	
 	private void updateUserInfo() {
-        String title;
-        String subTitle;
-        
+		UserInfoView userInfoView = (UserInfoView) findViewById(R.id.userInfo);
+		userInfoView.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				requestChangeUser();
+			}
+		});
+		
         Manager manager = getManager();
         
         if (manager != null) { 
-        	title = manager.getName();
-       		subTitle = manager.getBranch().getName();
+        	userInfoView.setManager(manager); 
         } else {
-        	title = mAccount.name;
-        	subTitle = mAccount.type;
+        	userInfoView.setVisibility(View.GONE); 
         }
-        
-        TextView userName = (TextView) findViewById(R.id.userName);
-        userName.setTypeface(Fonts.get(getBaseContext()).getDefaultTypeface()); 
-        userName.setText(title); 
-        
-        TextView userBranch = (TextView) findViewById(R.id.userBranch);
-        userBranch.setTypeface(Fonts.get(getBaseContext()).getDefaultTypeface()); 
-        userBranch.setText(subTitle); 
 	}
 	
 	@Override
