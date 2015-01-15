@@ -1,26 +1,27 @@
 package ru.magnat.smnavigator.activities;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.javaprotrepticon.android.androidutils.Apps;
+import org.javaprotrepticon.android.androidutils.Fonts;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.fragments.MainFragment;
 import ru.magnat.smnavigator.fragments.MapFragment;
 import ru.magnat.smnavigator.fragments.PsrListFragment;
+import ru.magnat.smnavigator.fragments.StoreFragment;
 import ru.magnat.smnavigator.fragments.StoreListFragment;
+import ru.magnat.smnavigator.fragments.experimental.TrackFragment;
 import ru.magnat.smnavigator.model.Manager;
 import ru.magnat.smnavigator.security.account.AccountWrapper;
 import ru.magnat.smnavigator.storage.SecuredStorage;
-import ru.magnat.smnavigator.synchronization.SynchronizationListener;
-import ru.magnat.smnavigator.synchronization.SynchronizationStatus;
+import ru.magnat.smnavigator.synchronization.SynchronizationManager;
+import ru.magnat.smnavigator.synchronization.util.SynchronizationObserver;
 import ru.magnat.smnavigator.update.UpdateHelper;
 import ru.magnat.smnavigator.view.ManagerCardView;
 import android.accounts.Account;
 import android.app.backup.BackupManager;
-import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -34,12 +35,12 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
@@ -48,7 +49,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements SynchronizationObserver {
 	
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
@@ -57,10 +58,39 @@ public class MainActivity extends ActionBarActivity {
     
     private Account mAccount;
     
+    private class MenuAdapter extends ArrayAdapter<String> {
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			LayoutInflater layoutInflater = LayoutInflater.from(getBaseContext());
+			
+			TextView view = (TextView) layoutInflater.inflate(R.layout.drawer_list_item, parent, false);
+			view.setTypeface(Fonts.get(getBaseContext()).getTypeface("RobotoCondensed-Bold"));  
+			view.setText(getItem(position)); 
+			 
+			return view;
+		}
+
+		public MenuAdapter(Context context, int resource, String[] objects) {
+			super(context, resource, objects);
+			// TODO Auto-generated constructor stub
+		}
+    	
+    }
+    
+    private String[] menus;
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState); 
 
+		menus = new String[] {
+	    		getString(R.string.titleMap), 
+	    		getString(R.string.titlePsrs), 
+	    		getString(R.string.titleStores),
+	    		getString(R.string.titleTrack)
+	    	};
+		
         setContentView(R.layout.main_activity);
 
         mAccount = getIntent().getExtras().getParcelable("account");
@@ -75,7 +105,7 @@ public class MainActivity extends ActionBarActivity {
         mDrawer = (LinearLayout) findViewById(R.id.left_drawer);
         
         mDrawerList = (ListView) findViewById(R.id.left_drawer_list);
-        mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, new String[] { getString(R.string.titleMap), getString(R.string.titlePsrs), getString(R.string.titleStores) }));
+        mDrawerList.setAdapter(new MenuAdapter(getBaseContext(), 0, menus)); 
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
         updateUserInfo();
@@ -86,8 +116,10 @@ public class MainActivity extends ActionBarActivity {
             fragmentTransaction.commit();
         }
         
+        mSynchronizationManager = new SynchronizationManager(mAccount);
+        
 		// register receivers
-		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 
+		registerReceiver(mSynchronizationManager, new IntentFilter(SynchronizationManager.ACTION_SYNC)); 
 		
 		requestBackup();
 		requestUpdate();
@@ -95,14 +127,29 @@ public class MainActivity extends ActionBarActivity {
 		
 		progressBar = (ProgressBar) LayoutInflater.from(getBaseContext()).inflate(R.layout.progressbar, null, false);
 		
-		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-		toolbar.setTitle("");
-		toolbar.setSubtitle("");
-		toolbar.addView(progressBar); 
+		mToolBar = (Toolbar) findViewById(R.id.toolbar);
+		mToolBar.setTitle("");
+		mToolBar.setSubtitle("");
+		mToolBar.addView(progressBar); 
 		
-	    setSupportActionBar(toolbar);
+	    setSupportActionBar(mToolBar);
 	}
 
+	@Override
+	protected void onStart() {
+		super.onStart();
+		
+		mSynchronizationManager.registerSynchronizationObserver(this); 
+	}
+	
+	@Override
+	protected void onStop() {
+		super.onStop();
+		
+		mSynchronizationManager.unregisterSynchronizationObserver(this); 
+	}
+	
+	private Toolbar mToolBar;
 	private ProgressBar progressBar;
 	
     @Override
@@ -232,6 +279,7 @@ public class MainActivity extends ActionBarActivity {
     private MapFragment mMapFragment;
     private PsrListFragment mPsrListFragment;
     private StoreListFragment mStoreListFragment;
+    private StoreFragment mTrackFragment;
     
     private void selectItem(int position) {
     	mDrawerList.setItemChecked(position, true);
@@ -270,6 +318,15 @@ public class MainActivity extends ActionBarActivity {
 				
 				fragment = mStoreListFragment;
 			} break;
+			case 3: {
+				if (mTrackFragment == null) {
+					mTrackFragment = new StoreFragment();
+					
+					mTrackFragment.setArguments(arguments);
+				}
+				
+				fragment = mTrackFragment;
+			} break;
 			default: {
 				return;
 			}
@@ -278,6 +335,14 @@ public class MainActivity extends ActionBarActivity {
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.content_frame, fragment);
         fragmentTransaction.commit();
+    }
+    
+    public void registerSynchronizationObserver(SynchronizationObserver observer) {
+    	mSynchronizationManager.registerSynchronizationObserver(observer); 
+    }
+    
+    public void unregisterSynchronizationObserver(SynchronizationObserver observer) {
+    	mSynchronizationManager.unregisterSynchronizationObserver(observer); 
     }
     
     @Override
@@ -294,7 +359,7 @@ public class MainActivity extends ActionBarActivity {
 		super.onDestroy();
 		
 		// unregister receivers
-		unregisterReceiver(mSyncReceiver); 
+		unregisterReceiver(mSynchronizationManager); 
 	}
 	
 	@Override
@@ -307,21 +372,12 @@ public class MainActivity extends ActionBarActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
+			case android.R.id.home: {
+				mDrawerLayout.openDrawer(mDrawer);
+			} break;
 			case R.id.actionSync: {
 				requestSync();
 			} break;
-//			case R.id.actionChangeUser: {
-//				requestChangeUser();
-//			} break;
-//			case R.id.checkUpdates: {
-//				requestUpdate();
-//			} break;
-//			case R.id.actionAbout: {
-//				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//				builder.setMessage(Apps.getVersionName(this)); 
-//				builder.setCancelable(true);
-//				builder.create().show();
-//			} break;
 			default: {
 				return super.onOptionsItemSelected(item);
 			}
@@ -330,83 +386,62 @@ public class MainActivity extends ActionBarActivity {
 		return super.onOptionsItemSelected(item);
 	}
 	
-	public static final String ACTION_SYNC = "ru.magnat.smnavigator.sync.ACTION_SYNC"; 
+	private SynchronizationManager mSynchronizationManager;
 	
-	private List<SynchronizationListener> mSyncListeners = new ArrayList<SynchronizationListener>(); 
-	
-	public void registerSyncListener(SynchronizationListener listener) {
-		mSyncListeners.add(listener);
+	@Override
+	public void onStarted() {
+    	progressBar.setVisibility(View.VISIBLE); 
+    	
+    	if (mInitialSynchronize) { 
+    		mToolBar.setVisibility(View.GONE);
+    	}
 	}
-	
-	public void unregisterSyncListener(SynchronizationListener listener) {
-		mSyncListeners.remove(listener);
-	}
-	
-	private void notifySyncListeners(SynchronizationStatus status) {
-		for (SynchronizationListener listener : mSyncListeners) {
-			listener.onSynchronizationCompleted(status);
-		}
-	}
-	
-	private BroadcastReceiver mSyncReceiver = new BroadcastReceiver() {
-		
-		private static final String TAG = "SYNCHRONIZATION";
-		
-	    @Override
-	    public void onReceive(Context context, Intent intent) {
-	        if(intent.getAction().equals(ACTION_SYNC) && intent.getStringExtra("account").equals(mAccount.name)) { 
-	        	String action = intent.getStringExtra("action");
-	            
-	            if (action.equals("started")) {
-	            	Log.d(TAG, "sync:started->" + intent.getStringExtra("account"));
-	            	
-	            	progressBar.setVisibility(View.VISIBLE); 
-	            	
-	            	notifySyncListeners(SynchronizationStatus.STARTED); 
-	            }
-	            if (action.equals("ack")) {
-	            	Log.d(TAG, "sync:ack->" + intent.getStringExtra("account"));
-	            	
-	            	progressBar.setVisibility(View.VISIBLE); 
-	            	
-	            	notifySyncListeners(SynchronizationStatus.ACK);
-	            }
-	            if (action.equals("completed")) {
-	            	Log.d(TAG, "sync:completed->" + intent.getStringExtra("account")); 
-	            	
-	            	if (mInitialSynchronize) { 
-	            		selectItem(0); 
-	            	}
-	            	
-	    			updateUserInfo();
 
-	    			progressBar.setVisibility(View.INVISIBLE); 
-	    			
-	    			notifySyncListeners(SynchronizationStatus.COMPLETED);
-	    			
-	            	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncSuccess), Toast.LENGTH_LONG).show(); 
-	            }
-	            if (action.equals("canceled")) {
-	            	Log.d(TAG, "sync:canceled->" + intent.getStringExtra("account"));  
-	            	
-	            	progressBar.setVisibility(View.INVISIBLE); 
-	            	
-	            	notifySyncListeners(SynchronizationStatus.CANCELED);
-	            	
-	            	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncCanceled), Toast.LENGTH_LONG).show();	
-	            }
-	            if (action.equals("error")) {
-	            	Log.d(TAG, "sync:error->" + intent.getStringExtra("account"));  
-	            	
-	            	progressBar.setVisibility(View.INVISIBLE); 
-	            	
-	            	notifySyncListeners(SynchronizationStatus.ERROR);
-	            	
-	            	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncError), Toast.LENGTH_LONG).show();	
-	            }
-	        }
-	    }
-	    
-	};
+	@Override
+	public void onAck() {
+    	progressBar.setVisibility(View.VISIBLE); 
+    	
+    	if (mInitialSynchronize) { 
+    		mToolBar.setVisibility(View.GONE);
+    	}
+	}
+
+	@Override
+	public void onCompleted() {
+    	if (mInitialSynchronize) { 
+    		mToolBar.setVisibility(View.VISIBLE);
+    		selectItem(0); 
+    	}
+    	
+		updateUserInfo();
+
+		progressBar.setVisibility(View.INVISIBLE); 
+		
+    	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncSuccess), Toast.LENGTH_LONG).show(); 
+
+	}
+
+	@Override
+	public void onCanceled() {
+    	progressBar.setVisibility(View.INVISIBLE); 
+    	
+    	if (mInitialSynchronize) { 
+    		mToolBar.setVisibility(View.VISIBLE);
+    	}
+    	
+    	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncCanceled), Toast.LENGTH_LONG).show();	
+	}
+
+	@Override
+	public void onError() {
+    	progressBar.setVisibility(View.INVISIBLE); 
+    	
+    	if (mInitialSynchronize) { 
+    		mToolBar.setVisibility(View.VISIBLE);
+    	}
+    	
+    	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncError), Toast.LENGTH_LONG).show();	
+
+	}
 	
 }

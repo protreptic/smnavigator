@@ -13,8 +13,7 @@ import ru.magnat.smnavigator.location.LocationHelper;
 import ru.magnat.smnavigator.model.Manager;
 import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.storage.SecuredStorage;
-import ru.magnat.smnavigator.synchronization.SynchronizationListener;
-import ru.magnat.smnavigator.synchronization.SynchronizationStatus;
+import ru.magnat.smnavigator.synchronization.util.SynchronizationObserver;
 import android.accounts.Account;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -43,7 +42,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.j256.ormlite.dao.Dao;
 
-public class MapFragment extends SupportMapFragment implements SynchronizationListener {
+public class MapFragment extends SupportMapFragment implements SynchronizationObserver {
 	
 	private LocationHelper mLocationHelper;
 	private Account mAccount;
@@ -142,7 +141,7 @@ public class MapFragment extends SupportMapFragment implements SynchronizationLi
 	
 	public class LoadData extends AsyncTask<Void, Void, Void> {
 
-		private Dao<Store, String> mStoreDao;
+		private Dao<Store, Integer> mStoreDao;
 		
 		public LoadData() {
 			mStoreDao = SecuredStorage.get(getActivity(), mAccount).getStoreDao();
@@ -282,35 +281,39 @@ public class MapFragment extends SupportMapFragment implements SynchronizationLi
 	public void onResume() {
 		super.onResume();
 		
-		((MainActivity) getActivity()).registerSyncListener(this);
+		((MainActivity) getActivity()).registerSynchronizationObserver(this);
 	}
 	
 	@Override
 	public void onPause() {
 		super.onPause();
 		
-		((MainActivity) getActivity()).unregisterSyncListener(this);
+		((MainActivity) getActivity()).unregisterSynchronizationObserver(this);
 	}
 	
 	@Override
-	public void onInitialSynchronizationCompleted(SynchronizationStatus status) {}
-	
+	public void onStarted() {
+		
+	}
+
 	@Override
-	public void onSynchronizationCompleted(SynchronizationStatus status) {
-		switch (status) {
-			case STARTED: {} break;
-			case ACK: {} break;
-			case COMPLETED: {
-				updateMap();
-			} break;
-			case CANCELED: {
-				updateMap();
-			} break;
-			case ERROR: {
-				updateMap();
-			} break;
-			default: {} break;
-		}
+	public void onAck() {
+		
+	}
+
+	@Override
+	public void onCompleted() {
+		updateMap();
+	}
+
+	@Override
+	public void onCanceled() {
+		updateMap();
+	}
+
+	@Override
+	public void onError() {
+		updateMap();
 	}
 
 }

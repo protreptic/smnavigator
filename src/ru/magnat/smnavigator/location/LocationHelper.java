@@ -1,6 +1,7 @@
 package ru.magnat.smnavigator.location;
 
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -13,24 +14,31 @@ import ru.magnat.smnavigator.model.Branch;
 import ru.magnat.smnavigator.model.Georegion;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Store;
+import ru.magnat.smnavigator.model.experimental.Geocoordinate;
 import ru.magnat.smnavigator.storage.SecuredStorage;
 import android.accounts.Account;
 import android.content.Context;
 import android.graphics.Color;
+import android.location.Location;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnMyLocationChangeListener;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.ClusterManager.OnClusterItemInfoWindowClickListener;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
+import com.j256.ormlite.dao.Dao;
 
 public class LocationHelper {
 	
@@ -121,6 +129,7 @@ public class LocationHelper {
 		addPsrMarkers();
 		addStoreMarkers();
 		addBranchRegions();
+		//addManagerTrack();
 		//addHeatMap();
 	}
 	
@@ -197,6 +206,89 @@ public class LocationHelper {
     	return branches;
     }
 	
+    private PolylineOptions managerTrack = new PolylineOptions();
+    private Polyline polyline;
+    
+    private List<Geocoordinate> getGeocoordinates() {
+    	List<Geocoordinate> geocoordinates = null;
+    	
+		SecuredStorage dbHelper = SecuredStorage.get(mContext, mAccount);
+		
+		try {		
+			Dao<Geocoordinate, Integer> geocoordinateDao = dbHelper.getGeocoordinateDao();
+			
+			geocoordinates = geocoordinateDao.queryForAll();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		SecuredStorage.close();
+		
+		return geocoordinates;
+    }
+    
+    private void saveGeocoordinate(Location location) {
+		SecuredStorage dbHelper = SecuredStorage.get(mContext, mAccount);
+		
+		try {		
+			Geocoordinate geocoordinate = new Geocoordinate();
+			geocoordinate.setLatitude(location.getLatitude());
+			geocoordinate.setLongitude(location.getLongitude()); 
+			
+			Dao<Geocoordinate, Integer> geocoordinateDao = dbHelper.getGeocoordinateDao();
+			geocoordinateDao.create(geocoordinate);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		SecuredStorage.close();
+    }
+    
+    private void addManagerTrack() {
+    	managerTrack.width(6);
+    	managerTrack.color(Color.RED);
+    	managerTrack.geodesic(true);
+    	
+    	for (Geocoordinate geocoordinate : getGeocoordinates()) {
+    		managerTrack.add(new LatLng(geocoordinate.getLatitude(), geocoordinate.getLongitude()));
+		}
+    	
+    	polyline = mMap.addPolyline(managerTrack);
+    	
+    	mMap.setOnMyLocationChangeListener(new OnMyLocationChangeListener() {
+			
+			@Override
+			public void onMyLocationChange(Location location) {
+				if (location != null) {
+					float accuracy = location.getAccuracy();
+					double altitude = location.getAltitude();
+					float bearing = location.getBearing();
+					double latitude = location.getLatitude();
+					double longitude = location.getLongitude();
+					String provider = location.getProvider();
+					float speed = location.getSpeed();
+					Timestamp time = new Timestamp(location.getTime());
+					Timestamp elapsedRealtimeNanos = new Timestamp(location.getElapsedRealtimeNanos());
+					
+					Log.d("locationChanged", "location [accuracy=" + accuracy + ", altitude=" + altitude + ", bearing=" + bearing + ", latitude=" + latitude + ", longitude=" + longitude + ", provider=" + provider + ", speed=" + speed + ", time=" + time + ", elapsedRealtimeNanos=" + elapsedRealtimeNanos + ", extras=" + location.getExtras() + "]");
+					
+					if (location.getSpeed() == 0) {
+						return; 
+					}
+					
+					saveGeocoordinate(location); 
+					
+					managerTrack.add(new LatLng(location.getLatitude(), location.getLongitude()));
+					
+					if (polyline != null) 
+						polyline.remove();
+					
+					polyline = mMap.addPolyline(managerTrack);
+				}
+			}
+		});
+    }
+    
 	private void addBranchRegions() {
 		for (Branch branch : getBranches()) {
 			SecuredStorage dbHelper = SecuredStorage.get(mContext, mAccount);

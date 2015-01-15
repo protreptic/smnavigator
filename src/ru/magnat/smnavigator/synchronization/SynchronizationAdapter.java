@@ -16,7 +16,6 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.model.Branch;
 import ru.magnat.smnavigator.model.Customer;
 import ru.magnat.smnavigator.model.Department;
@@ -170,7 +169,7 @@ public class SynchronizationAdapter extends AbstractThreadedSyncAdapter {
     }
     
     private void sendNotification(String action) {
-    	Intent intentStarted = new Intent(MainActivity.ACTION_SYNC);
+    	Intent intentStarted = new Intent(SynchronizationManager.ACTION_SYNC);
     	intentStarted.putExtra("action", action);
     	intentStarted.putExtra("account", mAccount.name);
     	
@@ -192,7 +191,7 @@ public class SynchronizationAdapter extends AbstractThreadedSyncAdapter {
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Manager, String> managerDao = mMainDbHelper.getManagerDao();
+		Dao<Manager, Integer> managerDao = mMainDbHelper.getManagerDao();
 		managerDao.setObjectCache(false); 
 		managerDao.delete(managerDao.queryForAll());
 		
@@ -217,7 +216,7 @@ public class SynchronizationAdapter extends AbstractThreadedSyncAdapter {
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Branch, String> branchDao = mMainDbHelper.getBranchDao();
+		Dao<Branch, Integer> branchDao = mMainDbHelper.getBranchDao();
 		branchDao.setObjectCache(false); 
 		branchDao.delete(branchDao.queryForAll());
 		
@@ -241,7 +240,7 @@ public class SynchronizationAdapter extends AbstractThreadedSyncAdapter {
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Location, String> locationDao = mMainDbHelper.getLocationDao();
+		Dao<Location, Integer> locationDao = mMainDbHelper.getLocationDao();
 		locationDao.setObjectCache(false); 
 		locationDao.delete(locationDao.queryForAll());
 		
@@ -265,7 +264,7 @@ public class SynchronizationAdapter extends AbstractThreadedSyncAdapter {
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Department, String> departmentDao = mMainDbHelper.getDepartmentDao();
+		Dao<Department, Integer> departmentDao = mMainDbHelper.getDepartmentDao();
 		departmentDao.setObjectCache(false); 
 		departmentDao.delete(departmentDao.queryForAll());
 		
@@ -291,7 +290,7 @@ public class SynchronizationAdapter extends AbstractThreadedSyncAdapter {
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Psr, String> psrDao = mMainDbHelper.getPsrDao();
+		Dao<Psr, Integer> psrDao = mMainDbHelper.getPsrDao();
 		psrDao.setObjectCache(false); 
 		psrDao.delete(psrDao.queryForAll());
 		
@@ -318,7 +317,7 @@ public class SynchronizationAdapter extends AbstractThreadedSyncAdapter {
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Route, String> routeDao = mMainDbHelper.getRouteDao();
+		Dao<Route, Integer> routeDao = mMainDbHelper.getRouteDao();
 		routeDao.setObjectCache(false); 
 		routeDao.delete(routeDao.queryForAll());
 		
@@ -346,7 +345,7 @@ public class SynchronizationAdapter extends AbstractThreadedSyncAdapter {
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Store, String> storeDao = mMainDbHelper.getStoreDao();
+		Dao<Store, Integer> storeDao = mMainDbHelper.getStoreDao();
 		storeDao.setObjectCache(false); 
 		storeDao.delete(storeDao.queryForAll());
 		
@@ -370,7 +369,7 @@ public class SynchronizationAdapter extends AbstractThreadedSyncAdapter {
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<StoreProperty, String> storePropertyDao = mMainDbHelper.getStorePropertyDao();
+		Dao<StoreProperty, Integer> storePropertyDao = mMainDbHelper.getStorePropertyDao();
 		storePropertyDao.setObjectCache(false); 
 		storePropertyDao.delete(storePropertyDao.queryForAll());
 		
@@ -394,7 +393,7 @@ public class SynchronizationAdapter extends AbstractThreadedSyncAdapter {
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Customer, String> customerDao = mMainDbHelper.getCustomerDao();
+		Dao<Customer, Integer> customerDao = mMainDbHelper.getCustomerDao();
 		customerDao.setObjectCache(false); 
 		customerDao.delete(customerDao.queryForAll());
 		
@@ -419,7 +418,7 @@ public class SynchronizationAdapter extends AbstractThreadedSyncAdapter {
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Measure, String> measureDao = mMainDbHelper.getMeasureDao();
+		Dao<Measure, Integer> measureDao = mMainDbHelper.getMeasureDao();
 		measureDao.setObjectCache(false); 
 		measureDao.delete(measureDao.queryForAll());
 		
@@ -444,7 +443,7 @@ public class SynchronizationAdapter extends AbstractThreadedSyncAdapter {
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Target, String> targetDao = mMainDbHelper.getTargetDao();
+		Dao<Target, Integer> targetDao = mMainDbHelper.getTargetDao();
 		targetDao.setObjectCache(false); 
 		targetDao.delete(targetDao.queryForAll());
 		
@@ -468,7 +467,7 @@ public class SynchronizationAdapter extends AbstractThreadedSyncAdapter {
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Georegion, String> georegionDao = mMainDbHelper.getGeoregionDao();
+		Dao<Georegion, Integer> georegionDao = mMainDbHelper.getGeoregionDao();
 		georegionDao.setObjectCache(false); 
 		georegionDao.delete(georegionDao.queryForAll());
 		

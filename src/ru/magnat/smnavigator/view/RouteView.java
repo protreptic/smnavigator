@@ -9,8 +9,6 @@ import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.model.Route;
 import android.content.Context;
 import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -34,15 +32,6 @@ public class RouteView extends RelativeLayout {
 		TextView description = (TextView) relativeLayout.findViewById(R.id.description); 
 		description.setTypeface(Fonts.get(context).getDefaultTypeface());  
 		description.setText(Text.prepareAddress(route.getStore().getAddress())); 
-		
-		ImageView actions = (ImageView) relativeLayout.findViewById(R.id.actions); 
-		actions.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View view) {
-				
-			}
-		});
 		
 		addView(relativeLayout); 
 	}

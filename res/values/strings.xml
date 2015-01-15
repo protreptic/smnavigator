@@ -35,9 +35,10 @@
     <string name="syncError">Синхронизация не выполненна</string>
     <string name="syncCanceled">Синхронизация отменена</string>
     
-    <string name="titleMap">Карта</string>
-    <string name="titlePsrs">Торговые агенты</string>
-    <string name="titleStores">Магазины</string>
+    <string name="titleMap">КАРТА</string>
+    <string name="titlePsrs">ТОРГОВЫЕ АГЕНТЫ</string>
+    <string name="titleStores">КОНТРАГЕНТЫ</string>
+    <string name="titleTrack">МАРШРУТЫ</string>
     
     <string name="syncLastSuccessAttempt">Последняя успешная синхронизация </string>
     

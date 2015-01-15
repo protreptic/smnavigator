@@ -7,72 +7,55 @@ import java.util.List;
 import org.javaprotrepticon.android.androidutils.Fonts;
 import org.javaprotrepticon.android.androidutils.Text;
 
-import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.R;
+import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.fragments.base.BaseEndlessListFragment;
 import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.model.Target;
-import ru.magnat.smnavigator.synchronization.SynchronizationListener;
-import ru.magnat.smnavigator.synchronization.SynchronizationStatus;
+import ru.magnat.smnavigator.storage.SecuredStorage;
+import ru.magnat.smnavigator.synchronization.util.SynchronizationObserver;
 import ru.magnat.smnavigator.view.TargetView;
 import ru.magnat.smnavigator.widget.StaticMapView;
 import android.accounts.Account;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.View.OnClickListener;
-import android.widget.AbsListView;
-import android.widget.BaseExpandableListAdapter;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.AbsListView.OnScrollListener;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.SearchView.OnQueryTextListener;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
+import android.widget.BaseExpandableListAdapter;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.QueryBuilder;
 
-public class StoreListFragment extends BaseEndlessListFragment implements OnScrollListener, SynchronizationListener {
+public class StoreListFragment extends BaseEndlessListFragment implements OnScrollListener, SynchronizationObserver {
 
 	@Override
 	public void onResume() {
 		super.onResume();
 		
-		((MainActivity) getActivity()).registerSyncListener(this);
+		((MainActivity) getActivity()).registerSynchronizationObserver(this);
 	}
 	
 	@Override
 	public void onPause() {
 		super.onPause();
 		
-		((MainActivity) getActivity()).unregisterSyncListener(this);
-	}
-	
-	@Override
-	public void onSynchronizationCompleted(SynchronizationStatus status) {
-		switch (status) {
-			case STARTED: {} break;
-			case ACK: {} break;
-			case COMPLETED: {
-				new LoadData().execute();
-			} break;
-			case CANCELED: {
-				new LoadData().execute();
-			} break;
-			case ERROR: {
-				new LoadData().execute();
-			} break;
-			default: {} break;
-		}
+		((MainActivity) getActivity()).unregisterSynchronizationObserver(this);
 	}
 	
 	private List<Store> mGroupData = new ArrayList<Store>();
@@ -136,14 +119,6 @@ public class StoreListFragment extends BaseEndlessListFragment implements OnScro
 	
 	private class LoadData extends AsyncTask<Void, Void, Void> {
 		
-		private Dao<Store, String> mStoreDao;
-		private Dao<Target, String> mTargetDao;
-		
-		public LoadData() {
-			mStoreDao = getDbHelper().getStoreDao();
-			mTargetDao = getDbHelper().getTargetDao();
-		}
-		
 		@Override
 		protected void onPreExecute() {
 			if (offset == 0) {
@@ -155,22 +130,47 @@ public class StoreListFragment extends BaseEndlessListFragment implements OnScro
 		
 		@Override
 		protected Void doInBackground(Void... params) {
-			try { 
-				if (count == 0) 
-					count = mStoreDao.queryBuilder().where().like("name", mQueryText).or().like("address", mQueryText).countOf();
+			SecuredStorage securedStorage = SecuredStorage.get(getActivity(), mAccount);
+			
+			Dao<Store, Integer> storeDao = securedStorage.getStoreDao();
+			Dao<Target, Integer> targetDao = securedStorage.getTargetDao();
+			
+			QueryBuilder<Store, Integer> queryBuilder;
+			
+			try {
+				queryBuilder = storeDao.queryBuilder();
+				queryBuilder.where()
+					.like("name", mQueryText)
+						.or()
+					.like("address", mQueryText);
 				
-				List<Store> stores = mStoreDao.queryBuilder().offset(offset).limit(limit).where().like("name", mQueryText).or().like("address", mQueryText).query();
+				if (count == 0) {
+					count = queryBuilder.countOf();
+				}
+				
+				queryBuilder = storeDao.queryBuilder();
+				queryBuilder.where()
+					.like("name", mQueryText)
+						.or()
+					.like("address", mQueryText);
+				queryBuilder.offset(offset);
+				queryBuilder.limit(limit);
+				queryBuilder.orderBy("name", true);
+				
+				List<Store> stores = queryBuilder.query();
 				
 				offset += stores.size();
 				
 				mGroupData.addAll(stores);
 				
 				for (Store store : stores) {
-					mChildData.add(mTargetDao.queryForEq("store", store.getId().toString()));	
+					mChildData.add(targetDao.queryForEq("store", store.getId()));	
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
+			
+			SecuredStorage.close();
 			
 			return null;
 		}
@@ -319,9 +319,28 @@ public class StoreListFragment extends BaseEndlessListFragment implements OnScro
 	public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {}
 
 	@Override
-	public void onInitialSynchronizationCompleted(SynchronizationStatus status) {
-		// TODO Auto-generated method stub
+	public void onStarted() {
 		
+	}
+
+	@Override
+	public void onAck() {
+		
+	}
+
+	@Override
+	public void onCompleted() {
+		new LoadData().execute();
+	}
+
+	@Override
+	public void onCanceled() {
+		new LoadData().execute();
+	}
+
+	@Override
+	public void onError() {
+		new LoadData().execute();
 	}
 	
 }

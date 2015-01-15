@@ -127,7 +127,7 @@ public class ShopFragmentW extends Fragment {
 	
 	public class LoadData extends AsyncTask<Void, Void, Void> {
 
-		private Dao<Store, String> mStoreDao;
+		private Dao<Store, Integer> mStoreDao;
 		
 		public LoadData() {
 			mStoreDao = SecuredStorage.get(getActivity(), mAccount).getStoreDao();

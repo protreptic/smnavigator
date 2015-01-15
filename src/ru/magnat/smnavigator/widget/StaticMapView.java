@@ -64,6 +64,7 @@ public class StaticMapView extends RelativeLayout {
 		this.path = getContext().getCacheDir().getAbsolutePath() + "/" + hash;
 		
 		ImageView imageView = new ImageView(getContext());
+		imageView.setBackground(null); 
 		imageView.setBackground(unavailable); 
 		
 		if (drawables.get(hash) != null) {

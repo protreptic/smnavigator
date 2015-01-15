@@ -93,3 +93,16 @@ create table georegion (
 	latitude double,
 	longitude double		
 );
+
+create table geocoordinate (
+	id integer primary key auto_increment,
+	track integer,
+	latitude double,
+	longitude double
+);
+
+create table track (
+	id integer primary key auto_increment,
+	track_date date,
+	manager integer
+);

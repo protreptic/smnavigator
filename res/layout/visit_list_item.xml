@@ -22,39 +22,17 @@
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/subtitle"
         android:layout_below="@+id/subtitle"
-        android:layout_toLeftOf="@+id/actions"
         android:paddingBottom="5dp"
         android:paddingTop="5dp"
         android:text="@string/description"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="@color/selected_caption1" />
 
-    <ImageView
-        android:id="@+id/actions"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="3dp"
-        android:background="@drawable/details_button"
-        android:contentDescription="@string/contentDescription" />
-
-    <View
-        android:id="@+id/view1"
-        android:layout_width="5dp"
-        android:layout_height="match_parent"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:background="@drawable/endless_list_background" />
-
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/actions"
         android:layout_marginLeft="5dp"
-        android:layout_toLeftOf="@+id/actions"
         android:layout_toRightOf="@+id/view1"
         android:text="@string/title"
         android:textAppearance="?android:attr/textAppearanceLarge" />

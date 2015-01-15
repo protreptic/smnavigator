@@ -7,16 +7,17 @@ import java.util.List;
 import org.javaprotrepticon.android.androidutils.Fonts;
 import org.javaprotrepticon.android.androidutils.Text;
 
-import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.R;
+import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.fragments.base.BaseListFragment;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
-import ru.magnat.smnavigator.synchronization.SynchronizationListener;
-import ru.magnat.smnavigator.synchronization.SynchronizationStatus;
+import ru.magnat.smnavigator.storage.SecuredStorage;
+import ru.magnat.smnavigator.synchronization.util.SynchronizationObserver;
 import ru.magnat.smnavigator.view.RouteView;
 import ru.magnat.smnavigator.widget.StaticMapView;
 import android.accounts.Account;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -37,51 +38,22 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.QueryBuilder;
 
-public class PsrListFragment extends BaseListFragment implements SynchronizationListener {
+public class PsrListFragment extends BaseListFragment implements SynchronizationObserver {
 
 	@Override
 	public void onResume() {
 		super.onResume();
 
-		((MainActivity) getActivity()).registerSyncListener(this);
+		((MainActivity) getActivity()).registerSynchronizationObserver(this);
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
 
-		((MainActivity) getActivity()).unregisterSyncListener(this);
-	}
-
-	@Override
-	public void onInitialSynchronizationCompleted(SynchronizationStatus status) {}
-	
-	@Override
-	public void onSynchronizationCompleted(SynchronizationStatus status) {
-		switch (status) {
-		case STARTED: {
-		}
-			break;
-		case ACK: {
-		}
-			break;
-		case COMPLETED: {
-			new LoadData().execute();
-		}
-			break;
-		case CANCELED: {
-			new LoadData().execute();
-		}
-			break;
-		case ERROR: {
-			new LoadData().execute();
-		}
-			break;
-		default: {
-		}
-			break;
-		}
+		((MainActivity) getActivity()).unregisterSynchronizationObserver(this);
 	}
 
 	private List<Psr> mGroupData = new ArrayList<Psr>();
@@ -132,29 +104,31 @@ public class PsrListFragment extends BaseListFragment implements Synchronization
 
 	private class LoadData extends BaseDataLoader {
 
-		private Dao<Psr, String> mPsrDao;
-		private Dao<Route, String> mRouteDao;
-
-		public LoadData() {
-			mPsrDao = getDbHelper().getPsrDao();
-			mRouteDao = getDbHelper().getRouteDao();
-		}
-
 		@Override
 		protected Void doInBackground(Void... params) {
 			mGroupData.clear();
 			mChildData.clear();
 
+			SecuredStorage securedStorage = SecuredStorage.get(getActivity(), mAccount);
+			
+			Dao<Psr, Integer> psrDao = securedStorage.getPsrDao();
+			Dao<Route, Integer> routeDao = securedStorage.getRouteDao();
+			
 			try {
-				List<Psr> psrs = mPsrDao.queryBuilder().where()
-						.like("name", mQueryText).or()
-						.like("project", mQueryText).query();
+				QueryBuilder<Psr, Integer> queryBuilder = psrDao.queryBuilder();
+				
+				queryBuilder.where()
+					.like("name", mQueryText)
+						.or()
+					.like("project", mQueryText);
+				queryBuilder.orderBy("name", true);
+				
+				List<Psr> psrs = queryBuilder.query();
 
 				mGroupData.addAll(psrs);
 
 				for (Psr psr : psrs) {
-					List<Route> routes = mRouteDao.queryForEq("psr", psr
-							.getId().toString());
+					List<Route> routes = routeDao.queryForEq("psr", psr.getId());
 					if (!routes.isEmpty()) {
 						mChildData.add(routes);
 					}
@@ -163,6 +137,8 @@ public class PsrListFragment extends BaseListFragment implements Synchronization
 				e.printStackTrace();
 			}
 
+			SecuredStorage.close();
+			
 			return null;
 		}
 
@@ -170,6 +146,14 @@ public class PsrListFragment extends BaseListFragment implements Synchronization
 
 	private class MyAdapter extends BaseExpandableListAdapter {
 
+		private LayoutInflater layoutInflater;
+		private Typeface typeface;
+		
+		public MyAdapter() {
+			layoutInflater = LayoutInflater.from(getActivity());
+			typeface = Fonts.get(getActivity()).getDefaultTypeface();
+		}
+		
 		@Override
 		public int getGroupCount() {
 			return mGroupData.size();
@@ -202,31 +186,24 @@ public class PsrListFragment extends BaseListFragment implements Synchronization
 		}
 
 		@Override
-		public View getGroupView(int groupPosition, boolean isExpanded,
-				View convertView, ViewGroup parent) {
+		public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
 			final Psr psr = (Psr) getGroup(groupPosition);
 
-			RelativeLayout relativeLayout = (RelativeLayout) LayoutInflater
-					.from(getActivity()).inflate(R.layout.default_list_item,
-							parent, false);
+			RelativeLayout relativeLayout = (RelativeLayout) layoutInflater.inflate(R.layout.default_list_item, parent, false);
 
 			TextView title = (TextView) relativeLayout.findViewById(R.id.title);
-			title.setTypeface(Fonts.get(getActivity()).getDefaultTypeface());
+			title.setTypeface(typeface);
 			title.setText(psr.getName());
 
-			TextView subtitle = (TextView) relativeLayout
-					.findViewById(R.id.subtitle);
-			subtitle.setTypeface(Fonts.get(getActivity()).getDefaultTypeface());
+			TextView subtitle = (TextView) relativeLayout.findViewById(R.id.subtitle);
+			subtitle.setTypeface(typeface);
 			subtitle.setText(psr.getBranch().getName());
 
-			TextView description = (TextView) relativeLayout
-					.findViewById(R.id.description);
-			description.setTypeface(Fonts.get(getActivity())
-					.getDefaultTypeface());
+			TextView description = (TextView) relativeLayout.findViewById(R.id.description);
+			description.setTypeface(typeface);
 			description.setText(psr.getDepartment().getName());
 
-			StaticMapView staticmap = (StaticMapView) relativeLayout
-					.findViewById(R.id.staticmap);
+			StaticMapView staticmap = (StaticMapView) relativeLayout.findViewById(R.id.staticmap);
 			staticmap.setMappable(psr);
 			staticmap.setOnClickListener(new OnClickListener() {
 
@@ -251,8 +228,7 @@ public class PsrListFragment extends BaseListFragment implements Synchronization
 					Fragment fragment = new MapFragment();
 					fragment.setArguments(arguments);
 
-					FragmentTransaction fragmentTransaction = getActivity()
-							.getSupportFragmentManager().beginTransaction();
+					FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
 					fragmentTransaction.replace(R.id.content_frame, fragment);
 					fragmentTransaction.addToBackStack(null);
 					fragmentTransaction.commit();
@@ -260,19 +236,16 @@ public class PsrListFragment extends BaseListFragment implements Synchronization
 
 			});
 
-			TextView staticmaptitle = (TextView) relativeLayout
-					.findViewById(R.id.staticmaptitle);
-			staticmaptitle.setTypeface(Fonts.get(getActivity())
-					.getDefaultTypeface());
+			TextView staticmaptitle = (TextView) relativeLayout.findViewById(R.id.staticmaptitle);
+			staticmaptitle.setTypeface(typeface);
 			staticmaptitle.setText(Text.prepareAddress(psr.getProject()));
 
-			ImageView details = (ImageView) relativeLayout
-					.findViewById(R.id.actions);
+			ImageView details = (ImageView) relativeLayout.findViewById(R.id.actions);
 			details.setOnClickListener(new OnClickListener() {
 
 				@Override
 				public void onClick(View v) {
-
+					
 				}
 			});
 
@@ -296,6 +269,31 @@ public class PsrListFragment extends BaseListFragment implements Synchronization
 			return false;
 		}
 
+	}
+
+	@Override
+	public void onStarted() {
+		
+	}
+
+	@Override
+	public void onAck() {
+		
+	}
+
+	@Override
+	public void onCompleted() {
+		new LoadData().execute();
+	}
+
+	@Override
+	public void onCanceled() {
+		new LoadData().execute();
+	}
+
+	@Override
+	public void onError() {
+		new LoadData().execute();
 	}
 
 }

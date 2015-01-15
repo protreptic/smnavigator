@@ -21,6 +21,8 @@ import ru.magnat.smnavigator.model.Route;
 import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.model.StoreProperty;
 import ru.magnat.smnavigator.model.Target;
+import ru.magnat.smnavigator.model.Track;
+import ru.magnat.smnavigator.model.experimental.Geocoordinate;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.Context;
@@ -143,70 +145,90 @@ public class SecuredStorage {
 			mTargetDao = DaoManager.createDao(mConnectionSource, Target.class);
 			mGeoregionDao = DaoManager.createDao(mConnectionSource, Georegion.class);
 			mLocationDao = DaoManager.createDao(mConnectionSource, Location.class);
+			mGeocoordinateDao = DaoManager.createDao(mConnectionSource, Geocoordinate.class);
+			mTrackDao = DaoManager.createDao(mConnectionSource, Track.class);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	private Dao<Manager, String> mManagerDao;
-	private Dao<Branch, String> mBranchDao;
-	private Dao<Department, String> mDepartmentDao;
-	private Dao<Psr, String> mPsrDao;
-	private Dao<Route, String> mRouteDao;
-	private Dao<Store, String> mStoreDao;
-	private Dao<StoreProperty, String> mStorePropertyDao;
-	private Dao<Customer, String> mCustomerDao;
-	private Dao<Measure, String> mMeasureDao;
-	private Dao<Target, String> mTargetDao;
-	private Dao<Georegion, String> mGeoregionDao;
-	private Dao<Location, String> mLocationDao;
+	private Dao<Manager, Integer> mManagerDao;
+	private Dao<Branch, Integer> mBranchDao;
+	private Dao<Department, Integer> mDepartmentDao;
+	private Dao<Psr, Integer> mPsrDao;
+	private Dao<Route, Integer> mRouteDao;
+	private Dao<Store, Integer> mStoreDao;
+	private Dao<StoreProperty, Integer> mStorePropertyDao;
+	private Dao<Customer, Integer> mCustomerDao;
+	private Dao<Measure, Integer> mMeasureDao;
+	private Dao<Target, Integer> mTargetDao;
+	private Dao<Georegion, Integer> mGeoregionDao;
+	private Dao<Location, Integer> mLocationDao;
+	private Dao<Track, Integer> mTrackDao;
+	private Dao<Geocoordinate, Integer> mGeocoordinateDao;
 	
-	public Dao<Location, String> getLocationDao() {
+	public Dao<Location, Integer> getLocationDao() {
 		return mLocationDao;
 	}
 	
-	public Dao<Manager, String> getManagerDao() {
+	public Dao<Manager, Integer> getManagerDao() {
 		return mManagerDao;
 	}
 	
-	public Dao<Branch, String> getBranchDao() {
+	public Dao<Branch, Integer> getBranchDao() {
 		return mBranchDao;
 	}
 	
-	public Dao<Department, String> getDepartmentDao() {
+	public Dao<Department, Integer> getDepartmentDao() {
 		return mDepartmentDao;
 	}
 	
-	public Dao<Store, String> getStoreDao() {
+	public Dao<Store, Integer> getStoreDao() {
 		return mStoreDao;
 	}
 
-	public Dao<StoreProperty, String> getStorePropertyDao() {
+	public Dao<StoreProperty, Integer> getStorePropertyDao() {
 		return mStorePropertyDao;
 	}
 	
-	public Dao<Psr, String> getPsrDao() {
+	public Dao<Psr, Integer> getPsrDao() {
 		return mPsrDao;
 	}
 
-	public Dao<Route, String> getRouteDao() {
+	public Dao<Route, Integer> getRouteDao() {
 		return mRouteDao;
 	}
 	
-	public Dao<Target, String> getTargetDao() {
+	public Dao<Target, Integer> getTargetDao() {
 		return mTargetDao;
 	}
 	
-	public Dao<Georegion, String> getGeoregionDao() {
+	public Dao<Georegion, Integer> getGeoregionDao() {
 		return mGeoregionDao;
 	}
 
-	public Dao<Customer, String> getCustomerDao() {
+	public Dao<Customer, Integer> getCustomerDao() {
 		return mCustomerDao; 
 	}
 
-	public Dao<Measure, String> getMeasureDao() {
+	public Dao<Measure, Integer> getMeasureDao() {
 		return mMeasureDao;
+	}
+
+	public Dao<Track, Integer> getTrackDao() {
+		return mTrackDao;
+	}
+
+	public void setmTrackDao(Dao<Track, Integer> mTrackDao) {
+		this.mTrackDao = mTrackDao;
+	}
+
+	public Dao<Geocoordinate, Integer> getGeocoordinateDao() {
+		return mGeocoordinateDao;
+	}
+
+	public void setmGeocoordinateDao(Dao<Geocoordinate, Integer> mGeocoordinateDao) {
+		this.mGeocoordinateDao = mGeocoordinateDao;
 	}
 	
 }

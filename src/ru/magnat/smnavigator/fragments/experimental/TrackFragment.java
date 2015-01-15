@@ -7,8 +7,6 @@ import java.util.List;
 import org.javaprotrepticon.android.androidutils.Fonts;
 import org.javaprotrepticon.android.androidutils.Text;
 
-import com.j256.ormlite.dao.Dao;
-
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.storage.SecuredStorage;
@@ -19,8 +17,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerView.LayoutManager;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.SearchView.OnQueryTextListener;
 import android.view.LayoutInflater;
@@ -30,13 +29,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-public class PsrFragmentW extends Fragment {
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.QueryBuilder;
+
+public class TrackFragment extends Fragment {
 
 	private Account mAccount;
 	
 	private RecyclerView mRecyclerView;
 	private PsrAdapter 	mAdapter;
 	private static Typeface sTypeface;
+	private static Typeface sTypefaceBold;
 		
 	private String mQueryText = "%%";
 	
@@ -75,22 +78,39 @@ public class PsrFragmentW extends Fragment {
 		return inflater.inflate(R.layout.recycler_view, container, false);
 	}
 
+    private GridLayoutManager createLayoutManager() {
+        GridLayoutManager lm = new GridLayoutManager(getActivity(), 2);
+        lm.setReverseLayout(false);
+        lm.setSpanSizeLookup(mSpanSizeLookup);
+        return lm;
+    }
+	
+    private GridLayoutManager.SpanSizeLookup mSpanSizeLookup = new GridLayoutManager.SpanSizeLookup() {
+        @Override
+        public int getSpanSize(int position) {
+            Integer item = mAdapter.getValueAt(position);
+            return 1 + (Math.abs(item.hashCode()) % mLayoutManager.getSpanCount());
+        }
+    };
+    
+    private GridLayoutManager mLayoutManager;
+    
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		
 		sTypeface = Fonts.get(getActivity()).getDefaultTypeface();
+		sTypefaceBold = Fonts.get(getActivity()).getTypeface("RobotoCondensed-Bold");
 		
 		mAccount = getArguments().getParcelable("account");
 		
-		LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
-		layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-		
 		mAdapter = new PsrAdapter();
+		
+		mLayoutManager = createLayoutManager();
 		
 		mRecyclerView = (RecyclerView) getView().findViewById(R.id.cardList);
 		mRecyclerView.setHasFixedSize(true);
-		mRecyclerView.setLayoutManager(layoutManager);
+		mRecyclerView.setLayoutManager(mLayoutManager);
 		mRecyclerView.setAdapter(mAdapter); 
 		
 		new LoadData().execute();
@@ -99,6 +119,10 @@ public class PsrFragmentW extends Fragment {
 	private List<Psr> mPsrs = new ArrayList<Psr>();
 	
 	public class PsrAdapter extends RecyclerView.Adapter<PsrViewHolder> {
+		
+		public int getValueAt(int position) {
+			return mPsrs.get(position).hashCode();
+		}
 		
 		@Override
 		public int getItemCount() {
@@ -127,23 +151,30 @@ public class PsrFragmentW extends Fragment {
 	
 	public class LoadData extends AsyncTask<Void, Void, Void> {
 
-		private Dao<Psr, String> mPsrDao;
-		
-		public LoadData() {
-			mPsrDao = SecuredStorage.get(getActivity(), mAccount).getPsrDao();
-		}
-		
 		@Override
 		protected Void doInBackground(Void... params) {
 			mPsrs.clear();
 
+			SecuredStorage securedStorage = SecuredStorage.get(getActivity(), mAccount);
+			
+			Dao<Psr, Integer> psrDao = securedStorage.getPsrDao();
+			
 			try {
-				List<Psr> psrs = mPsrDao.queryBuilder().where().like("name", mQueryText).or().like("project", mQueryText).query(); 
+				QueryBuilder<Psr, Integer> queryBuilder = psrDao.queryBuilder();
+				queryBuilder.where()
+					.like("name", mQueryText)
+						.or()
+					.like("project", mQueryText);
+				queryBuilder.orderBy("name", true);
+				
+				List<Psr> psrs = queryBuilder.query();
 				
 				mPsrs.addAll(psrs);
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
+			
+			SecuredStorage.close();
 			
 			return null;
 		}
@@ -168,7 +199,7 @@ public class PsrFragmentW extends Fragment {
 			super(itemView); 
 			
 			title = (TextView) itemView.findViewById(R.id.title);
-			title.setTypeface(sTypeface);  
+			title.setTypeface(sTypefaceBold);  
 			
 			subtitle = (TextView) itemView.findViewById(R.id.subtitle);
 			subtitle.setTypeface(sTypeface);  

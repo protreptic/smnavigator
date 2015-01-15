@@ -4,11 +4,9 @@
     android:id="@+id/card_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="5dp"
-    android:layout_marginRight="5dp"
     android:layout_marginTop="3dp"
-    android:layout_marginBottom="0dp"
-    card_view:cardCornerRadius="3dp" >
+    android:layout_marginLeft="3dp"
+    card_view:cardCornerRadius="1dp" >
 
     <RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
@@ -36,7 +34,7 @@
             android:layout_toLeftOf="@+id/actions"
             android:layout_toRightOf="@+id/staticmap"
             android:text="@string/title"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
         <TextView
             android:id="@+id/staticmaptitle"
@@ -84,7 +82,9 @@
             android:layout_alignParentTop="true"
             android:layout_marginTop="3dp"
             android:background="@drawable/details_button"
-            android:contentDescription="@string/contentDescription" />
+            android:contentDescription="@string/contentDescription"
+            android:visibility="invisible" />
+
     </RelativeLayout>
 
 </android.support.v7.widget.CardView>
