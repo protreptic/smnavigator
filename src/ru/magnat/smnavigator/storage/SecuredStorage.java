@@ -26,15 +26,12 @@ import ru.magnat.smnavigator.model.experimental.Geocoordinate;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.Context;
-import android.util.Log;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcPooledConnectionSource;
 
 public class SecuredStorage {
-	
-	private static final String TAG = "DB_HELPER_SECURED";
 	
 	static {
 		try {
@@ -44,10 +41,6 @@ public class SecuredStorage {
 		}
 	}
 	
-	private static SecuredStorage sInstance;
-	
-	private JdbcPooledConnectionSource mConnectionSource;
-	 
 	private void copyInitialScripts(Context context, String accountFolder) {
 		try {
 			InputStream is = context.getAssets().open("initial-scripts/initial-script.sql");
@@ -67,28 +60,9 @@ public class SecuredStorage {
 		}
 	}
 	
-	public synchronized static SecuredStorage get(Context context, Account account) {
-		if (sInstance == null) {
-			sInstance = new SecuredStorage(context, account);
-		}
-		
-		Log.d(TAG, "storage:instantiate->ok");
-		
-		return sInstance;
-	}
+	private JdbcPooledConnectionSource mConnectionSource;
 	
-	public synchronized static void close() {
-		if (sInstance != null) {
-			try {
-				sInstance.mConnectionSource.close();
-				sInstance = null;
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
-	private SecuredStorage(Context context, Account account) {
+	public SecuredStorage(Context context, Account account) {
 		AccountManager accountManager = AccountManager.get(context); 
 		
 		String accountName = account.name;
@@ -108,19 +82,17 @@ public class SecuredStorage {
 		}
 		
 		StringBuilder urlBuilder = new StringBuilder();
-		urlBuilder.append("jdbc:h2:file:");
+		urlBuilder.append("jdbc:h2:");
 		urlBuilder.append(accountStorage + ";");
-		urlBuilder.append("database_to_upper=false;");
-		urlBuilder.append("file_lock=file;");
-		urlBuilder.append("ifexists=false;");
-		urlBuilder.append("ignorecase=true;");
-		urlBuilder.append("page_size=1024;");
-		urlBuilder.append("cache_size=1024;");
-		urlBuilder.append("autocommit=on;");
-		urlBuilder.append("compress=false;");
-		urlBuilder.append("cipher=aes;");
-		urlBuilder.append("user=" + accountName + ";");
-		urlBuilder.append("password=" + accountPassword + " " + accountPassword + ";");
+		urlBuilder.append("AUTO_SERVER=TRUE;");
+		urlBuilder.append("DATABASE_TO_UPPER=FALSE;");
+		urlBuilder.append("IFEXISTS=FALSE;");
+		urlBuilder.append("IGNORECASE=TRUE;");
+		urlBuilder.append("PAGE_SIZE=1024;");
+		urlBuilder.append("CACHE_SIZE=1024;");
+		urlBuilder.append("AUTOCOMMIT=ON;");
+		urlBuilder.append("COMPRESS=FALSE;");
+		urlBuilder.append("CIPHER=AES;");
 		
 		if (!new File(accountStorage + ".h2.db").exists()) {	
 			urlBuilder.append("init=runscript from '" + accountFolder + "initial-script.sql" + "';");
@@ -147,6 +119,14 @@ public class SecuredStorage {
 			mLocationDao = DaoManager.createDao(mConnectionSource, Location.class);
 			mGeocoordinateDao = DaoManager.createDao(mConnectionSource, Geocoordinate.class);
 			mTrackDao = DaoManager.createDao(mConnectionSource, Track.class);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void closeConnection() {
+		try {
+			mConnectionSource.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

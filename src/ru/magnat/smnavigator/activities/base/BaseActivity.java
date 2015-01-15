@@ -1,7 +1,9 @@
 package ru.magnat.smnavigator.activities.base;
 
-import ru.magnat.smnavigator.synchronization.util.SynchronizationObserver;
+import ru.magnat.smnavigator.sync.SyncManager;
+import ru.magnat.smnavigator.synchronization.util.SyncObserver;
 import android.accounts.Account;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
@@ -11,10 +13,11 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
-public class BaseActivity extends ActionBarActivity implements SynchronizationObserver {
+public abstract class BaseActivity extends ActionBarActivity implements SyncObserver {
 	
 	protected Account mAccount;
-
+	protected SyncManager mSynchronizationManager;
+	
 	protected ActionBarDrawerToggle mDrawerToggle;
 	protected DrawerLayout mDrawerLayout;
 	protected LinearLayout mDrawer;
@@ -27,34 +30,43 @@ public class BaseActivity extends ActionBarActivity implements SynchronizationOb
 		super.onCreate(savedInstanceState);
 		
 		mAccount = getIntent().getExtras().getParcelable("account");
+		mSynchronizationManager = new SyncManager(mAccount);
+		
+		// register receivers
+		registerReceiver(mSynchronizationManager, new IntentFilter(SyncManager.ACTION_SYNC)); 
 	}
 
 	@Override
-	public void onStarted() {
+	protected void onDestroy() {
+		super.onDestroy();
 		
+		// unregister receivers
+		unregisterReceiver(mSynchronizationManager); 
 	}
-
+	
 	@Override
-	public void onAck() {
+	protected void onStart() {
+		super.onStart();
 		
+		mSynchronizationManager.registerSyncObserver(this); 
 	}
-
+	
 	@Override
-	public void onCompleted() {
+	protected void onStop() {
+		super.onStop();
 		
+		mSynchronizationManager.unregisterSyncObserver(this); 
 	}
-
-	@Override
-	public void onCanceled() {
-		
-	}
-
-	@Override
-	public void onError() {
-		
-	}
-	 
-	public class DemoDrawerListener implements DrawerLayout.DrawerListener {
+	
+    public void registerSyncObserver(SyncObserver observer) {
+    	mSynchronizationManager.registerSyncObserver(observer); 
+    }
+    
+    public void unregisterSyncObserver(SyncObserver observer) {
+    	mSynchronizationManager.unregisterSyncObserver(observer); 
+    }
+	
+	public class DefaultDrawerListener implements DrawerLayout.DrawerListener {
 		
         @Override
         public void onDrawerOpened(View drawerView) {

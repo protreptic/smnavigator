@@ -4,15 +4,16 @@
     android:id="@+id/card_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="3dp"
-    android:layout_marginTop="3dp"
-    card_view:cardCornerRadius="1dp" >
+    android:layout_margin="1dp"
+    card_view:cardCornerRadius="1dp"
+    card_view:cardElevation="2dp" >
 
     <RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:padding="10dp" >
+        android:layout_height="wrap_content"
+        android:background="@drawable/card_indicator"
+        android:padding="5dp" >
 
         <TextView
             android:id="@+id/kpiName"
@@ -42,7 +43,7 @@
                 android:layout_height="wrap_content"
                 android:padding="5dp"
                 android:text="0"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+                android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <TextView
                 android:id="@+id/TextView01"
@@ -57,7 +58,7 @@
                 android:layout_height="wrap_content"
                 android:padding="5dp"
                 android:text="0"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+                android:textAppearance="?android:attr/textAppearanceMedium" />
 
             <TextView
                 android:id="@+id/textView2"
@@ -72,7 +73,7 @@
                 android:layout_height="wrap_content"
                 android:padding="5dp"
                 android:text="0"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+                android:textAppearance="?android:attr/textAppearanceMedium" />
         </LinearLayout>
     </RelativeLayout>
 
