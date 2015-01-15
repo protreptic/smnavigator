@@ -1,30 +1,26 @@
-package ru.magnat.smnavigator.map;
+package ru.magnat.smnavigator.location;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.javaprotrepticon.android.androidutils.Fonts;
-
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.data.DbHelperSecured;
+import ru.magnat.smnavigator.location.cluster.StoreClusterRenderer;
+import ru.magnat.smnavigator.location.marker.AbstractMarker;
+import ru.magnat.smnavigator.location.marker.StoreMarker;
 import ru.magnat.smnavigator.model.Branch;
 import ru.magnat.smnavigator.model.Georegion;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Store;
+import ru.magnat.smnavigator.storage.SecuredStorage;
 import android.accounts.Account;
 import android.content.Context;
 import android.graphics.Color;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.GoogleMap.InfoWindowAdapter;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -95,7 +91,7 @@ public class LocationHelper {
 	
 	@SuppressWarnings("unused")
 	private void addHeatMap() {
-		DbHelperSecured dbHelper = DbHelperSecured.get(mContext, mAccount);
+		SecuredStorage dbHelper = SecuredStorage.get(mContext, mAccount);
 		
 		try {
 			List<LatLng> points = new ArrayList<LatLng>();
@@ -116,7 +112,7 @@ public class LocationHelper {
 			e.printStackTrace();
 		}
 		
-		DbHelperSecured.close();
+		SecuredStorage.close();
 	}
 	
 	public void updateOverlays() {	
@@ -129,7 +125,7 @@ public class LocationHelper {
 	}
 	
 	private void addPsrMarkers() {
-		DbHelperSecured dbHelper = DbHelperSecured.get(mContext, mAccount);
+		SecuredStorage dbHelper = SecuredStorage.get(mContext, mAccount);
 		
 		try {
 			List<Psr> psrs = dbHelper.getPsrDao().queryForAll();
@@ -147,35 +143,11 @@ public class LocationHelper {
 			e.printStackTrace();
 		}
 		
-		DbHelperSecured.close();
-	}
-	
-	private class ShopInfoWindowAdapter implements InfoWindowAdapter {
-
-		@Override
-		public View getInfoContents(Marker marker) {
-			return null;
-		}
-		
-		@Override
-		public View getInfoWindow(Marker marker) {
-			RelativeLayout relativeLayout = (RelativeLayout) LayoutInflater.from(mContext).inflate(R.layout.user_info_view, null, false);
-			
-			TextView name = (TextView) relativeLayout.findViewById(R.id.title); 
-			name.setTypeface(Fonts.get(mContext).getTypeface("RobotoCondensed-Regular"));  
-			name.setText(marker.getTitle()); 
-			
-			TextView branch = (TextView) relativeLayout.findViewById(R.id.subtitle); 
-			branch.setTypeface(Fonts.get(mContext).getTypeface("RobotoCondensed-Regular"));  
-			branch.setText(marker.getSnippet());
-			
-			return relativeLayout;
-		}
-		
+		SecuredStorage.close();
 	}
 	
 	private void addStoreMarkers() {
-		DbHelperSecured dbHelper = DbHelperSecured.get(mContext, mAccount);
+		SecuredStorage dbHelper = SecuredStorage.get(mContext, mAccount);
 		
 		try {
 			List<Store> stores = dbHelper.getStoreDao().queryBuilder().query();
@@ -202,9 +174,7 @@ public class LocationHelper {
 			e.printStackTrace();
 		}
 		
-		DbHelperSecured.close();
-		
-		mMap.setInfoWindowAdapter(new ShopInfoWindowAdapter()); 
+		SecuredStorage.close();
 	}
 	
 	private static final int GEOREGION_STROKE_COLOR = Color.argb(120, 255, 0, 0);
@@ -214,7 +184,7 @@ public class LocationHelper {
     private List<Branch> getBranches() {
     	List<Branch> branches = new ArrayList<Branch>();
     	
-    	DbHelperSecured dbHelper = DbHelperSecured.get(mContext, mAccount);
+    	SecuredStorage dbHelper = SecuredStorage.get(mContext, mAccount);
 		
 		try {
 			branches = dbHelper.getBranchDao().queryForAll();
@@ -222,14 +192,14 @@ public class LocationHelper {
 			e.printStackTrace();
 		}
 		
-		DbHelperSecured.close();
+		SecuredStorage.close();
     	
     	return branches;
     }
 	
 	private void addBranchRegions() {
 		for (Branch branch : getBranches()) {
-			DbHelperSecured dbHelper = DbHelperSecured.get(mContext, mAccount);
+			SecuredStorage dbHelper = SecuredStorage.get(mContext, mAccount);
 			
 			try {
 				PolygonOptions polygonOptions = new PolygonOptions();
@@ -249,7 +219,7 @@ public class LocationHelper {
 				e.printStackTrace();
 			}
 			
-			DbHelperSecured.close();
+			SecuredStorage.close();
 		}
 	}
 	

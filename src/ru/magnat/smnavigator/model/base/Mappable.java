@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.entities;
+package ru.magnat.smnavigator.model.base;
 
 public interface Mappable {
 	

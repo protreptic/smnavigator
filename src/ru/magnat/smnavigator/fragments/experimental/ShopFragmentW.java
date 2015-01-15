@@ -8,8 +8,8 @@ import org.javaprotrepticon.android.androidutils.Fonts;
 import org.javaprotrepticon.android.androidutils.Text;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.data.DbHelperSecured;
 import ru.magnat.smnavigator.model.Store;
+import ru.magnat.smnavigator.storage.SecuredStorage;
 import ru.magnat.smnavigator.widget.StaticMapView;
 import android.accounts.Account;
 import android.graphics.Typeface;
@@ -130,7 +130,7 @@ public class ShopFragmentW extends Fragment {
 		private Dao<Store, String> mStoreDao;
 		
 		public LoadData() {
-			mStoreDao = DbHelperSecured.get(getActivity(), mAccount).getStoreDao();
+			mStoreDao = SecuredStorage.get(getActivity(), mAccount).getStoreDao();
 		}
 		
 		@Override

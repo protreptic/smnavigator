@@ -26,12 +26,12 @@
     <application
         android:name="ru.magnat.smnavigator.SmNavigator"
         android:allowBackup="true"
-        android:backupAgent=".backup.TheBackupAgent"
+        android:backupAgent="ru.magnat.smnavigator.storage.backup.TheBackupAgent"
+        android:hardwareAccelerated="true"
         android:icon="@drawable/logotype_small_beta"
         android:label="@string/app_name"
         android:largeHeap="true"
-        android:theme="@style/Theme.MainTheme"
-        android:hardwareAccelerated="true" >
+        android:theme="@style/Theme.MainTheme" >
         <uses-library android:name="com.google.android.maps" />
 
         <activity android:name="ru.magnat.smnavigator.activities.MainActivity" />
@@ -45,7 +45,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="ru.magnat.smnavigator.auth.SignInActivity"
+            android:name="ru.magnat.smnavigator.security.account.SignInActivity"
             android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen"
             android:windowSoftInputMode="stateAlwaysHidden" >
         </activity>
@@ -62,7 +62,7 @@
         </activity>
 
         <service
-            android:name="ru.magnat.smnavigator.auth.AuthenticatorService"
+            android:name="ru.magnat.smnavigator.security.account.AuthenticatorService"
             android:permission="android.permission.INTERNET" >
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
@@ -74,7 +74,7 @@
         </service>
 
         <provider
-            android:name="ru.magnat.smnavigator.auth.StubProvider"
+            android:name="ru.magnat.smnavigator.security.account.StubProvider"
             android:authorities="ru.magnat.smnavigator.auth"
             android:exported="false"
             android:syncable="true" />

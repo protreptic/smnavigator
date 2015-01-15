@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.map;
+package ru.magnat.smnavigator.location.marker;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.model.Psr;

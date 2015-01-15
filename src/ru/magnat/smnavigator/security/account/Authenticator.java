@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.auth;
+package ru.magnat.smnavigator.security.account;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,9 +13,9 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.auth.SignInActivity.AuthenticationResponse;
 import ru.magnat.smnavigator.security.KeyStoreManager;
 import ru.magnat.smnavigator.security.MyTrustManager;
+import ru.magnat.smnavigator.security.account.SignInActivity.AuthenticationResponse;
 import android.accounts.AbstractAccountAuthenticator;
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;

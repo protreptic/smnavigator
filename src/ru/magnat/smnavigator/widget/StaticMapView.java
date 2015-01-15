@@ -14,7 +14,7 @@ import java.util.Map;
 import org.javaprotrepticon.android.androidutils.Crypto;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.entities.Mappable;
+import ru.magnat.smnavigator.model.base.Mappable;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;

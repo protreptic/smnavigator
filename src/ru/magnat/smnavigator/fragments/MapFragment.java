@@ -9,9 +9,9 @@ import org.javaprotrepticon.android.androidutils.Text;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.activities.MainActivity;
-import ru.magnat.smnavigator.data.DbHelperSecured;
-import ru.magnat.smnavigator.map.LocationHelper;
+import ru.magnat.smnavigator.location.LocationHelper;
 import ru.magnat.smnavigator.model.Store;
+import ru.magnat.smnavigator.storage.SecuredStorage;
 import ru.magnat.smnavigator.sync.SyncListener;
 import ru.magnat.smnavigator.sync.SyncStatus;
 import android.accounts.Account;
@@ -114,7 +114,7 @@ public class MapFragment extends SupportMapFragment implements SyncListener {
 		private Dao<Store, String> mStoreDao;
 		
 		public LoadData() {
-			mStoreDao = DbHelperSecured.get(getActivity(), mAccount).getStoreDao();
+			mStoreDao = SecuredStorage.get(getActivity(), mAccount).getStoreDao();
 		}
 		
 		@Override

@@ -1,5 +1,6 @@
-package ru.magnat.smnavigator.map;
+package ru.magnat.smnavigator.location.cluster;
 
+import ru.magnat.smnavigator.location.marker.AbstractMarker;
 import android.content.Context;
 
 import com.google.android.gms.maps.GoogleMap;

@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.map;
+package ru.magnat.smnavigator.location.marker;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;

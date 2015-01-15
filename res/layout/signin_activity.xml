@@ -19,19 +19,19 @@
             android:ems="10"
             android:hint="@string/label_login"
             android:padding="10dp"
-            android:textAppearance="?android:attr/textAppearanceLargeInverse" >
+            android:textAppearance="?android:attr/textAppearanceLarge" >
         </EditText>
 
         <EditText
             android:id="@+id/passwordField"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
+            android:layout_marginBottom="15dp"
             android:ems="10"
             android:hint="@string/label_password"
             android:inputType="textPassword"
             android:padding="10dp"
-            android:textAppearance="?android:attr/textAppearanceLargeInverse" />
+            android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <TextView
             android:id="@+id/signInButton"

@@ -17,8 +17,6 @@ import javax.net.ssl.TrustManager;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.activities.MainActivity;
-import ru.magnat.smnavigator.auth.Authenticator;
-import ru.magnat.smnavigator.data.DbHelperSecured;
 import ru.magnat.smnavigator.model.Branch;
 import ru.magnat.smnavigator.model.Customer;
 import ru.magnat.smnavigator.model.Department;
@@ -40,6 +38,8 @@ import ru.magnat.smnavigator.model.json.StorePropertyDeserializer;
 import ru.magnat.smnavigator.model.json.StorePropertySerializer;
 import ru.magnat.smnavigator.security.KeyStoreManager;
 import ru.magnat.smnavigator.security.MyTrustManager;
+import ru.magnat.smnavigator.security.account.Authenticator;
+import ru.magnat.smnavigator.storage.SecuredStorage;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.AbstractThreadedSyncAdapter;
@@ -64,7 +64,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     @SuppressWarnings("unused")
 	private ContentResolver mContentResolver;
     
-    private DbHelperSecured mMainDbHelper;
+    private SecuredStorage mMainDbHelper;
     private Account mAccount;
     
     private String sessionToken;
@@ -123,7 +123,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 		try {
 			TimeUnit.SECONDS.sleep(2);
 		
-			mMainDbHelper = DbHelperSecured.get(getContext(), account);
+			mMainDbHelper = SecuredStorage.get(getContext(), account);
 			
 			sslContext = SSLContext.getInstance("TLS");
 			sslContext.init(null, new TrustManager[] { new MyTrustManager(KeyStoreManager.getInstance(getContext()).getKeyStore()) } , null);
@@ -140,11 +140,11 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 			getTarget();
 			getGeoregion();
 			
-			DbHelperSecured.close();
+			SecuredStorage.close();
 			
 			TimeUnit.SECONDS.sleep(2);
 		} catch (Exception e) {
-			DbHelperSecured.close();
+			SecuredStorage.close();
 			timer.cancel();
 			sendNotification("error"); 
 			e.printStackTrace();

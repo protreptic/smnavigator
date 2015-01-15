@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.backup;
+package ru.magnat.smnavigator.storage.backup;
 
 import java.io.IOException;
 

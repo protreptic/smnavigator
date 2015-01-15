@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.auth;
+package ru.magnat.smnavigator.security.account;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;

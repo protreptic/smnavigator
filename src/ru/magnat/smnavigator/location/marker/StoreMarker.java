@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.map;
+package ru.magnat.smnavigator.location.marker;
 
 import org.javaprotrepticon.android.androidutils.Text;
 

@@ -10,8 +10,8 @@ import org.javaprotrepticon.android.androidutils.Text;
 import com.j256.ormlite.dao.Dao;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.data.DbHelperSecured;
 import ru.magnat.smnavigator.model.Psr;
+import ru.magnat.smnavigator.storage.SecuredStorage;
 import ru.magnat.smnavigator.widget.StaticMapView;
 import android.accounts.Account;
 import android.graphics.Typeface;
@@ -130,7 +130,7 @@ public class PsrFragmentW extends Fragment {
 		private Dao<Psr, String> mPsrDao;
 		
 		public LoadData() {
-			mPsrDao = DbHelperSecured.get(getActivity(), mAccount).getPsrDao();
+			mPsrDao = SecuredStorage.get(getActivity(), mAccount).getPsrDao();
 		}
 		
 		@Override

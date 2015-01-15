@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.data;
+package ru.magnat.smnavigator.storage;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -29,7 +29,7 @@ import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcPooledConnectionSource;
 
-public class DbHelperSecured {
+public class SecuredStorage {
 	
 	private static final String TAG = "DB_HELPER_SECURED";
 	
@@ -41,11 +41,11 @@ public class DbHelperSecured {
 		}
 	}
 	
-	private static DbHelperSecured sInstance;
+	private static SecuredStorage sInstance;
 	
 	private JdbcPooledConnectionSource mConnectionSource;
 	 
-	private DbHelperSecured(Context context, Account account) {
+	private SecuredStorage(Context context, Account account) {
 		AccountManager accountManager = AccountManager.get(context); 
 		
 		String accountName = account.name;
@@ -137,9 +137,9 @@ public class DbHelperSecured {
 	private Dao<Target, String> mTargetDao;
 	private Dao<Georegion, String> mGeoregionDao;
 	
-	public synchronized static DbHelperSecured get(Context context, Account account) {
+	public synchronized static SecuredStorage get(Context context, Account account) {
 		if (sInstance == null) {
-			sInstance = new DbHelperSecured(context, account);
+			sInstance = new SecuredStorage(context, account);
 		}
 		
 		Log.d(TAG, "storage:instantiate->ok");

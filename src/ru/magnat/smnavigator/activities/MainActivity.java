@@ -4,21 +4,18 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.javaprotrepticon.android.androidutils.Apps;
-
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.auth.AccountWrapper;
-import ru.magnat.smnavigator.data.DbHelperSecured;
 import ru.magnat.smnavigator.fragments.MapFragment;
 import ru.magnat.smnavigator.fragments.PsrListFragment;
 import ru.magnat.smnavigator.fragments.StoreListFragment;
 import ru.magnat.smnavigator.model.Manager;
+import ru.magnat.smnavigator.security.account.AccountWrapper;
+import ru.magnat.smnavigator.storage.SecuredStorage;
 import ru.magnat.smnavigator.sync.SyncListener;
 import ru.magnat.smnavigator.sync.SyncStatus;
 import ru.magnat.smnavigator.update.UpdateHelper;
-import ru.magnat.smnavigator.view.UserInfoView;
+import ru.magnat.smnavigator.view.ManagerCardView;
 import android.accounts.Account;
-import android.app.AlertDialog;
 import android.app.backup.BackupManager;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -48,34 +45,12 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.GoogleMapOptions;
-
 public class MainActivity extends ActionBarActivity {
 	
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
     private LinearLayout mDrawer;
     private ListView mDrawerList;
-    
-    private Manager getManager() {
-    	Manager manager = null;
-    	
-    	DbHelperSecured dbHelper = DbHelperSecured.get(this, mAccount);
-		
-		try {
-			List<Manager> managers = dbHelper.getManagerDao().queryForAll();
-			
-			if (managers.size() > 0) {
-				manager = managers.get(0);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		DbHelperSecured.close();
-    	
-    	return manager;
-    }
     
     private Account mAccount;
     
@@ -110,6 +85,7 @@ public class MainActivity extends ActionBarActivity {
 		registerReceiver(mSyncReceiver, new IntentFilter(ACTION_SYNC)); 
 		
 		requestBackup();
+		requestUpdate();
 		requestInitialSync();
 		
 		progressBar = (ProgressBar) LayoutInflater.from(getBaseContext()).inflate(R.layout.progressbar, null, false);
@@ -161,10 +137,10 @@ public class MainActivity extends ActionBarActivity {
     }
 
 	private void requestUpdate() {
-		Toast.makeText(getBaseContext(), getString(R.string.update_check), Toast.LENGTH_LONG).show();
+		//Toast.makeText(getBaseContext(), getString(R.string.update_check), Toast.LENGTH_LONG).show();
 		UpdateHelper.get(this).update();
 	}
-	
+	 
 	private void requestInitialSync() {
         SharedPreferences sharedPreferences = getSharedPreferences(mAccount.name + ".global", Context.MODE_MULTI_PROCESS);
         String lastSync = sharedPreferences.getString("lastSync", "unknown");
@@ -194,9 +170,29 @@ public class MainActivity extends ActionBarActivity {
 		backupManager.dataChanged();
 	}
 	
+    private Manager getManager() {
+    	Manager manager = null;
+    	
+    	SecuredStorage dbHelper = SecuredStorage.get(this, mAccount);
+		
+		try {
+			List<Manager> managers = dbHelper.getManagerDao().queryForAll();
+			
+			if (managers.size() > 0) {
+				manager = managers.get(0);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		SecuredStorage.close();
+    	
+    	return manager;
+    }
+	
 	private void updateUserInfo() {
-		UserInfoView userInfoView = (UserInfoView) findViewById(R.id.userInfo);
-		userInfoView.setOnClickListener(new OnClickListener() {
+		ManagerCardView managerCardView = (ManagerCardView) findViewById(R.id.userInfo);
+		managerCardView.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
@@ -207,19 +203,19 @@ public class MainActivity extends ActionBarActivity {
         Manager manager = getManager();
         
         if (manager != null) { 
-        	userInfoView.setManager(manager); 
+        	managerCardView.setManager(manager); 
         } else {
-        	userInfoView.setVisibility(View.GONE); 
+        	managerCardView.setVisibility(View.GONE); 
         }
 	}
 	
-	@Override
-	protected void onStart() {
-		super.onStart();
-		
-		if (mMapFragment != null) 
-			mMapFragment.updateMap();
-	}
+//	@Override
+//	protected void onStart() {
+//		super.onStart();
+//		
+//		if (mMapFragment != null) 
+//			mMapFragment.updateMap();
+//	}
 	
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
     	
@@ -237,16 +233,18 @@ public class MainActivity extends ActionBarActivity {
     private void selectItem(int position) {
     	mDrawerList.setItemChecked(position, true);
         mDrawerLayout.closeDrawer(mDrawer);
-    	       
+    	      
+        Bundle arguments = new Bundle();
+        arguments.putParcelable("account", mAccount);
+        
         Fragment fragment = null;
         
         switch (position) {
 			case 0: {
 				if (mMapFragment == null) {
-					GoogleMapOptions options = new GoogleMapOptions();
-					options.compassEnabled(true);
-					
 					mMapFragment = new MapFragment();
+					
+					mMapFragment.setArguments(arguments);
 				}
 				
 				fragment = mMapFragment;
@@ -254,6 +252,8 @@ public class MainActivity extends ActionBarActivity {
 			case 1: {
 				if (mPsrListFragment == null) {
 					mPsrListFragment = new PsrListFragment();
+					
+					mPsrListFragment.setArguments(arguments);
 				}
 				
 				fragment = mPsrListFragment;
@@ -261,6 +261,8 @@ public class MainActivity extends ActionBarActivity {
 			case 2: {
 				if (mStoreListFragment == null) {
 					mStoreListFragment = new StoreListFragment();
+					
+					mStoreListFragment.setArguments(arguments);
 				}
 				
 				fragment = mStoreListFragment;
@@ -270,12 +272,6 @@ public class MainActivity extends ActionBarActivity {
 				return;
 			}
 		}
-        
-        Bundle arguments = new Bundle();
-        arguments.putParcelable("account", mAccount); 
-        
-        if (!fragment.isVisible())
-        	fragment.setArguments(arguments);
         
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.content_frame, fragment);
@@ -312,18 +308,18 @@ public class MainActivity extends ActionBarActivity {
 			case R.id.actionSync: {
 				requestSync();
 			} break;
-			case R.id.actionChangeUser: {
-				requestChangeUser();
-			} break;
-			case R.id.checkUpdates: {
-				requestUpdate();
-			} break;
-			case R.id.actionAbout: {
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setMessage(Apps.getVersionName(this)); 
-				builder.setCancelable(true);
-				builder.create().show();
-			} break;
+//			case R.id.actionChangeUser: {
+//				requestChangeUser();
+//			} break;
+//			case R.id.checkUpdates: {
+//				requestUpdate();
+//			} break;
+//			case R.id.actionAbout: {
+//				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//				builder.setMessage(Apps.getVersionName(this)); 
+//				builder.setCancelable(true);
+//				builder.create().show();
+//			} break;
 			default: {
 				return super.onOptionsItemSelected(item);
 			}

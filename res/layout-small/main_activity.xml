@@ -24,13 +24,13 @@
 
     <LinearLayout
         android:id="@+id/left_drawer"
-        android:layout_width="400dp"
+        android:layout_width="300dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:background="@drawable/endless_list_background"
+        android:background="#111"
         android:orientation="vertical" >
 
-        <ru.magnat.smnavigator.view.UserInfoView
+        <ru.magnat.smnavigator.view.ManagerCardView
             android:id="@+id/userInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />

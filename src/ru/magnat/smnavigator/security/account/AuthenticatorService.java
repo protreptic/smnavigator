@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.auth;
+package ru.magnat.smnavigator.security.account;
 
 import android.app.Service;
 import android.content.Intent;
