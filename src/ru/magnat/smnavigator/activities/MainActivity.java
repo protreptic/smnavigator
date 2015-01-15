@@ -1,7 +1,9 @@
 package ru.magnat.smnavigator.activities;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.javaprotrepticon.android.androidutils.Apps;
 import org.javaprotrepticon.android.androidutils.Fonts;
@@ -9,22 +11,20 @@ import org.javaprotrepticon.android.androidutils.Fonts;
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.activities.base.BaseActivity;
 import ru.magnat.smnavigator.fragments.EmptyFragment;
+import ru.magnat.smnavigator.fragments.InitFragment;
 import ru.magnat.smnavigator.fragments.MapFragment;
 import ru.magnat.smnavigator.fragments.PsrListFragment;
 import ru.magnat.smnavigator.fragments.StoreListFragment;
 import ru.magnat.smnavigator.model.Manager;
 import ru.magnat.smnavigator.security.account.AccountWrapper;
 import ru.magnat.smnavigator.storage.SecuredStorage;
-import ru.magnat.smnavigator.synchronization.SynchronizationManager;
-import ru.magnat.smnavigator.synchronization.util.SynchronizationObserver;
 import ru.magnat.smnavigator.update.UpdateHelper;
 import ru.magnat.smnavigator.view.ManagerCardView;
 import android.app.backup.BackupManager;
 import android.content.ContentResolver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.res.Configuration;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -39,7 +39,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -48,39 +48,70 @@ import android.widget.Toast;
 
 public class MainActivity extends BaseActivity {
 	
-    private class MenuAdapter extends ArrayAdapter<String> {
+	public static class MenuItemViewHolder {
+
+		public TextView textView;
+		
+	}
+	
+    private class MenuItemAdapter extends BaseAdapter {
+
+		private Typeface mRobotoCondensedBold;
+		
+		public MenuItemAdapter() {
+			mRobotoCondensedBold = Fonts.get(getBaseContext()).getTypeface("RobotoCondensed-Bold");
+		}
+    	
+		@Override
+		public int getCount() {
+			return mMenuItems.length;
+		}
+
+		@Override
+		public Object getItem(int position) {
+			return mMenuItems[position];
+		}
+
+		@Override
+		public long getItemId(int position) {
+			return 0;
+		}
 
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
-			LayoutInflater layoutInflater = LayoutInflater.from(getBaseContext());
+			MenuItemViewHolder holder;
 			
-			TextView view = (TextView) layoutInflater.inflate(R.layout.drawer_list_item, parent, false);
-			view.setTypeface(Fonts.get(getBaseContext()).getTypeface("RobotoCondensed-Bold"));  
-			view.setText(getItem(position)); 
-			 
-			return view;
-		}
-
-		public MenuAdapter(Context context, int resource, String[] objects) {
-			super(context, resource, objects);
+			if (convertView == null) {
+				convertView = getLayoutInflater().inflate(R.layout.drawer_list_item, parent, false);
+				
+				holder = new MenuItemViewHolder();
+				holder.textView = (TextView) convertView;
+				holder.textView.setTypeface(mRobotoCondensedBold);
+				
+				convertView.setTag(holder); 
+			} else {
+				holder = (MenuItemViewHolder) convertView.getTag();
+			}
+			
+			holder.textView.setText((String) getItem(position)); 
+			
+			return convertView;
 		}
     	
     }
-    
-    private String[] menus;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState); 
 
-		menus = new String[] {
+		mMenuItems = new String[] {
 	    		getString(R.string.titleMap), 
 	    		getString(R.string.titlePsrs), 
 	    		getString(R.string.titleStores)
 	    	};
 		
         setContentView(R.layout.main_activity);
-
+        
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
         mDrawerLayout.setDrawerListener(new DemoDrawerListener());
@@ -91,10 +122,11 @@ public class MainActivity extends BaseActivity {
         mDrawer = (LinearLayout) findViewById(R.id.left_drawer);
         
         mDrawerList = (ListView) findViewById(R.id.left_drawer_list);
-        mDrawerList.setAdapter(new MenuAdapter(getBaseContext(), 0, menus)); 
+        mDrawerList.setAdapter(new MenuItemAdapter()); 
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
 
-        updateUserInfo();
+        initToolbar();
+        initManagerView();
         
         if (savedInstanceState == null) {
             FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
@@ -102,15 +134,12 @@ public class MainActivity extends BaseActivity {
             fragmentTransaction.commit();
         }
         
-        mSynchronizationManager = new SynchronizationManager(mAccount);
-        
-		// register receivers
-		registerReceiver(mSynchronizationManager, new IntentFilter(SynchronizationManager.ACTION_SYNC)); 
-		
 		requestBackup();
 		requestUpdate();
 		requestInitialSync();
-		
+	}
+
+	private void initToolbar() {
 		progressBar = (ProgressBar) LayoutInflater.from(getBaseContext()).inflate(R.layout.progressbar, null, false);
 		
 		mToolBar = (Toolbar) findViewById(R.id.toolbar);
@@ -119,22 +148,6 @@ public class MainActivity extends BaseActivity {
 		mToolBar.addView(progressBar); 
 		
 	    setSupportActionBar(mToolBar);
-	    
-	    mDrawerLayout.openDrawer(mDrawer);
-	}
-
-	@Override
-	protected void onStart() {
-		super.onStart();
-		
-		mSynchronizationManager.registerSynchronizationObserver(this); 
-	}
-	
-	@Override
-	protected void onStop() {
-		super.onStop();
-		
-		mSynchronizationManager.unregisterSynchronizationObserver(this); 
 	}
 	
 	private ProgressBar progressBar;
@@ -162,11 +175,17 @@ public class MainActivity extends BaseActivity {
 		if (getManager() == null) {
 			mInitialSynchronize = true;
 			
+            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            fragmentTransaction.replace(R.id.content_frame, new InitFragment());
+            fragmentTransaction.commit();	
+			
 			requestSync(); 
 		} else {
             FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
             fragmentTransaction.replace(R.id.content_frame, new EmptyFragment());
-            fragmentTransaction.commit();		
+            fragmentTransaction.commit();	
+            
+            mDrawerLayout.openDrawer(mDrawer);
 		}
 	}
 	
@@ -210,7 +229,7 @@ public class MainActivity extends BaseActivity {
     	return manager;
     }
 	
-	private void updateUserInfo() {
+	private void initManagerView() {
 		ManagerCardView managerCardView = (ManagerCardView) findViewById(R.id.userInfo);
 		managerCardView.setOnClickListener(new OnClickListener() {
 			
@@ -242,6 +261,15 @@ public class MainActivity extends BaseActivity {
         
     }
 	
+    private Map<String, Fragment> mMenuItems2 = new HashMap<String, Fragment>();
+    
+    @SuppressWarnings("unused")
+	private void initMenuItems() {
+    	mMenuItems2.put(getString(R.string.titleMap), new MapFragment()); 
+    	mMenuItems2.put(getString(R.string.titlePsrs), new PsrListFragment());
+    	mMenuItems2.put(getString(R.string.titleStores), new StoreListFragment());
+    }
+    
     private MapFragment mMapFragment;
     private PsrListFragment mPsrListFragment;
     private StoreListFragment mStoreListFragment;
@@ -297,14 +325,6 @@ public class MainActivity extends BaseActivity {
         fragmentTransaction.commit();
     }
     
-    public void registerSynchronizationObserver(SynchronizationObserver observer) {
-    	mSynchronizationManager.registerSynchronizationObserver(observer); 
-    }
-    
-    public void unregisterSynchronizationObserver(SynchronizationObserver observer) {
-    	mSynchronizationManager.unregisterSynchronizationObserver(observer); 
-    }
-    
     @Override
     public void onBackPressed() {
     	if (mDrawerLayout.isDrawerOpen(mDrawer)) {
@@ -314,14 +334,6 @@ public class MainActivity extends BaseActivity {
     	super.onBackPressed();
     }
     
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		
-		// unregister receivers
-		unregisterReceiver(mSynchronizationManager); 
-	}
-	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.main_activity, menu); 
@@ -345,8 +357,6 @@ public class MainActivity extends BaseActivity {
 		
 		return super.onOptionsItemSelected(item);
 	}
-	
-	private SynchronizationManager mSynchronizationManager;
 	
 	@Override
 	public void onStarted() {
@@ -373,7 +383,7 @@ public class MainActivity extends BaseActivity {
     		selectItem(0); 
     	}
     	
-		updateUserInfo();
+		initManagerView();
 
 		progressBar.setVisibility(View.INVISIBLE); 
 		

@@ -113,7 +113,7 @@ public class StoreListFragment extends BaseEntityListFragment {
 					Bundle arguments = new Bundle();
 					arguments.putParcelable("account", mAccount);
 					arguments.putParcelable("store", storeParcel);   
-					
+
 					Fragment fragment = new StoreFragment();
 					fragment.setArguments(arguments); 
 					

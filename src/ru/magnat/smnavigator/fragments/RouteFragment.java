@@ -117,14 +117,15 @@ public class RouteFragment extends Fragment {
 		recyclerView.setAdapter(mRouteAdapter); 
 		
 		Calendar calendar = Calendar.getInstance(new Locale("ru", "RU"));
-		calendar.clear();
-		calendar.setTimeInMillis(System.currentTimeMillis());
-		calendar.clear(Calendar.HOUR);
-		calendar.clear(Calendar.MINUTE);
-		calendar.clear(Calendar.SECOND);
-		calendar.clear(Calendar.MILLISECOND);
 		
-		date = new Date(System.currentTimeMillis());
+		int year = calendar.get(Calendar.YEAR);
+		int monthOfYear = calendar.get(Calendar.MONTH); 
+		int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
+		
+		calendar.clear();
+		calendar.set(year, monthOfYear, dayOfMonth); 
+		
+		date = new Date(calendar.getTimeInMillis());
 		
 		loadRoutes();
 	}
@@ -169,7 +170,7 @@ public class RouteFragment extends Fragment {
 	
 	private List<Route> mRoutes = new ArrayList<Route>();
 	
-	private Date date = new Date(System.currentTimeMillis());
+	private Date date;
 	
 	private void loadRoutes() {
 		mRoutes.clear();

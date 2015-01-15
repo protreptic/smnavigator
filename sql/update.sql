@@ -453,7 +453,7 @@ begin
         from "sm_getPsr" ("token") a 
             join "TaskVisitJournal" b 
                 on b."Author" = a."id" 
-        where datediff(day, b."StartDate", now()) = 0;
+        where datediff(month, b."StartDate", now()) = 0;
     endif;
 end;
 
