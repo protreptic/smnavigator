@@ -1,18 +1,15 @@
 package ru.magnat.smnavigator.model;
 
 import org.javaprotrepticon.android.androidutils.Text;
+import org.javaprotrepticon.android.widgetutils.model.Mappable;
 
-import ru.magnat.smnavigator.model.base.Clusterable;
-import ru.magnat.smnavigator.model.base.Mappable;
-
-import com.google.android.gms.maps.model.LatLng;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "store")
-public class Store implements Mappable, Clusterable {
+public class Store implements Mappable {
 	
 	@DatabaseField(columnName = "id", id = true)
 	private Integer id;
@@ -119,11 +116,6 @@ public class Store implements Mappable, Clusterable {
 		this.longitude = longitude;
 	}
 
-	@Override
-	public LatLng getPosition() {
-		return new LatLng(latitude, longitude); 
-	}
-	
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + ", customer=" + customer + ", address=" + address + ", tel=" + tel + ", channel=" + channel + ", coverageType=" + coverageType + ", latitude=" + latitude + ", longitude=" + longitude + "]";	

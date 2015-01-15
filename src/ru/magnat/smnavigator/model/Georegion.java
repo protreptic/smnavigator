@@ -1,6 +1,6 @@
 package ru.magnat.smnavigator.model;
 
-import ru.magnat.smnavigator.model.base.Mappable;
+import org.javaprotrepticon.android.widgetutils.model.Mappable;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;

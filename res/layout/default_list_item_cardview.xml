@@ -1,41 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
+<android.support.v7.widget.CardView xmlns:cardview="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/card_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="3dp"
-    android:layout_marginTop="3dp"
-    card_view:cardCornerRadius="1dp"
-    android:background="@drawable/details_button" >
+    android:layout_margin="1dp"
+    android:clickable="true"
+    cardview:cardCornerRadius="1dp"
+    cardview:cardElevation="2dp" >
 
     <RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:background="@drawable/card_indicator"
         android:padding="5dp" >
 
-        <ru.magnat.smnavigator.widget.StaticMapView
+        <org.javaprotrepticon.android.widgetutils.widget.StaticMapView
             android:id="@+id/staticmap"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
             android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
-            android:layout_marginBottom="5dp"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginTop="5dp"
+            android:layout_margin="5dp"
             android:contentDescription="@string/contentDescription" />
-
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignTop="@+id/staticmap"
-            android:layout_toLeftOf="@+id/actions"
-            android:layout_toRightOf="@+id/staticmap"
-            android:text="@string/title"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
 
         <TextView
             android:id="@+id/staticmaptitle"
@@ -44,47 +33,51 @@
             android:layout_alignLeft="@+id/staticmap"
             android:layout_alignRight="@+id/staticmap"
             android:layout_below="@+id/staticmap"
-            android:gravity="center_horizontal"
+            android:gravity="center"
+            
             android:text="@string/staticmaptitle"
-            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="@color/selected_caption1"
             android:textSize="10sp" />
+        
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignTop="@+id/staticmap"
+            android:layout_marginLeft="5dp"
+            android:layout_toRightOf="@+id/staticmap"
+            
+            android:text="@string/title"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="@color/selected_caption1" />
 
         <TextView
             android:id="@+id/subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignLeft="@+id/title"
-            android:layout_alignRight="@+id/title"
+            android:layout_alignParentRight="true"
             android:layout_below="@+id/title"
+            
             android:text="@string/subtitle"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@color/selected_caption1"
-            android:textSize="12sp" />
+            android:textColor="@color/selected_caption1" />
 
         <TextView
             android:id="@+id/description"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignLeft="@+id/subtitle"
+            android:layout_alignParentRight="true"
             android:layout_below="@+id/subtitle"
-            android:layout_toLeftOf="@+id/actions"
             android:paddingBottom="5dp"
             android:paddingTop="5dp"
+            
             android:text="@string/description"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="@color/selected_caption1" />
-
-        <ImageView
-            android:id="@+id/actions"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
-            android:layout_marginTop="3dp"
-            android:background="@drawable/details_button"
-            android:contentDescription="@string/contentDescription"
-            android:visibility="invisible" />
     </RelativeLayout>
 
 </android.support.v7.widget.CardView>

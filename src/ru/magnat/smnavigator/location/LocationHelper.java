@@ -6,38 +6,33 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.location.cluster.StoreClusterRenderer;
 import ru.magnat.smnavigator.location.marker.AbstractMarker;
+import ru.magnat.smnavigator.location.marker.PsrMarker;
 import ru.magnat.smnavigator.location.marker.StoreMarker;
 import ru.magnat.smnavigator.model.Branch;
+import ru.magnat.smnavigator.model.Geocoordinate;
 import ru.magnat.smnavigator.model.Georegion;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Store;
-import ru.magnat.smnavigator.model.experimental.Geocoordinate;
 import ru.magnat.smnavigator.storage.SecuredStorage;
 import android.accounts.Account;
 import android.content.Context;
 import android.graphics.Color;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationChangeListener;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.maps.android.clustering.ClusterManager;
-import com.google.maps.android.clustering.ClusterManager.OnClusterItemInfoWindowClickListener;
-import com.google.maps.android.heatmaps.HeatmapTileProvider;
 import com.j256.ormlite.dao.Dao;
 
 public class LocationHelper {
@@ -71,8 +66,8 @@ public class LocationHelper {
 		mAccount = account;
 	} 
 	
-	public void moveCameraToLocation(double latitude, double longitude) {
-		CameraPosition cameraPosition = CameraPosition.fromLatLngZoom(new LatLng(latitude, longitude), 19);
+	public void moveCameraToLocation(double latitude, double longitude, int zoom) {
+		CameraPosition cameraPosition = CameraPosition.fromLatLngZoom(new LatLng(latitude, longitude), zoom);
 		
 		mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 	}
@@ -97,114 +92,13 @@ public class LocationHelper {
 		mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(latitude, longitude)));
 	}
 	
-	@SuppressWarnings("unused")
-	private void addHeatMap() {
-		SecuredStorage dbHelper = SecuredStorage.get(mContext, mAccount);
-		
-		try {
-			List<LatLng> points = new ArrayList<LatLng>();
-			List<Store> stores = dbHelper.getStoreDao().queryForAll();
-			
-			for (Store store : stores) {
-				points.add(store.getPosition());
-			}	
-			
-			if (!points.isEmpty()) {
-			    HeatmapTileProvider mProvider = new HeatmapTileProvider.Builder()
-			        .data(points)
-			        .build();
-		   
-			    mMap.addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
-		    }
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		SecuredStorage.close();
-	}
-	
 	public void updateOverlays() {	
 		mMap.clear();
 		
-		addPsrMarkers();
-		addStoreMarkers();
-		addBranchRegions();
-		//addManagerTrack();
-		//addHeatMap();
+		new LoadPsrGeodata().execute();
+		new LoadStoreGeodata().execute();
+		new LoadRegionGeodata().execute();
 	}
-	
-	private void addPsrMarkers() {
-		SecuredStorage dbHelper = SecuredStorage.get(mContext, mAccount);
-		
-		try {
-			List<Psr> psrs = dbHelper.getPsrDao().queryForAll();
-			
-			for (Psr psr : psrs) {
-				if (psr.getLatitude() == 0 || psr.getLongitude() == 0) continue;
-				
-				mMap.addMarker(new MarkerOptions()
-		        .position(new LatLng(psr.getLatitude(), psr.getLongitude())) 
-		        .title(psr.getName()) 
-		        .snippet(psr.getProject())
- 		        .icon(BitmapDescriptorFactory.fromResource(R.drawable.psr)));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		SecuredStorage.close();
-	}
-	
-	private void addStoreMarkers() {
-		SecuredStorage dbHelper = SecuredStorage.get(mContext, mAccount);
-		
-		try {
-			List<Store> stores = dbHelper.getStoreDao().queryBuilder().query();
-			
-			mClusterManager = new ClusterManager<AbstractMarker>(mContext, mMap);
-			mClusterManager.setRenderer(new StoreClusterRenderer(mContext, mMap, mClusterManager));
-			mClusterManager.setOnClusterItemInfoWindowClickListener(new OnClusterItemInfoWindowClickListener<AbstractMarker>() {
-
-				@Override
-				public void onClusterItemInfoWindowClick(AbstractMarker item) {
-					Toast.makeText(mContext, "", Toast.LENGTH_LONG).show();
-				}
-			});
-			
-			for (Store store : stores) {
-				if (store.getLatitude() == 0 || store.getLongitude() == 0) continue;
-				
-				mClusterManager.addItem(new StoreMarker(store));  
-			}
-			
-			mMap.setOnCameraChangeListener(mClusterManager);
-			mMap.setOnMarkerClickListener(mClusterManager); 
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		SecuredStorage.close();
-	}
-	
-	private static final int GEOREGION_STROKE_COLOR = Color.argb(120, 255, 0, 0);
-	private static final int GEOREGION_FILL_COLOR = Color.argb(45, 10, 200, 10);
-	private static final int GEOREGION_STROKE_WIDTH = 8;
-	
-    private List<Branch> getBranches() {
-    	List<Branch> branches = new ArrayList<Branch>();
-    	
-    	SecuredStorage dbHelper = SecuredStorage.get(mContext, mAccount);
-		
-		try {
-			branches = dbHelper.getBranchDao().queryForAll();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		SecuredStorage.close();
-    	
-    	return branches;
-    }
 	
     private PolylineOptions managerTrack = new PolylineOptions();
     private Polyline polyline;
@@ -212,7 +106,7 @@ public class LocationHelper {
     private List<Geocoordinate> getGeocoordinates() {
     	List<Geocoordinate> geocoordinates = null;
     	
-		SecuredStorage dbHelper = SecuredStorage.get(mContext, mAccount);
+    	SecuredStorage dbHelper = new SecuredStorage(mContext, mAccount);
 		
 		try {		
 			Dao<Geocoordinate, Integer> geocoordinateDao = dbHelper.getGeocoordinateDao();
@@ -222,13 +116,13 @@ public class LocationHelper {
 			e.printStackTrace();
 		}
 		
-		SecuredStorage.close();
+		dbHelper.closeConnection();
 		
 		return geocoordinates;
     }
     
     private void saveGeocoordinate(Location location) {
-		SecuredStorage dbHelper = SecuredStorage.get(mContext, mAccount);
+    	SecuredStorage dbHelper = new SecuredStorage(mContext, mAccount);
 		
 		try {		
 			Geocoordinate geocoordinate = new Geocoordinate();
@@ -241,10 +135,11 @@ public class LocationHelper {
 			e.printStackTrace();
 		}
 		
-		SecuredStorage.close();
+		dbHelper.closeConnection();
     }
     
-    private void addManagerTrack() {
+    @SuppressWarnings("unused")
+	private void addManagerTrack() {
     	managerTrack.width(6);
     	managerTrack.color(Color.RED);
     	managerTrack.geodesic(true);
@@ -289,30 +184,198 @@ public class LocationHelper {
 		});
     }
     
-	private void addBranchRegions() {
-		for (Branch branch : getBranches()) {
-			SecuredStorage dbHelper = SecuredStorage.get(mContext, mAccount);
+	private class LoadRegionGeodata extends AsyncTask<Void, Void, Void> {
+
+		private final int GEOREGION_STROKE_COLOR = Color.argb(120, 255, 0, 0);
+		private final int GEOREGION_FILL_COLOR = Color.argb(45, 10, 200, 10);
+		private final int GEOREGION_STROKE_WIDTH = 8;
+		
+		private SecuredStorage mSecuredStorage;
+		
+		@Override
+		protected void onPreExecute() {
+			mSecuredStorage = new SecuredStorage(mContext, mAccount);
+		}
+		
+		@Override
+		protected Void doInBackground(Void... params) {
+			mBranchRegions = getBranchRegions();
 			
-			try {
-				PolygonOptions polygonOptions = new PolygonOptions();
-				polygonOptions.strokeColor(GEOREGION_STROKE_COLOR);
-				polygonOptions.strokeWidth(GEOREGION_STROKE_WIDTH);
-		        polygonOptions.fillColor(GEOREGION_FILL_COLOR); 
-		        polygonOptions.geodesic(true);
-		        
-				List<Georegion> georegions = dbHelper.getGeoregionDao().queryForEq("branch_id", branch.getId());
-				
-				for (Georegion georegion : georegions) {
-					polygonOptions.add(new LatLng(georegion.getLatitude(), georegion.getLongitude()));
-				}
-				
+			return null;
+		}
+		
+		@Override
+		protected void onPostExecute(Void result) {
+			mSecuredStorage.closeConnection();
+			
+			addBranchRegions();
+		}
+		
+		private List<PolygonOptions> mBranchRegions;
+		
+		private void addBranchRegions() {
+			for (PolygonOptions polygonOptions : mBranchRegions) {
 				mMap.addPolygon(polygonOptions);
+			}
+		}
+		
+	    private List<Branch> getBranches() {
+	    	List<Branch> branches = new ArrayList<Branch>();
+	    	
+			try {
+				branches = mSecuredStorage.getBranchDao().queryForAll();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 			
-			SecuredStorage.close();
+	    	return branches;
+	    }
+		
+		private List<PolygonOptions> getBranchRegions() {
+			List<PolygonOptions> polygonOptions = new ArrayList<PolygonOptions>();
+			
+			for (Branch branch : getBranches()) {
+				try {
+					PolygonOptions polygon = new PolygonOptions();
+					polygon.strokeColor(GEOREGION_STROKE_COLOR);
+					polygon.strokeWidth(GEOREGION_STROKE_WIDTH);
+					polygon.fillColor(GEOREGION_FILL_COLOR); 
+					polygon.geodesic(true);
+					
+					List<Georegion> georegions = mSecuredStorage.getGeoregionDao().queryForEq("branch_id", branch.getId());
+					
+					for (Georegion georegion : georegions) {
+						polygon.add(new LatLng(georegion.getLatitude(), georegion.getLongitude()));
+					}
+					
+					polygonOptions.add(polygon);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			return polygonOptions;
 		}
+		
 	}
+	
+	private class LoadStoreGeodata extends AsyncTask<Void, Void, Void> {
+		
+		private SecuredStorage mSecuredStorage;
+		private List<StoreMarker> mStoreMarkers;
+		
+		@Override
+		protected void onPreExecute() {
+			mSecuredStorage = new SecuredStorage(mContext, mAccount);
+		}
+
+		@Override
+		protected Void doInBackground(Void... params) {
+			mStoreMarkers = getStoreMarkers();
+			
+			return null;
+		}
+		
+		@Override
+		protected void onPostExecute(Void result) {
+			mSecuredStorage.closeConnection();
+			
+			addStoreMarkers();
+		}
+		
+	    private List<Store> getStores() {
+	    	List<Store> stores = new ArrayList<Store>();
+	    	
+			try {
+				stores = mSecuredStorage.getStoreDao().queryForAll();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			
+	    	return stores;
+	    }
+		
+		private void addStoreMarkers() {
+			mClusterManager = new ClusterManager<AbstractMarker>(mContext, mMap);
+			mClusterManager.setRenderer(new StoreClusterRenderer(mContext, mMap, mClusterManager));
+			
+			for (StoreMarker storeMarker : mStoreMarkers) {
+				mClusterManager.addItem(storeMarker); 
+			}
+			
+			mMap.setOnCameraChangeListener(mClusterManager);
+			mMap.setOnMarkerClickListener(mClusterManager); 
+		}
+		
+		private List<StoreMarker> getStoreMarkers() {
+			List<StoreMarker> storeMarkers = new ArrayList<StoreMarker>();
+			
+			for (Store store : getStores()) {
+				if (store.getLatitude() == 0 || store.getLongitude() == 0) continue;
+				
+				storeMarkers.add(new StoreMarker(store));
+			}
+			
+			return storeMarkers;
+		}
+		
+	}
+	
+	private class LoadPsrGeodata extends AsyncTask<Void, Void, Void> {
+
+		private SecuredStorage mSecuredStorage;
+		private List<PsrMarker> mPsrMarkers;
+		
+		@Override
+		protected void onPreExecute() {
+			mSecuredStorage = new SecuredStorage(mContext, mAccount);
+		}
+		
+		@Override
+		protected Void doInBackground(Void... params) {
+			mPsrMarkers = getPsrMarkers();
+			
+			return null;
+		}
+		
+		@Override
+		protected void onPostExecute(Void result) {
+			mSecuredStorage.closeConnection();
+			
+			addPsrMarkers();
+		}
+		
+	    private List<Psr> getPsrs() {
+	    	List<Psr> psrs = new ArrayList<Psr>();
+	    	
+			try {
+				psrs = mSecuredStorage.getPsrDao().queryForAll();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			
+	    	return psrs;
+	    }
+		
+		private List<PsrMarker> getPsrMarkers() {
+			List<PsrMarker> psrMarkers = new ArrayList<PsrMarker>();
+			
+			for (Psr psr : getPsrs()) {
+				if (psr.getLatitude() == 0 || psr.getLongitude() == 0) continue;
+				
+				psrMarkers.add(new PsrMarker(psr));
+			}
+			
+			return psrMarkers;
+		}
+	    
+		private void addPsrMarkers() {
+			for (PsrMarker psrMarker : mPsrMarkers) {
+				mMap.addMarker(psrMarker.getMarker());
+			}
+		}
+		
+	}
+	
 	
 }

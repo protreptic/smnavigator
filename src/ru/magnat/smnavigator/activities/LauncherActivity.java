@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.sql.Timestamp;
 
 import org.javaprotrepticon.android.androidutils.Fonts;
+import org.javaprotrepticon.android.widgetutils.security.account.Authenticator;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.security.account.AccountWrapper;
-import ru.magnat.smnavigator.security.account.Authenticator;
+import ru.magnat.smnavigator.account.AccountSettings;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
@@ -41,7 +41,13 @@ public class LauncherActivity extends ListActivity {
 	}
 	
 	private void addAccount() {
-        mAccountManager.addAccount(AccountWrapper.ACCOUNT_TYPE, null, null, null, this, new AccountManagerCallback<Bundle>() {
+		Bundle options = new Bundle();
+		options.putString("syncServer", getString(R.string.syncServer));  
+		options.putString("syncServerSecure", getString(R.string.syncServerSecure));  
+		options.putString("accountType", AccountSettings.ACCOUNT_TYPE); 
+		options.putString("certificatePath", "server-certificate.pem"); 
+		
+        mAccountManager.addAccount(AccountSettings.ACCOUNT_TYPE, null, null, options, this, new AccountManagerCallback<Bundle>() {
 			
 			@Override
 			public void run(AccountManagerFuture<Bundle> future) {
@@ -67,21 +73,16 @@ public class LauncherActivity extends ListActivity {
 		}, null);
 	}
 	
-	@SuppressWarnings("unused")
-	private void removeAccount(Account account) {
-		mAccountManager.removeAccount(account, new AccountManagerCallback<Boolean>() {
-			
-			@Override
-			public void run(AccountManagerFuture<Boolean> future) {
-				
-			}
-		}, null);
-	}
-	
 	private void signUp(Account account) {	
 		Authenticator.validateSession(getBaseContext(), account);
  		
-		mAccountManager.getAuthToken(account, account.type, null, getParent(), new AccountManagerCallback<Bundle>() {
+		Bundle options = new Bundle();
+		options.putString("syncServer", getString(R.string.syncServer));  
+		options.putString("syncServerSecure", getString(R.string.syncServerSecure));  
+		options.putString("accountType", AccountSettings.ACCOUNT_TYPE); 
+		options.putString("certificatePath", "server-certificate.pem"); 
+		
+		mAccountManager.getAuthToken(account, account.type, options, getParent(), new AccountManagerCallback<Bundle>() {
 			
 			@Override
 			public void run(AccountManagerFuture<Bundle> future) {
@@ -121,7 +122,7 @@ public class LauncherActivity extends ListActivity {
 		private Account[] mAccounts;
 		
 		public AccountListAdapter() {
-			mAccounts = mAccountManager.getAccountsByType(AccountWrapper.ACCOUNT_TYPE);
+			mAccounts = mAccountManager.getAccountsByType(AccountSettings.ACCOUNT_TYPE);
 		}
 		
 		@Override

@@ -2,7 +2,8 @@ package ru.magnat.smnavigator.model;
 
 import java.util.List;
 
-import ru.magnat.smnavigator.model.base.Mappable;
+import org.javaprotrepticon.android.androidutils.Text;
+import org.javaprotrepticon.android.widgetutils.model.Mappable;
 
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
@@ -59,7 +60,7 @@ public class Psr implements Mappable {
 	}
 
 	public String getProject() {
-		return project;
+		return Text.prepareAddress(project);
 	}
 
 	public void setProject(String project) {

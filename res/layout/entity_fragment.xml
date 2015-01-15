@@ -9,6 +9,94 @@
         android:layout_height="match_parent"
         android:orientation="vertical" >
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/primary_material_light"
+            android:orientation="vertical"
+            android:layout_marginLeft="-3dp"
+            android:layout_marginRight="-3dp" >
+
+            <android.support.v7.widget.CardView
+                xmlns:cardview="http://schemas.android.com/apk/res-auto"
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/card_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="1dp"
+                android:clickable="true"
+                cardview:cardCornerRadius="1dp"
+                cardview:cardElevation="2dp" >
+
+                <RelativeLayout
+                    xmlns:android="http://schemas.android.com/apk/res/android"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/card_indicator"
+                    android:padding="5dp" >
+
+                    <org.javaprotrepticon.android.widgetutils.widget.StaticMapView
+                        android:id="@+id/staticmap"
+                        android:layout_width="75dp"
+                        android:layout_height="75dp"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentTop="true"
+                        android:layout_margin="5dp"
+                        android:contentDescription="@string/contentDescription" />
+
+                    <TextView
+                        android:id="@+id/staticmaptitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignLeft="@+id/staticmap"
+                        android:layout_alignRight="@+id/staticmap"
+                        android:layout_below="@+id/staticmap"
+                        android:gravity="center"
+                        android:text="@string/staticmaptitle"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="@color/selected_caption1"
+                        android:textSize="10sp" />
+
+                    <TextView
+                        android:id="@+id/title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_alignTop="@+id/staticmap"
+                        android:layout_marginLeft="5dp"
+                        android:layout_toRightOf="@+id/staticmap"
+                        android:text="@string/title"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:textColor="@color/selected_caption1" />
+
+                    <TextView
+                        android:id="@+id/subtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignLeft="@+id/title"
+                        android:layout_alignParentRight="true"
+                        android:layout_below="@+id/title"
+                        android:text="@string/subtitle"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="@color/selected_caption1" />
+
+                    <TextView
+                        android:id="@+id/description"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignLeft="@+id/subtitle"
+                        android:layout_alignParentRight="true"
+                        android:layout_below="@+id/subtitle"
+                        android:paddingBottom="5dp"
+                        android:paddingTop="5dp"
+                        android:text="@string/description"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="@color/selected_caption1" />
+                </RelativeLayout>
+            </android.support.v7.widget.CardView>
+        </LinearLayout>
+
         <TabWidget
             android:id="@android:id/tabs"
             android:layout_width="match_parent"
