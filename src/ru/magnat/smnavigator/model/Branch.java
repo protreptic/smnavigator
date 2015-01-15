@@ -12,6 +12,9 @@ public class Branch {
 	@DatabaseField(columnName = "name")
 	private String name;
 
+	@DatabaseField(columnName = "location", foreign = true, foreignAutoRefresh = true)
+	private Location location;
+	
 	public Integer getId() {
 		return id;
 	}
@@ -28,9 +31,17 @@ public class Branch {
 		this.name = name;
 	}
 	
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + "]";
+	public Location getLocation() {
+		return location;
 	}
 
+	public void setLocation(Location location) {
+		this.location = location;
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + ", location=" + location + "]";
+	}
+	
 }

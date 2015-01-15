@@ -94,4 +94,5 @@
     <string name="target">цель</string>
     <string name="fact">факт</string>
     <string name="index">индекс</string>
+    <string name="initalization">инициализация приложения</string>
 </resources>

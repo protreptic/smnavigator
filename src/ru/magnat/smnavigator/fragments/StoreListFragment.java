@@ -12,11 +12,10 @@ import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.fragments.base.BaseEndlessListFragment;
 import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.model.Target;
-import ru.magnat.smnavigator.sync.SyncListener;
-import ru.magnat.smnavigator.sync.SyncStatus;
+import ru.magnat.smnavigator.synchronization.SynchronizationListener;
+import ru.magnat.smnavigator.synchronization.SynchronizationStatus;
 import ru.magnat.smnavigator.view.TargetView;
 import ru.magnat.smnavigator.widget.StaticMapView;
-
 import android.accounts.Account;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -42,7 +41,7 @@ import android.text.TextUtils;
 
 import com.j256.ormlite.dao.Dao;
 
-public class StoreListFragment extends BaseEndlessListFragment implements OnScrollListener, SyncListener {
+public class StoreListFragment extends BaseEndlessListFragment implements OnScrollListener, SynchronizationListener {
 
 	@Override
 	public void onResume() {
@@ -59,7 +58,7 @@ public class StoreListFragment extends BaseEndlessListFragment implements OnScro
 	}
 	
 	@Override
-	public void onSyncCompleted(SyncStatus status) {
+	public void onSynchronizationCompleted(SynchronizationStatus status) {
 		switch (status) {
 			case STARTED: {} break;
 			case ACK: {} break;
@@ -318,5 +317,11 @@ public class StoreListFragment extends BaseEndlessListFragment implements OnScro
 	
 	@Override
 	public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {}
+
+	@Override
+	public void onInitialSynchronizationCompleted(SynchronizationStatus status) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }

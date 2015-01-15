@@ -12,11 +12,10 @@ import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.fragments.base.BaseListFragment;
 import ru.magnat.smnavigator.model.Psr;
 import ru.magnat.smnavigator.model.Route;
-import ru.magnat.smnavigator.sync.SyncListener;
-import ru.magnat.smnavigator.sync.SyncStatus;
+import ru.magnat.smnavigator.synchronization.SynchronizationListener;
+import ru.magnat.smnavigator.synchronization.SynchronizationStatus;
 import ru.magnat.smnavigator.view.RouteView;
 import ru.magnat.smnavigator.widget.StaticMapView;
-
 import android.accounts.Account;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -39,7 +38,7 @@ import android.widget.Toast;
 
 import com.j256.ormlite.dao.Dao;
 
-public class PsrListFragment extends BaseListFragment implements SyncListener {
+public class PsrListFragment extends BaseListFragment implements SynchronizationListener {
 
 	@Override
 	public void onResume() {
@@ -56,7 +55,10 @@ public class PsrListFragment extends BaseListFragment implements SyncListener {
 	}
 
 	@Override
-	public void onSyncCompleted(SyncStatus status) {
+	public void onInitialSynchronizationCompleted(SynchronizationStatus status) {}
+	
+	@Override
+	public void onSynchronizationCompleted(SynchronizationStatus status) {
 		switch (status) {
 		case STARTED: {
 		}

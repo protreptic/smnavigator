@@ -1,25 +1,20 @@
-package ru.magnat.smnavigator.model;
-
-import ru.magnat.smnavigator.model.base.Mappable;
+package ru.magnat.smnavigator.model.experimental;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
-@DatabaseTable(tableName = "georegion")
-public class Georegion implements Mappable {
-
-	@DatabaseField(columnName = "id", generatedId = true)
-	private Integer id;
+@DatabaseTable(tableName = "geocoordinate")
+public class Geocoordinate {
 	
-	@DatabaseField(columnName = "branch_id")
-	private Integer branchId;
+	@DatabaseField(columnName = "id", id = true)
+	private Integer id;
 	
 	@DatabaseField(columnName = "latitude")
 	private Double latitude;
 	
 	@DatabaseField(columnName = "longitude")
 	private Double longitude;
-	
+
 	public Integer getId() {
 		return id;
 	}
@@ -28,14 +23,6 @@ public class Georegion implements Mappable {
 		this.id = id;
 	}
 
-	public Integer getBranchId() {
-		return branchId;
-	}
-
-	public void setBranchId(Integer branchId) {
-		this.branchId = branchId;
-	}
-	
 	public Double getLatitude() {
 		return latitude;
 	}
@@ -54,7 +41,7 @@ public class Georegion implements Mappable {
 	
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " [id=" + id + ", branchId=" + branchId + ", latitude=" + latitude + ", longitude=" + longitude + "]";
+		return getClass().getSimpleName() + " [id=" + id + ", latitude=" + latitude + ", longitude=" + longitude + "]";
 	}
-
+	
 }

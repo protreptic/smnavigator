@@ -2,7 +2,7 @@ package ru.magnat.smnavigator.model;
 
 import java.util.List;
 
-import ru.magnat.smnavigator.entities.Mappable;
+import ru.magnat.smnavigator.model.base.Mappable;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;

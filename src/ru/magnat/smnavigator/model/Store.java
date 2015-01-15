@@ -1,7 +1,7 @@
 package ru.magnat.smnavigator.model;
 
-import ru.magnat.smnavigator.entities.Clusterable;
-import ru.magnat.smnavigator.entities.Mappable;
+import ru.magnat.smnavigator.model.base.Clusterable;
+import ru.magnat.smnavigator.model.base.Mappable;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.j256.ormlite.field.DatabaseField;

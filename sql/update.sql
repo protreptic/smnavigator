@@ -175,6 +175,7 @@ insert into "sm_release" ("artifact_name","package","description","version_code"
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',13,'1.0.0-beta.1');
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',14,'1.0.0-beta.2');
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',19,'1.0.0-beta.7');
+insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',20,'1.0.0-beta.8');
 
 /*
     
@@ -307,12 +308,13 @@ create service "sm_getManager"
     Возвращает филиал пользователя которому принадлежит токен переданный в запросе
 */
 create or replace procedure "sm_getBranch" ("token" sm_token) 
-    result ("id" integer, "name" nvarchar(255))
+    result ("id" integer, "name" nvarchar(255), "location" integer)
 begin
     if ("sm_validateToken" ("token") >= 0) then
         select
             b."Id",     // идентификатор филиала
-            b."Descr"   // наименование филиала
+            b."Descr",   // наименование филиала
+            b."Id"
         from     
             "sm_getManager" ("token") a
             join "RefBranch" b 
@@ -337,6 +339,34 @@ create service "sm_getBranch"
     as call "sm_getBranch" (:token);
 comment on service "sm_getBranch" is '
     Возвращает филиал пользователя которому принадлежит токен переданный в запросе';
+
+create or replace procedure "sm_getLocation" ("token" sm_token) 
+    result ("id" integer, "latitude" double, "longitude" double)
+begin
+    if ("sm_validateToken" ("token") >= 0) then
+        select
+            b."Id",     // идентификатор филиала
+            48.7193900,   // наименование филиала
+            44.5018400
+        from     
+            "sm_getManager" ("token") a
+            join "RefBranch" b 
+                on b."Id" = a."branch"
+        order by
+            b."Descr" asc;
+    endif;
+end;
+comment on procedure "sm_getLocation" is '';
+
+drop service "sm_getLocation";
+create service "sm_getLocation" 
+    type 'json'
+    authorization off
+    secure off
+    user dba
+    methods 'GET,POST'
+    as call "sm_getLocation" (:token);
+comment on service "sm_getLocation" is '';
 
 /*
         

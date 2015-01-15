@@ -6,8 +6,8 @@ import java.sql.Timestamp;
 import org.javaprotrepticon.android.androidutils.Fonts;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.auth.AccountWrapper;
-import ru.magnat.smnavigator.auth.Authenticator;
+import ru.magnat.smnavigator.security.account.AccountWrapper;
+import ru.magnat.smnavigator.security.account.Authenticator;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;

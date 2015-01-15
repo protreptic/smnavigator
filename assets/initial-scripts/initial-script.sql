@@ -14,7 +14,8 @@ create table manager (
 
 create table branch (
 	id integer primary key,
-	name varchar(255)
+	name varchar(255),
+	location integer
 );
 
 create table customer (
@@ -78,6 +79,12 @@ create table target (
 	target float,
 	fact float,
 	index float
+);
+
+create table location (
+	id integer,
+	latitude double,
+	longitude double
 );
 
 create table georegion (
