@@ -2,7 +2,11 @@ package ru.magnat.smnavigator.model;
 
 import java.util.List;
 
+import org.javaprotrepticon.android.androidutils.Text;
+
 import ru.magnat.smnavigator.model.base.Mappable;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
@@ -10,7 +14,7 @@ import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "psr")
-public class Psr implements Mappable {
+public class Psr implements Parcelable, Mappable {
 	
 	@DatabaseField(columnName = "id", id = true)
 	private Integer id;
@@ -42,6 +46,8 @@ public class Psr implements Mappable {
 	@ForeignCollectionField(eager = false)
 	private ForeignCollection<Route> routes;
 	
+	public Psr() {}
+	
 	public Integer getId() {
 		return id;
 	}
@@ -59,7 +65,7 @@ public class Psr implements Mappable {
 	}
 
 	public String getProject() {
-		return project;
+		return Text.prepareAddress(project);
 	}
 
 	public void setProject(String project) {
@@ -118,11 +124,6 @@ public class Psr implements Mappable {
 		this.email = email;
 	}
 	
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + ", email=" + email + ", tel=" + tel + ", branch=" + branch + ", department=" + department + "]";
-	}
-
 	public ForeignCollection<Route> getRoutes() {
 		return routes;
 	}
@@ -130,5 +131,36 @@ public class Psr implements Mappable {
 	public void setRoutes(ForeignCollection<Route> routes) {
 		this.routes = routes;
 	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + ", email=" + email + ", tel=" + tel + ", branch=" + branch + ", department=" + department + "]";
+	}
+	
+	private Psr(Parcel parcel) {
+		setId(parcel.readInt()); 
+		setName(parcel.readString());  
+	}
+	
+	@Override
+	public void writeToParcel(Parcel parcel, int flags) {
+		parcel.writeInt(getId()); 
+		parcel.writeString(getName());
+	} 
+	
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+	
+	public static final Parcelable.Creator<Psr> CREATOR = new Parcelable.Creator<Psr>() {
+		public Psr createFromParcel(Parcel parcel) {
+			return new Psr(parcel);
+		}
+
+		public Psr[] newArray(int size) {
+			return new Psr[size];
+		}
+	};
 	
 }

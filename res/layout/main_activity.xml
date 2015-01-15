@@ -52,4 +52,12 @@
             android:textAppearance="?android:attr/textAppearanceSmall" />
     </LinearLayout>
 
+    <ListView
+        android:id="@+id/right_drawer"
+        android:layout_width="320dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="#666"
+        android:orientation="vertical" />
+
 </android.support.v4.widget.DrawerLayout>
