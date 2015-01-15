@@ -28,7 +28,7 @@
         <item name="android:backgroundDimEnabled">false</item>
     </style>
 
-    <style name="Theme.BaseTheme" parent="@style/Theme.AppCompat.Light"></style>
+    <style name="Theme.BaseTheme" parent="@style/Theme.AppCompat.Light.NoActionBar"></style>
     <style name="Theme.MainTheme" parent="Theme.BaseTheme"></style>
 
 </resources>

@@ -1,5 +1,5 @@
 package ru.magnat.smnavigator.sync;
 
 public enum SyncStatus {
-	STARTED, ACK, COMPLETED, ERROR
+	STARTED, ACK, COMPLETED, CANCELED, ERROR
 }

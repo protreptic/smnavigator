@@ -8,9 +8,12 @@ import org.javaprotrepticon.android.androidutils.Fonts;
 import org.javaprotrepticon.android.androidutils.Text;
 
 import ru.magnat.smnavigator.R;
+import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.data.DbHelperSecured;
 import ru.magnat.smnavigator.map.LocationHelper;
 import ru.magnat.smnavigator.model.Store;
+import ru.magnat.smnavigator.sync.SyncListener;
+import ru.magnat.smnavigator.sync.SyncStatus;
 import android.accounts.Account;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -39,7 +42,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.j256.ormlite.dao.Dao;
 
-public class MapFragment extends SupportMapFragment {
+public class MapFragment extends SupportMapFragment implements SyncListener {
 	
 	private LocationHelper mLocationHelper;
 	private Account mAccount;
@@ -243,5 +246,37 @@ public class MapFragment extends SupportMapFragment {
 			}
 		});
 	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+		
+		((MainActivity) getActivity()).registerSyncListener(this);
+	}
 	
+	@Override
+	public void onPause() {
+		super.onPause();
+		
+		((MainActivity) getActivity()).unregisterSyncListener(this);
+	}
+	
+	@Override
+	public void onSyncCompleted(SyncStatus status) {
+		switch (status) {
+			case STARTED: {} break;
+			case ACK: {} break;
+			case COMPLETED: {
+				updateMap();
+			} break;
+			case CANCELED: {
+				updateMap();
+			} break;
+			case ERROR: {
+				updateMap();
+			} break;
+			default: {} break;
+		}
+	}
+
 }

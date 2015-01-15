@@ -7,12 +7,16 @@ import java.util.List;
 import org.javaprotrepticon.android.androidutils.Fonts;
 import org.javaprotrepticon.android.androidutils.Text;
 
+import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.fragments.base.BaseEndlessListFragment;
 import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.model.Target;
+import ru.magnat.smnavigator.sync.SyncListener;
+import ru.magnat.smnavigator.sync.SyncStatus;
 import ru.magnat.smnavigator.view.TargetView;
 import ru.magnat.smnavigator.widget.StaticMapView;
+
 import android.accounts.Account;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -38,8 +42,40 @@ import android.text.TextUtils;
 
 import com.j256.ormlite.dao.Dao;
 
-public class StoreListFragment extends BaseEndlessListFragment implements OnScrollListener {
+public class StoreListFragment extends BaseEndlessListFragment implements OnScrollListener, SyncListener {
 
+	@Override
+	public void onResume() {
+		super.onResume();
+		
+		((MainActivity) getActivity()).registerSyncListener(this);
+	}
+	
+	@Override
+	public void onPause() {
+		super.onPause();
+		
+		((MainActivity) getActivity()).unregisterSyncListener(this);
+	}
+	
+	@Override
+	public void onSyncCompleted(SyncStatus status) {
+		switch (status) {
+			case STARTED: {} break;
+			case ACK: {} break;
+			case COMPLETED: {
+				new LoadData().execute();
+			} break;
+			case CANCELED: {
+				new LoadData().execute();
+			} break;
+			case ERROR: {
+				new LoadData().execute();
+			} break;
+			default: {} break;
+		}
+	}
+	
 	private List<Store> mGroupData = new ArrayList<Store>();
 	private List<List<Target>> mChildData = new ArrayList<List<Target>>();
 	

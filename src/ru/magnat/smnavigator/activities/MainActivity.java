@@ -1,6 +1,7 @@
 package ru.magnat.smnavigator.activities;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.javaprotrepticon.android.androidutils.Apps;
@@ -12,6 +13,8 @@ import ru.magnat.smnavigator.fragments.MapFragment;
 import ru.magnat.smnavigator.fragments.PsrListFragment;
 import ru.magnat.smnavigator.fragments.StoreListFragment;
 import ru.magnat.smnavigator.model.Manager;
+import ru.magnat.smnavigator.sync.SyncListener;
+import ru.magnat.smnavigator.sync.SyncStatus;
 import ru.magnat.smnavigator.update.UpdateHelper;
 import ru.magnat.smnavigator.view.UserInfoView;
 import android.accounts.Account;
@@ -29,19 +32,20 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMapOptions;
@@ -50,7 +54,6 @@ public class MainActivity extends ActionBarActivity {
 	
     private DrawerLayout mDrawerLayout;
     private ActionBarDrawerToggle mDrawerToggle;
-    private ActionBarHelper mActionBar;
     private LinearLayout mDrawer;
     private ListView mDrawerList;
     
@@ -80,8 +83,6 @@ public class MainActivity extends ActionBarActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState); 
 
-		supportRequestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-		
         setContentView(R.layout.main_activity);
 
         mAccount = getIntent().getExtras().getParcelable("account");
@@ -90,9 +91,6 @@ public class MainActivity extends ActionBarActivity {
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
         mDrawerLayout.setDrawerListener(new DemoDrawerListener());
         mDrawerLayout.setDrawerTitle(GravityCompat.START, getString(R.string.drawer_title));
-        
-        mActionBar = createActionBarHelper();
-        mActionBar.init();
         
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close);
         
@@ -114,9 +112,18 @@ public class MainActivity extends ActionBarActivity {
 		requestBackup();
 		requestInitialSync();
 		
-		setSupportProgressBarIndeterminateVisibility(true);
+		progressBar = (ProgressBar) LayoutInflater.from(getBaseContext()).inflate(R.layout.progressbar, null, false);
+		
+		Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+		toolbar.setTitle("");
+		toolbar.setSubtitle("");
+		toolbar.addView(progressBar); 
+		
+	    setSupportActionBar(toolbar);
 	}
 
+	private ProgressBar progressBar;
+	
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
@@ -135,13 +142,11 @@ public class MainActivity extends ActionBarActivity {
         @Override
         public void onDrawerOpened(View drawerView) {
             mDrawerToggle.onDrawerOpened(drawerView);
-            mActionBar.onDrawerOpened();
         }
 
         @Override
         public void onDrawerClosed(View drawerView) {
             mDrawerToggle.onDrawerClosed(drawerView);
-            mActionBar.onDrawerClosed();
         }
 
         @Override
@@ -155,34 +160,6 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    private ActionBarHelper createActionBarHelper() {
-        return new ActionBarHelper();
-    }
-
-    private class ActionBarHelper {
-    	
-        private final ActionBar mActionBar;
-
-        ActionBarHelper() {
-            mActionBar = getSupportActionBar();
-        }
-
-        public void init() {
-            mActionBar.setDisplayHomeAsUpEnabled(true);
-            mActionBar.setDisplayShowHomeEnabled(false);
-            
-            mActionBar.setTitle(""); 
-            mActionBar.setSubtitle(""); 
-        }
-
-        public void onDrawerClosed() {
-        }
-
-        public void onDrawerOpened() {
-        }
-
-    }
-	
 	private void requestUpdate() {
 		Toast.makeText(getBaseContext(), getString(R.string.update_check), Toast.LENGTH_LONG).show();
 		UpdateHelper.get(this).update();
@@ -357,6 +334,22 @@ public class MainActivity extends ActionBarActivity {
 	
 	public static final String ACTION_SYNC = "ru.magnat.smnavigator.sync.ACTION_SYNC"; 
 	
+	private List<SyncListener> mSyncListeners = new ArrayList<SyncListener>(); 
+	
+	public void registerSyncListener(SyncListener listener) {
+		mSyncListeners.add(listener);
+	}
+	
+	public void unregisterSyncListener(SyncListener listener) {
+		mSyncListeners.remove(listener);
+	}
+	
+	private void notifySyncListeners(SyncStatus status) {
+		for (SyncListener listener : mSyncListeners) {
+			listener.onSyncCompleted(status);
+		}
+	}
+	
 	private BroadcastReceiver mSyncReceiver = new BroadcastReceiver() {
 		
 		private static final String TAG = "SYNCHRONIZATION";
@@ -368,32 +361,47 @@ public class MainActivity extends ActionBarActivity {
 	            
 	            if (action.equals("started")) {
 	            	Log.d(TAG, "sync:started->" + intent.getStringExtra("account"));
+	            	
+	            	progressBar.setVisibility(View.VISIBLE); 
+	            	
+	            	notifySyncListeners(SyncStatus.STARTED); 
 	            }
 	            if (action.equals("ack")) {
 	            	Log.d(TAG, "sync:ack->" + intent.getStringExtra("account"));
+	            	
+	            	progressBar.setVisibility(View.VISIBLE); 
+	            	
+	            	notifySyncListeners(SyncStatus.ACK);
 	            }
 	            if (action.equals("completed")) {
 	            	Log.d(TAG, "sync:completed->" + intent.getStringExtra("account")); 
 	            	
-	    			if (mMapFragment != null) 
-	    				mMapFragment.updateMap();
-	    			
 	    			updateUserInfo();
+	    			
+	    			progressBar.setVisibility(View.INVISIBLE); 
+	    			
+	    			notifySyncListeners(SyncStatus.COMPLETED);
 	    			
 	            	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncSuccess), Toast.LENGTH_LONG).show(); 
 	            }
 	            if (action.equals("canceled")) {
 	            	Log.d(TAG, "sync:canceled->" + intent.getStringExtra("account"));  
 	            	
+	            	progressBar.setVisibility(View.INVISIBLE); 
+	            	
+	            	notifySyncListeners(SyncStatus.CANCELED);
+	            	
 	            	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncCanceled), Toast.LENGTH_LONG).show();	
 	            }
 	            if (action.equals("error")) {
 	            	Log.d(TAG, "sync:error->" + intent.getStringExtra("account"));  
 	            	
+	            	progressBar.setVisibility(View.INVISIBLE); 
+	            	
+	            	notifySyncListeners(SyncStatus.ERROR);
+	            	
 	            	Toast.makeText(getBaseContext(), getResources().getString(R.string.syncError), Toast.LENGTH_LONG).show();	
 	            }
-	            
-	            getSupportActionBar().invalidateOptionsMenu();
 	        }
 	    }
 	    
