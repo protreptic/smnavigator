@@ -4,7 +4,9 @@ import java.util.List;
 
 import ru.magnat.smnavigator.model.base.Mappable;
 
+import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "psr")
@@ -36,6 +38,9 @@ public class Psr implements Mappable {
 	
 	@DatabaseField(columnName = "longitude")
 	private Double longitude;
+	
+	@ForeignCollectionField(eager = false)
+	private ForeignCollection<Route> routes;
 	
 	public Integer getId() {
 		return id;
@@ -116,6 +121,14 @@ public class Psr implements Mappable {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + ", email=" + email + ", tel=" + tel + ", branch=" + branch + ", department=" + department + "]";
+	}
+
+	public ForeignCollection<Route> getRoutes() {
+		return routes;
+	}
+
+	public void setRoutes(ForeignCollection<Route> routes) {
+		this.routes = routes;
 	}
 	
 }

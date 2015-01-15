@@ -14,23 +14,22 @@ import android.accounts.AccountManagerCallback;
 import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
-import android.content.DialogInterface.OnClickListener;
+import android.app.ListActivity;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
  
-public class LauncherActivity extends Activity {
+public class LauncherActivity extends ListActivity {
 	
 	private AccountManager mAccountManager;
+	private AccountListAdapter mAccountListAdapter;
 	
 	private void runApplication(Account account) {
 		Intent intent = new Intent(getBaseContext(), MainActivity.class);
@@ -117,42 +116,6 @@ public class LauncherActivity extends Activity {
 		}, null);
 	}
 	
-	private void showChooseAccountDialog() {
-		final AccountListAdapter accountListAdapter = new AccountListAdapter();
-		
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder
-        	.setTitle(null)
-        	.setSingleChoiceItems(accountListAdapter, -1, new OnClickListener() {
-				
-				@Override
-				public void onClick(DialogInterface dialog, int position) {
-					if (position == accountListAdapter.getCount() - 1) {
-						addAccount();
-					} else {
-						Account account = (Account) accountListAdapter.getItem(position);
-						
-						signUp(account);
-					}
-				}
-			})
-			.setOnCancelListener(new OnCancelListener() {
-				
-				@Override
-				public void onCancel(DialogInterface dialog) {
-					finish();
-				}
-			})
-            .show();
-	}
-	
-	@Override
-	protected void onStart() {
-		super.onStart();
-		
-		showChooseAccountDialog();
-	}
-	
 	private class AccountListAdapter extends BaseAdapter {
 
 		private Account[] mAccounts;
@@ -233,6 +196,23 @@ public class LauncherActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		
 		mAccountManager = AccountManager.get(this);
+		mAccountListAdapter = new AccountListAdapter();
+		
+		setListAdapter(mAccountListAdapter); 
+		
+		getListView().setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				if (position == mAccountListAdapter.getCount() - 1) {
+					addAccount();
+				} else {
+					Account account = (Account) mAccountListAdapter.getItem(position);
+					
+					signUp(account);
+				}
+			}
+		});
 	}
 	
 }

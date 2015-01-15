@@ -1,10 +1,14 @@
 package ru.magnat.smnavigator.model;
 
+import org.javaprotrepticon.android.androidutils.Text;
+
 import ru.magnat.smnavigator.model.base.Clusterable;
 import ru.magnat.smnavigator.model.base.Mappable;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "store")
@@ -40,6 +44,9 @@ public class Store implements Mappable, Clusterable {
 	@DatabaseField(columnName = "longitude")
 	private Double longitude;
 	
+	@ForeignCollectionField(eager = false)
+	private ForeignCollection<Target> targets;
+	
 	public Integer getId() {
 		return id;
 	}
@@ -65,7 +72,7 @@ public class Store implements Mappable, Clusterable {
 	}
 
 	public String getAddress() {
-		return address;
+		return Text.prepareAddress(address);
 	}
 
 	public void setAddress(String address) {
@@ -128,6 +135,14 @@ public class Store implements Mappable, Clusterable {
 
 	public void setStoreProperty(StoreProperty storeProperty) {
 		this.storeProperty = storeProperty;
+	}
+
+	public ForeignCollection<Target> getTargets() {
+		return targets;
+	}
+
+	public void setTargets(ForeignCollection<Target> targets) {
+		this.targets = targets;
 	}
 
 }

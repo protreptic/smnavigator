@@ -9,6 +9,9 @@
     <string name="i_got_it">Я понял</string>
     <string name="google_maps_api_key">0n7IqmcMRCnDYfxEdmJWdykrbYwOBFa2xylOxIw</string>
 
+    <string name="targets">Цели</string>
+    <string name="routes">Маршруты</string>
+    
     <!-- Main menu items -->
     <string name="settings">Настройки</string>
 	<string name="about">О программе</string>

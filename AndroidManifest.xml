@@ -37,7 +37,8 @@
         <activity android:name="ru.magnat.smnavigator.activities.MainActivity" />
         <activity
             android:name="ru.magnat.smnavigator.activities.LauncherActivity"
-            android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen" >
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.AppCompat.Dialog" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -45,16 +46,14 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="ru.magnat.smnavigator.security.account.SignInActivity"
-            android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen"
+            android:name="ru.magnat.smnavigator.security.account.LoginActivity"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
             android:windowSoftInputMode="stateAlwaysHidden" >
         </activity>
         <activity
             android:name=".update.DownloadArtifactActivity"
             android:excludeFromRecents="true"
-            android:label=""
-            android:launchMode="singleTask"
-            android:taskAffinity=""
             android:theme="@style/Theme.AppCompat.Dialog" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

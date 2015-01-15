@@ -30,7 +30,7 @@ import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
-public class SignInActivity extends AccountAuthenticatorActivity {
+public class LoginActivity extends AccountAuthenticatorActivity {
 	
 	private LinearLayout mSingInFormWapper;
 	private EditText mLoginField;

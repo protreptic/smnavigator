@@ -15,7 +15,7 @@ import javax.net.ssl.TrustManager;
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.security.KeyStoreManager;
 import ru.magnat.smnavigator.security.MyTrustManager;
-import ru.magnat.smnavigator.security.account.SignInActivity.AuthenticationResponse;
+import ru.magnat.smnavigator.security.account.LoginActivity.AuthenticationResponse;
 import android.accounts.AbstractAccountAuthenticator;
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;
@@ -56,7 +56,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
 	
 	@Override
 	public Bundle addAccount(AccountAuthenticatorResponse response, String accountType, String authTokenType, String[] requiredFeatures, Bundle options) throws NetworkErrorException {
-        Intent intent = new Intent(mContext, SignInActivity.class);
+        Intent intent = new Intent(mContext, LoginActivity.class);
         intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
          
         Bundle bundle = new Bundle();
@@ -136,7 +136,7 @@ public class Authenticator extends AbstractAccountAuthenticator {
     		}
         }
         
-        Intent intent = new Intent(mContext, SignInActivity.class);
+        Intent intent = new Intent(mContext, LoginActivity.class);
         intent.putExtra(AccountManager.KEY_ACCOUNT_AUTHENTICATOR_RESPONSE, response);
         intent.putExtra(AccountManager.KEY_ACCOUNT_NAME, account.name);
         

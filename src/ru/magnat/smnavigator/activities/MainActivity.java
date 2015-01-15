@@ -7,12 +7,11 @@ import org.javaprotrepticon.android.androidutils.Apps;
 import org.javaprotrepticon.android.androidutils.Fonts;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.fragments.MainFragment;
+import ru.magnat.smnavigator.activities.base.BaseActivity;
+import ru.magnat.smnavigator.fragments.EmptyFragment;
 import ru.magnat.smnavigator.fragments.MapFragment;
 import ru.magnat.smnavigator.fragments.PsrListFragment;
-import ru.magnat.smnavigator.fragments.StoreFragment;
 import ru.magnat.smnavigator.fragments.StoreListFragment;
-import ru.magnat.smnavigator.fragments.experimental.TrackFragment;
 import ru.magnat.smnavigator.model.Manager;
 import ru.magnat.smnavigator.security.account.AccountWrapper;
 import ru.magnat.smnavigator.storage.SecuredStorage;
@@ -20,7 +19,6 @@ import ru.magnat.smnavigator.synchronization.SynchronizationManager;
 import ru.magnat.smnavigator.synchronization.util.SynchronizationObserver;
 import ru.magnat.smnavigator.update.UpdateHelper;
 import ru.magnat.smnavigator.view.ManagerCardView;
-import android.accounts.Account;
 import android.app.backup.BackupManager;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -32,7 +30,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -49,15 +46,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends ActionBarActivity implements SynchronizationObserver {
+public class MainActivity extends BaseActivity {
 	
-    private DrawerLayout mDrawerLayout;
-    private ActionBarDrawerToggle mDrawerToggle;
-    private LinearLayout mDrawer;
-    private ListView mDrawerList;
-    
-    private Account mAccount;
-    
     private class MenuAdapter extends ArrayAdapter<String> {
 
 		@Override
@@ -73,7 +63,6 @@ public class MainActivity extends ActionBarActivity implements SynchronizationOb
 
 		public MenuAdapter(Context context, int resource, String[] objects) {
 			super(context, resource, objects);
-			// TODO Auto-generated constructor stub
 		}
     	
     }
@@ -87,14 +76,11 @@ public class MainActivity extends ActionBarActivity implements SynchronizationOb
 		menus = new String[] {
 	    		getString(R.string.titleMap), 
 	    		getString(R.string.titlePsrs), 
-	    		getString(R.string.titleStores),
-	    		getString(R.string.titleTrack)
+	    		getString(R.string.titleStores)
 	    	};
 		
         setContentView(R.layout.main_activity);
 
-        mAccount = getIntent().getExtras().getParcelable("account");
-        
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
         mDrawerLayout.setDrawerListener(new DemoDrawerListener());
@@ -112,7 +98,7 @@ public class MainActivity extends ActionBarActivity implements SynchronizationOb
         
         if (savedInstanceState == null) {
             FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-            fragmentTransaction.replace(R.id.content_frame, new MainFragment());
+            fragmentTransaction.replace(R.id.content_frame, new EmptyFragment());
             fragmentTransaction.commit();
         }
         
@@ -133,6 +119,8 @@ public class MainActivity extends ActionBarActivity implements SynchronizationOb
 		mToolBar.addView(progressBar); 
 		
 	    setSupportActionBar(mToolBar);
+	    
+	    mDrawerLayout.openDrawer(mDrawer);
 	}
 
 	@Override
@@ -149,7 +137,6 @@ public class MainActivity extends ActionBarActivity implements SynchronizationOb
 		mSynchronizationManager.unregisterSynchronizationObserver(this); 
 	}
 	
-	private Toolbar mToolBar;
 	private ProgressBar progressBar;
 	
     @Override
@@ -165,29 +152,6 @@ public class MainActivity extends ActionBarActivity implements SynchronizationOb
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
     
-	private class DemoDrawerListener implements DrawerLayout.DrawerListener {
-		
-        @Override
-        public void onDrawerOpened(View drawerView) {
-            mDrawerToggle.onDrawerOpened(drawerView);
-        }
-
-        @Override
-        public void onDrawerClosed(View drawerView) {
-            mDrawerToggle.onDrawerClosed(drawerView);
-        }
-
-        @Override
-        public void onDrawerSlide(View drawerView, float slideOffset) {
-            mDrawerToggle.onDrawerSlide(drawerView, slideOffset);
-        }
-
-        @Override
-        public void onDrawerStateChanged(int newState) {
-            mDrawerToggle.onDrawerStateChanged(newState);
-        }
-    }
-
 	private void requestUpdate() {
 		UpdateHelper.get(this).update();
 	}
@@ -200,7 +164,9 @@ public class MainActivity extends ActionBarActivity implements SynchronizationOb
 			
 			requestSync(); 
 		} else {
-			selectItem(0); 			
+            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            fragmentTransaction.replace(R.id.content_frame, new EmptyFragment());
+            fragmentTransaction.commit();		
 		}
 	}
 	
@@ -279,7 +245,6 @@ public class MainActivity extends ActionBarActivity implements SynchronizationOb
     private MapFragment mMapFragment;
     private PsrListFragment mPsrListFragment;
     private StoreListFragment mStoreListFragment;
-    private StoreFragment mTrackFragment;
     
     private void selectItem(int position) {
     	mDrawerList.setItemChecked(position, true);
@@ -318,19 +283,14 @@ public class MainActivity extends ActionBarActivity implements SynchronizationOb
 				
 				fragment = mStoreListFragment;
 			} break;
-			case 3: {
-				if (mTrackFragment == null) {
-					mTrackFragment = new StoreFragment();
-					
-					mTrackFragment.setArguments(arguments);
-				}
-				
-				fragment = mTrackFragment;
-			} break;
 			default: {
 				return;
 			}
 		}
+        
+        while (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+        	getSupportFragmentManager().popBackStackImmediate();
+        }
         
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.content_frame, fragment);

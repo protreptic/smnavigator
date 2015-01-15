@@ -307,7 +307,7 @@ public class SynchronizationAdapter extends AbstractThreadedSyncAdapter {
 		GsonBuilder gsonBuilder = new GsonBuilder();
 		gsonBuilder.registerTypeAdapter(Psr.class, new PsrDeserializer()); 
 		gsonBuilder.registerTypeAdapter(Store.class, new StoreDeserializer());
-		gsonBuilder.setDateFormat("yyyy-MM-dd HH:mm:ss.SSS"); 
+		gsonBuilder.setDateFormat("yyyy-MM-dd"); 
 		gsonBuilder.serializeNulls();
 		
 		Gson gson = gsonBuilder.create();

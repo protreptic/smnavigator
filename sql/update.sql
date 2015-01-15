@@ -445,11 +445,11 @@ create service "sm_getPsr"
         
 */
 create or replace procedure "sm_getRoute" ("token" sm_token) 
-    result ("id" integer, "visitDate" datetime, "psr" integer, "store" integer)
+    result ("id" integer, "visitDate" date, "psr" integer, "store" integer)
 begin
     if ("sm_validateToken" ("token") >= 0) then    
         select 
-            b."Id", b."StartDate", a."id", b."Outlet" 
+            b."Id", cast(b."StartDate" as date), a."id", b."Outlet" 
         from "sm_getPsr" ("token") a 
             join "TaskVisitJournal" b 
                 on b."Author" = a."id" 

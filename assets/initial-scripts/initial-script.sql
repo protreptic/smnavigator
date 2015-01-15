@@ -42,7 +42,7 @@ create table psr (
 
 create table route (
 	id integer primary key,
-	visit_date timestamp,
+	visit_date date,
 	psr integer,
 	store integer
 );

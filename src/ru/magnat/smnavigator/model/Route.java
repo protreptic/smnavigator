@@ -1,6 +1,6 @@
 package ru.magnat.smnavigator.model;
 
-import java.sql.Timestamp;
+import java.sql.Date;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
@@ -12,7 +12,7 @@ public class Route {
 	private Integer id;
 	
 	@DatabaseField(columnName = "visit_date")
-	private Timestamp visitDate;
+	private Date visitDate;
 	
 	@DatabaseField(columnName = "psr", foreign = true, foreignAutoRefresh = true)
 	private Psr psr;
@@ -28,11 +28,11 @@ public class Route {
 		this.id = id;
 	}
 
-	public Timestamp getVisitDate() {
+	public Date getVisitDate() {
 		return visitDate;
 	}
 
-	public void setVisitDate(Timestamp visitDate) {
+	public void setVisitDate(Date visitDate) {
 		this.visitDate = visitDate;
 	}
 

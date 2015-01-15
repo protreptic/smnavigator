@@ -8,78 +8,34 @@ import org.javaprotrepticon.android.androidutils.Fonts;
 import org.javaprotrepticon.android.androidutils.Text;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.activities.MainActivity;
-import ru.magnat.smnavigator.fragments.base.BaseEndlessListFragment;
+import ru.magnat.smnavigator.fragments.base.BaseEntityListFragment;
 import ru.magnat.smnavigator.model.Store;
-import ru.magnat.smnavigator.model.Target;
+import ru.magnat.smnavigator.model.experimental.parcel.StoreParcel;
 import ru.magnat.smnavigator.storage.SecuredStorage;
-import ru.magnat.smnavigator.synchronization.util.SynchronizationObserver;
-import ru.magnat.smnavigator.view.TargetView;
 import ru.magnat.smnavigator.widget.StaticMapView;
-import android.accounts.Account;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.SearchView.OnQueryTextListener;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.AbsListView.OnScrollListener;
-import android.widget.BaseExpandableListAdapter;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.stmt.QueryBuilder;
 
-public class StoreListFragment extends BaseEndlessListFragment implements OnScrollListener, SynchronizationObserver {
+public class StoreListFragment extends BaseEntityListFragment {
 
-	@Override
-	public void onResume() {
-		super.onResume();
-		
-		((MainActivity) getActivity()).registerSynchronizationObserver(this);
-	}
-	
-	@Override
-	public void onPause() {
-		super.onPause();
-		
-		((MainActivity) getActivity()).unregisterSynchronizationObserver(this);
-	}
-	
-	private List<Store> mGroupData = new ArrayList<Store>();
-	private List<List<Target>> mChildData = new ArrayList<List<Target>>();
-	
-	private Account mAccount;
-	
-	@Override
-	public void onActivityCreated(Bundle savedInstanceState) {
-		super.onActivityCreated(savedInstanceState);
-		
-		mAccount = getArguments().getParcelable("account");
-		
-		progressBar = new ProgressBar(getActivity());
-		
-		getExpandableListView().setOnScrollListener(this);
-		getExpandableListView().addFooterView(progressBar); 
-		
-		mAdapter = new MyAdapter();
-		
-		setListAdapter(mAdapter);
-		
-		new LoadData().execute();
- 	}
+	private String mQueryText = "%%";
 	
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -90,20 +46,7 @@ public class StoreListFragment extends BaseEndlessListFragment implements OnScro
 			
 			@Override
 			public boolean onQueryTextSubmit(String query) {
-				if (!TextUtils.isEmpty(query) && query.length() > 3) { 
-					mQueryText = "%" + query + "%";
-				} else {
-					mQueryText = "%%";
-				}
-				
-				mGroupData.clear();
-				mChildData.clear();
-				offset = 0;
-				count = 0;
-				
-				if (progressBar == null) {
-					progressBar.setVisibility(View.VISIBLE);
-				}
+				mQueryText = "%" + query + "%";
 				
 				new LoadData().execute();
 				
@@ -117,23 +60,89 @@ public class StoreListFragment extends BaseEndlessListFragment implements OnScro
 		});
 	}
 	
-	private class LoadData extends AsyncTask<Void, Void, Void> {
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
 		
-		@Override
-		protected void onPreExecute() {
-			if (offset == 0) {
-				setListShown(false); 
-			}
-			
-			mIsLoading = true;
+		mRecyclerViewAdapter = new StoreAdapter();
+		
+		mRecyclerView.setAdapter(mRecyclerViewAdapter); 
+		
+		new LoadData().execute();
+	}
+	
+	private List<Store> mStores = new ArrayList<Store>();
+	
+	public class StoreAdapter extends RecyclerView.Adapter<StoreViewHolder> {
+		
+		private Typeface mRobotoCondensedBold;
+		
+		public StoreAdapter() {
+			mRobotoCondensedBold = Fonts.get(getActivity()).getTypeface("RobotoCondensed-Bold");
 		}
 		
 		@Override
+		public int getItemCount() {
+			return mStores.size();
+		}
+
+		@Override
+		public void onBindViewHolder(StoreViewHolder holder, int position) {
+			final Store store = mStores.get(position);
+			
+			holder.title.setText(store.getCustomer().getName());
+			holder.title.setTypeface(mRobotoCondensedBold);
+			
+			holder.subtitle.setText(store.getStoreProperty().getGoldenStatus());
+			holder.subtitle.setTypeface(Fonts.get(getActivity()).getDefaultTypeface());
+			
+			holder.description.setText(Text.prepareAddress(store.getAddress())); 
+			holder.description.setTypeface(Fonts.get(getActivity()).getDefaultTypeface());
+			
+			holder.staticmap.setMappable(store); 
+			
+			holder.staticmaptitle.setText(store.getChannel());
+			holder.staticmaptitle.setTypeface(Fonts.get(getActivity()).getDefaultTypeface());
+			
+			holder.itemView.setOnClickListener(new OnClickListener() { 
+				
+				@Override
+				public void onClick(View view) {
+					StoreParcel storeParcel = new StoreParcel(store);
+					
+					Bundle arguments = new Bundle();
+					arguments.putParcelable("account", mAccount);
+					arguments.putParcelable("store", storeParcel);   
+					
+					Fragment fragment = new StoreFragment();
+					fragment.setArguments(arguments); 
+					
+		            FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
+		            fragmentTransaction.replace(R.id.content_frame, fragment);
+		            fragmentTransaction.addToBackStack(null);
+		            fragmentTransaction.commit();	
+				}
+			});
+		}
+
+		@Override
+		public StoreViewHolder onCreateViewHolder(ViewGroup parent, final int arg1) {
+			View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.default_list_item_cardview, parent, false);
+			
+			return new StoreViewHolder(itemView);
+		}
+		
+	}
+	
+	public class LoadData extends AsyncTask<Void, Void, Void> {
+
+		@Override
 		protected Void doInBackground(Void... params) {
+			mStores.clear();
+
 			SecuredStorage securedStorage = SecuredStorage.get(getActivity(), mAccount);
 			
 			Dao<Store, Integer> storeDao = securedStorage.getStoreDao();
-			Dao<Target, Integer> targetDao = securedStorage.getTargetDao();
 			
 			QueryBuilder<Store, Integer> queryBuilder;
 			
@@ -143,29 +152,11 @@ public class StoreListFragment extends BaseEndlessListFragment implements OnScro
 					.like("name", mQueryText)
 						.or()
 					.like("address", mQueryText);
-				
-				if (count == 0) {
-					count = queryBuilder.countOf();
-				}
-				
-				queryBuilder = storeDao.queryBuilder();
-				queryBuilder.where()
-					.like("name", mQueryText)
-						.or()
-					.like("address", mQueryText);
-				queryBuilder.offset(offset);
-				queryBuilder.limit(limit);
 				queryBuilder.orderBy("name", true);
 				
 				List<Store> stores = queryBuilder.query();
 				
-				offset += stores.size();
-				
-				mGroupData.addAll(stores);
-				
-				for (Store store : stores) {
-					mChildData.add(targetDao.queryForEq("store", store.getId()));	
-				}
+				mStores.addAll(stores);
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -177,170 +168,29 @@ public class StoreListFragment extends BaseEndlessListFragment implements OnScro
 		
 		@Override
 		protected void onPostExecute(Void result) {
-			mAdapter.notifyDataSetChanged();
-			
-			if (isListShown() == false) {
-				setListShown(true); 
-			}
-			
-	        if (count == getExpandableListView().getCount() - 1) {
-	        	progressBar.setVisibility(View.GONE); 
-	        }
-	        
-	        mIsLoading = false;
+			mRecyclerViewAdapter.notifyDataSetChanged();
 		}
 		
 	}
 	
-	private class MyAdapter extends BaseExpandableListAdapter {
+	public static class StoreViewHolder extends RecyclerView.ViewHolder {
+
+		protected StaticMapView staticmap;
 		
-		@Override
-		public int getGroupCount() {	
-			return mGroupData.size();
-		}
-
-		@Override
-		public long getGroupId(int groupPosition) {
-			return ((Store) mGroupData.get(groupPosition)).getId();
-		}
+		protected TextView title;
+		protected TextView subtitle;
+		protected TextView description;
+		protected TextView staticmaptitle;
 		
-		@Override
-		public Object getGroup(int groupPosition) {
-			return mGroupData.get(groupPosition); 
+		public StoreViewHolder(View itemView) {
+			super(itemView); 
+			
+			title = (TextView) itemView.findViewById(R.id.title);
+			subtitle = (TextView) itemView.findViewById(R.id.subtitle);
+			description = (TextView) itemView.findViewById(R.id.description);
+			staticmap = (StaticMapView) itemView.findViewById(R.id.staticmap); 
+			staticmaptitle = (TextView) itemView.findViewById(R.id.staticmaptitle); 
 		}
-		
-		@Override
-		public int getChildrenCount(int groupPosition) {		
-			return mChildData.get(groupPosition).size();
-		}
-
-		@Override
-		public long getChildId(int groupPosition, int childPosition) {
-			return ((Target) mChildData.get(groupPosition).get(childPosition)).getStore().getId();
-		}
-
-		@Override
-		public Object getChild(int groupPosition, int childPosition) {
-			return (Target) mChildData.get(groupPosition).get(childPosition);
-		}
- 
-		@Override
-		public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
-			final Store store = (Store) getGroup(groupPosition);
-			
-			RelativeLayout relativeLayout = (RelativeLayout) LayoutInflater.from(getActivity()).inflate(R.layout.default_list_item, parent, false);
-			
-			TextView name = (TextView) relativeLayout.findViewById(R.id.title); 
-			name.setTypeface(Fonts.get(getActivity()).getDefaultTypeface());  
-			name.setText(store.getCustomer().getName());   
-			
-			TextView address = (TextView) relativeLayout.findViewById(R.id.description); 
-			address.setTypeface(Fonts.get(getActivity()).getDefaultTypeface());  
-			address.setText(Text.prepareAddress(store.getAddress())); 
-			
-			TextView channel = (TextView) relativeLayout.findViewById(R.id.staticmaptitle); 
-			channel.setTypeface(Fonts.get(getActivity()).getDefaultTypeface());  
-			channel.setText(store.getChannel()); 
-			
-			TextView goldenStatus = (TextView) relativeLayout.findViewById(R.id.subtitle); 
-			goldenStatus.setTypeface(Fonts.get(getActivity()).getDefaultTypeface());  
-			goldenStatus.setText(store.getStoreProperty().getGoldenStatus()); 
-			
-			StaticMapView staticMapView = (StaticMapView) relativeLayout.findViewById(R.id.staticmap); 
-			staticMapView.setMappable(store); 
-			staticMapView.setOnClickListener(new OnClickListener() {
-				
-				@Override
-				public void onClick(View view) {
-					double latitude = store.getLatitude();
-					double longitude = store.getLongitude();
-					
-					if (latitude == 0 || longitude == 0) {
-						Toast.makeText(getActivity(), getString(R.string.locationUnavailable), Toast.LENGTH_LONG).show(); return;
-					}
-					
-					Bundle arguments = new Bundle();
-			        arguments.putParcelable("account", mAccount); 
-			        arguments.putBoolean("moveCamera", true);
-			        arguments.putDouble("latitude", latitude); 
-			        arguments.putDouble("longitude", longitude); 
-			        
-			        Fragment fragment = new MapFragment();
-			        fragment.setArguments(arguments); 
-			        
-			        FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
-			        fragmentTransaction.replace(R.id.content_frame, fragment);
-			        fragmentTransaction.addToBackStack(null);
-			        fragmentTransaction.commit();
-				}
-			});
-			
-			return relativeLayout; 
-		}
-
-		@Override
-		public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-			Target target = (Target) getChild(groupPosition, childPosition);
-			
-			return new TargetView(getActivity(), target); 
-		}
-
-		@Override
-		public boolean isChildSelectable(int groupPosition, int childPosition) {
-			return false;
-		}
-		
-		@Override
-		public boolean hasStableIds() {
-			return false;
-		}
-		
-	}
-	
-	@Override
-	public void onScrollStateChanged(AbsListView view, int scrollState) {
-		if (scrollState == SCROLL_STATE_IDLE) { 
-			if (getExpandableListView().getFirstVisiblePosition() == 0) {
-			}
-			
-	        if (getExpandableListView().getLastVisiblePosition() >= getExpandableListView().getCount() - 1 && !mIsLoading) {
-	        	if (count != offset) {
-	        		new LoadData().execute();
-	        	} else {
-	        		if (progressBar != null) {
-	        			progressBar.setVisibility(View.GONE); 
-	        		}
-	        	}
-	        }
-	    }
-	}
-	
-	@Override
-	public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {}
-
-	@Override
-	public void onStarted() {
-		
-	}
-
-	@Override
-	public void onAck() {
-		
-	}
-
-	@Override
-	public void onCompleted() {
-		new LoadData().execute();
-	}
-
-	@Override
-	public void onCanceled() {
-		new LoadData().execute();
-	}
-
-	@Override
-	public void onError() {
-		new LoadData().execute();
 	}
 	
 }
