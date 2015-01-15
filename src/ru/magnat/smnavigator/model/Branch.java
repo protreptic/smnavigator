@@ -1,10 +1,13 @@
 package ru.magnat.smnavigator.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "branch")
-public class Branch {
+public class Branch implements Parcelable {
 	
 	@DatabaseField(columnName = "id", id = true)
 	private Integer id;
@@ -14,6 +17,8 @@ public class Branch {
 
 	@DatabaseField(columnName = "location", foreign = true, foreignAutoRefresh = true)
 	private Location location;
+	
+	public Branch() {}
 	
 	public Integer getId() {
 		return id;
@@ -43,5 +48,31 @@ public class Branch {
 	public String toString() {
 		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + ", location=" + location + "]";
 	}
+	
+	private Branch(Parcel parcel) {
+		setId(parcel.readInt()); 
+		setName(parcel.readString()); 
+	}
+	
+	@Override
+	public void writeToParcel(Parcel parcel, int flags) {
+		parcel.writeInt(getId()); 
+		parcel.writeString(getName());
+	} 
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+	
+	public static final Parcelable.Creator<Branch> CREATOR = new Parcelable.Creator<Branch>() {
+		public Branch createFromParcel(Parcel parcel) {
+			return new Branch(parcel);
+		}
+
+		public Branch[] newArray(int size) {
+			return new Branch[size];
+		}
+	};
 	
 }

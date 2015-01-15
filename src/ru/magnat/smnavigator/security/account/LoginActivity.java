@@ -15,6 +15,7 @@ import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
@@ -44,6 +45,10 @@ public class LoginActivity extends AccountAuthenticatorActivity {
 		
 		setContentView(R.layout.signin_activity); 
 		
+		String accountName = getIntent().getExtras().getString("accountName");
+		
+		Log.d("", "accountName: " + accountName);
+		
 		mSingInFormWapper = (LinearLayout) findViewById(R.id.signInFormWapper);
 		
 		Typeface typeface = Fonts.get(this).getTypeface("RobotoCondensed-Light");
@@ -51,7 +56,7 @@ public class LoginActivity extends AccountAuthenticatorActivity {
 		mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
 		
 		mLoginField = (EditText) findViewById(R.id.loginField); 
-		mLoginField.setText(""); 
+		mLoginField.setText(TextUtils.isEmpty(accountName) ? "" : accountName);  
 		mLoginField.setTypeface(typeface);
 		
 		mPasswordField = (EditText) findViewById(R.id.passwordField);

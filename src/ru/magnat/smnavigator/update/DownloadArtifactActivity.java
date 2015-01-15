@@ -52,7 +52,7 @@ public class DownloadArtifactActivity extends Activity {
 						
 						protected void onPreExecute() {
 							Notification.Builder builder = new Builder(DownloadArtifactActivity.this);
-							builder.setSmallIcon(R.drawable.logotype_small_icon);
+							builder.setSmallIcon(R.drawable.book_bookmark);
 							builder.setContentTitle(getString(R.string.app_name)); 
 							builder.setContentText(getString(R.string.update_loading));
 							builder.setAutoCancel(false);
@@ -124,7 +124,7 @@ public class DownloadArtifactActivity extends Activity {
 						
 						protected void onProgressUpdate(Integer... progress) {
 							Notification.Builder builder = new Builder(DownloadArtifactActivity.this);
-							builder.setSmallIcon(R.drawable.logotype_small_icon);
+							builder.setSmallIcon(R.drawable.book_bookmark);
 							builder.setContentTitle(getString(R.string.app_name));
 							builder.setContentText(getString(R.string.update_loading));
 							builder.setAutoCancel(false);
@@ -139,7 +139,7 @@ public class DownloadArtifactActivity extends Activity {
 							 
 							if (artifact != null) {
 								Notification.Builder builder = new Builder(DownloadArtifactActivity.this);
-								builder.setSmallIcon(R.drawable.logotype_small_icon);
+								builder.setSmallIcon(R.drawable.book_bookmark);
 								builder.setContentTitle(getString(R.string.app_name));
 								builder.setContentText(getString(R.string.update_loading_complete));
 								builder.setAutoCancel(false);

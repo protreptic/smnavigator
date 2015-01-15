@@ -4,6 +4,8 @@ import org.javaprotrepticon.android.androidutils.Text;
 
 import ru.magnat.smnavigator.model.base.Clusterable;
 import ru.magnat.smnavigator.model.base.Mappable;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.j256.ormlite.dao.ForeignCollection;
@@ -12,7 +14,7 @@ import com.j256.ormlite.field.ForeignCollectionField;
 import com.j256.ormlite.table.DatabaseTable;
 
 @DatabaseTable(tableName = "store")
-public class Store implements Mappable, Clusterable {
+public class Store implements Parcelable, Mappable, Clusterable {
 	
 	@DatabaseField(columnName = "id", id = true)
 	private Integer id;
@@ -46,6 +48,8 @@ public class Store implements Mappable, Clusterable {
 	
 	@ForeignCollectionField(eager = false)
 	private ForeignCollection<Target> targets;
+	
+	public Store() {}
 	
 	public Integer getId() {
 		return id;
@@ -124,11 +128,6 @@ public class Store implements Mappable, Clusterable {
 		return new LatLng(latitude, longitude); 
 	}
 	
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + ", customer=" + customer + ", address=" + address + ", tel=" + tel + ", channel=" + channel + ", coverageType=" + coverageType + ", latitude=" + latitude + ", longitude=" + longitude + "]";	
-	}
-
 	public StoreProperty getStoreProperty() {
 		return storeProperty;
 	}
@@ -144,5 +143,36 @@ public class Store implements Mappable, Clusterable {
 	public void setTargets(ForeignCollection<Target> targets) {
 		this.targets = targets;
 	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + ", customer=" + customer + ", address=" + address + ", tel=" + tel + ", channel=" + channel + ", coverageType=" + coverageType + ", latitude=" + latitude + ", longitude=" + longitude + "]";	
+	}
+	
+	private Store(Parcel parcel) {
+		setId(parcel.readInt()); 
+		setName(parcel.readString()); 
+	}
+	
+	@Override
+	public void writeToParcel(Parcel parcel, int flags) {
+		parcel.writeInt(getId()); 
+		parcel.writeString(getName());
+	} 
+
+	@Override
+	public int describeContents() {
+		return 0;
+	}
+	
+	public static final Parcelable.Creator<Store> CREATOR = new Parcelable.Creator<Store>() {
+		public Store createFromParcel(Parcel parcel) {
+			return new Store(parcel);
+		}
+
+		public Store[] newArray(int size) {
+			return new Store[size];
+		}
+	};
 
 }

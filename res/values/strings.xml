@@ -9,8 +9,9 @@
     <string name="i_got_it">Я понял</string>
     <string name="google_maps_api_key">0n7IqmcMRCnDYfxEdmJWdykrbYwOBFa2xylOxIw</string>
 
-    <string name="targets">Цели</string>
-    <string name="routes">Маршруты</string>
+    <string name="targets">ЦЕЛИ</string>
+    <string name="location">МЕСТОПОЛОЖЕНИЕ</string>
+    <string name="routes">МАРШРУТЫ</string>
     
     <!-- Main menu items -->
     <string name="settings">Настройки</string>
@@ -28,7 +29,8 @@
    	<string name="install">Установить</string>
    	<string name="download">Загрузить</string>
     <string name="update">Обновить</string>
-   	
+   	<string name="calendar">Календарь</string>
+    
     <string name="contentDescription" />
     
     <string name="syncServer">http://sfs.magnat.ru:8081</string>
@@ -40,7 +42,8 @@
     
     <string name="titleMap">КАРТА</string>
     <string name="titlePsrs">ТОРГОВЫЕ АГЕНТЫ</string>
-    <string name="titleStores">КОНТРАГЕНТЫ</string>
+    <string name="titleStores">ТОРГОВЫЕ ТОЧКИ</string>
+    <string name="titleCustomers">КОНТРАГЕНТЫ</string>
     <string name="titleTrack">МАРШРУТЫ</string>
     
     <string name="syncLastSuccessAttempt">Последняя успешная синхронизация </string>

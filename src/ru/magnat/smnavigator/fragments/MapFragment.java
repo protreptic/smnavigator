@@ -10,10 +10,10 @@ import org.javaprotrepticon.android.androidutils.Text;
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.location.LocationHelper;
-import ru.magnat.smnavigator.model.Manager;
 import ru.magnat.smnavigator.model.Store;
 import ru.magnat.smnavigator.storage.SecuredStorage;
-import ru.magnat.smnavigator.synchronization.util.SynchronizationObserver;
+import ru.magnat.smnavigator.sync.SyncStatus;
+import ru.magnat.smnavigator.synchronization.util.SyncObserver;
 import android.accounts.Account;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -38,46 +38,21 @@ import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationChangeListener;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.j256.ormlite.dao.Dao;
 
-public class MapFragment extends SupportMapFragment implements SynchronizationObserver {
+public class MapFragment extends SupportMapFragment implements SyncObserver, OnMapReadyCallback {
 	
 	private LocationHelper mLocationHelper;
 	private Account mAccount;
 	
-    private Manager getManager() {
-    	Manager manager = null;
-    	
-    	SecuredStorage dbHelper = SecuredStorage.get(getActivity(), mAccount);
-		
-		try {
-			List<Manager> managers = dbHelper.getManagerDao().queryForAll();
-			
-			if (managers.size() > 0) {
-				manager = managers.get(0);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		SecuredStorage.close();
-    	
-    	return manager;
-    }
-	
 	@Override
-	public void onActivityCreated(Bundle savedInstanceState) {
-		super.onActivityCreated(savedInstanceState);
-		
+	public void onMapReady(GoogleMap googleMap) {
 		Bundle arguments = getArguments();
 		
-		mAccount = arguments.getParcelable("account");
-		
-		GoogleMap map = getMap();
-		map.setMyLocationEnabled(true);
-		map.setOnMyLocationChangeListener(new OnMyLocationChangeListener() {
+		googleMap.setMyLocationEnabled(true);
+		googleMap.setOnMyLocationChangeListener(new OnMyLocationChangeListener() {
 			
 			@Override
 			public void onMyLocationChange(Location location) {
@@ -88,37 +63,34 @@ public class MapFragment extends SupportMapFragment implements SynchronizationOb
 			}
 		});
 		
-		Manager manager = getManager();
-		
-		if (manager != null) {
-			double latitude = manager.getBranch().getLocation().getLatitude();
-			double longitude = manager.getBranch().getLocation().getLongitude();
-			
-			getMap().moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 7f));
-		}
-		
 		mSearchAdapter = new SearchAdapter();
 		
-		mLocationHelper = LocationHelper.get(getActivity(), map, mAccount);
+		mLocationHelper = LocationHelper.get(getActivity(), googleMap, mAccount);
 		
-		if (arguments.getBoolean("moveCamera")) { 
-			getMap().setOnMyLocationChangeListener(null); 
+		if (arguments.getBoolean("initialGeopoint")) { 
+			googleMap.setOnMyLocationChangeListener(null); 
 			
 			double latitude = arguments.getDouble("latitude");
 			double longitude = arguments.getDouble("longitude");
 			
-			mLocationHelper.moveCameraToLocation(latitude, longitude); 
+			mLocationHelper.moveCameraToLocation(latitude, longitude, 10); 
 		}
-	}	
-	 
-	private String mQueryText = "%%";
-	
-	@Override
-	public void onStart() {
-		super.onStart();
 		
 		mLocationHelper.updateOverlays();
 	}
+	
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+		
+		Bundle arguments = getArguments();
+		
+		mAccount = arguments.getParcelable("account");
+		
+		getMapAsync(this); 
+	}	
+	 
+	private String mQueryText = "%%";
 	
 	@Override
 	public void onDetach() {
@@ -141,23 +113,21 @@ public class MapFragment extends SupportMapFragment implements SynchronizationOb
 	
 	public class LoadData extends AsyncTask<Void, Void, Void> {
 
-		private Dao<Store, Integer> mStoreDao;
-		
-		public LoadData() {
-			mStoreDao = SecuredStorage.get(getActivity(), mAccount).getStoreDao();
-		}
-		
 		@Override
 		protected Void doInBackground(Void... params) {
 			mShops.clear();
-
+			
+			SecuredStorage securedStorage = new SecuredStorage(getActivity(), mAccount);
+			
 			try {
-				List<Store> shops = mStoreDao.queryBuilder().where().like("name", mQueryText).or().like("address", mQueryText).query();
+				List<Store> shops = securedStorage.getStoreDao().queryBuilder().where().like("name", mQueryText).or().like("address", mQueryText).query();
 				
 				mShops.addAll(shops);
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
+			
+			securedStorage.closeConnection();
 			
 			return null;
 		}
@@ -281,39 +251,38 @@ public class MapFragment extends SupportMapFragment implements SynchronizationOb
 	public void onResume() {
 		super.onResume();
 		
-		((MainActivity) getActivity()).registerSynchronizationObserver(this);
+		((MainActivity) getActivity()).registerSyncObserver(this);
 	}
 	
 	@Override
 	public void onPause() {
 		super.onPause();
 		
-		((MainActivity) getActivity()).unregisterSynchronizationObserver(this);
+		((MainActivity) getActivity()).unregisterSyncObserver(this);
 	}
 	
 	@Override
-	public void onStarted() {
-		
-	}
-
-	@Override
-	public void onAck() {
-		
-	}
-
-	@Override
-	public void onCompleted() {
-		updateMap();
-	}
-
-	@Override
-	public void onCanceled() {
-		updateMap();
-	}
-
-	@Override
-	public void onError() {
-		updateMap();
+	public void onStatusChanged(SyncStatus status) {
+		switch (status) {
+			case STARTED: {
+				
+			} break;
+			case ACK: {
+				
+			} break;
+			case COMPLETED: {
+				updateMap();			
+			} break;
+			case CANCELED: {
+				
+			} break;
+			case ERROR: {
+				
+			} break;
+			default: {
+				throw new RuntimeException();
+			}
+		}
 	}
 
 }
