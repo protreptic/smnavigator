@@ -176,6 +176,7 @@ insert into "sm_release" ("artifact_name","package","description","version_code"
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',14,'1.0.0-beta.2');
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',19,'1.0.0-beta.7');
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',20,'1.0.0-beta.8');
+insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',21,'1.0.0-beta.9');
 
 /*
     
@@ -453,7 +454,7 @@ begin
         from "sm_getPsr" ("token") a 
             join "TaskVisitJournal" b 
                 on b."Author" = a."id" 
-        where datediff(day, b."StartDate", now()) = 0;
+        where datediff(month, b."StartDate", now()) = 0;
     endif;
 end;
 

@@ -2,8 +2,6 @@ package ru.magnat.smnavigator.model;
 
 import java.sql.Date;
 
-import ru.magnat.smnavigator.model.experimental.Geocoordinate;
-
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;

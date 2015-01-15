@@ -1,116 +1,82 @@
 package ru.magnat.smnavigator.fragments;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.javaprotrepticon.android.androidutils.Fonts;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.model.Store;
+import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.model.Target;
-import ru.magnat.smnavigator.model.experimental.parcel.StoreParcel;
-import ru.magnat.smnavigator.storage.SecuredStorage;
-import android.accounts.Account;
-import android.graphics.Typeface;
-import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.GridLayoutManager;
+import ru.magnat.smnavigator.model.parcel.StoreParcel;
+import ru.magnat.smnavigator.sync.SyncStatus;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.RecyclerView.Adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-public class TargetFragment extends Fragment {
-	
-	private TargetAdapter mTargetAdapter;
+public class TargetFragment extends DefaultEntityListFragment<Target> {
 	
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-		return inflater.inflate(R.layout.recycler_view, container, false);
-	}
+	protected Adapter<?> createAdapter() {
+		return new RecyclerView.Adapter<TargetViewHolder>() {
+			
+			@Override
+			public int getItemCount() {
+				return mEntityList.size();
+			}
 
-	private Account mAccount;
-    private Store mStore;
-    
+			@Override
+			public void onBindViewHolder(TargetViewHolder holder, int position) {
+				Target target = mEntityList.get(position);
+				
+				holder.kpiName.setTypeface(mRobotoCondensedBold);  
+				holder.kpiName.setText(target.getName());
+				
+				holder.targetView.setTypeface(mRobotoCondensedBold);  
+				holder.targetView.setText(String.format("%.2f", target.getTarget()));
+				
+				holder.fact.setTypeface(mRobotoCondensedBold);  
+				holder.fact.setText(String.format("%.2f", target.getFact()));
+				
+				holder.index.setTypeface(mRobotoCondensedBold);  
+				holder.index.setText(String.format("%.2f%%", target.getIndex()));
+			}
+
+			@Override
+			public TargetViewHolder onCreateViewHolder(ViewGroup parent, int arg1) {
+				View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.target_layout, parent, false);
+				
+				return new TargetViewHolder(itemView);
+			}
+			
+		};
+	} 
+	
 	@Override
-	public void onActivityCreated(Bundle savedInstanceState) {
-		super.onActivityCreated(savedInstanceState);
-		
-		mAccount = getArguments().getParcelable("account");
-		
-		StoreParcel storeParcel = getArguments().getParcelable("store");
-		mStore = storeParcel.getStore();
-		
-		mTargetAdapter = new TargetAdapter();
-		
-        GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 2);
-        layoutManager.setReverseLayout(false);
-		
-		RecyclerView recyclerView = (RecyclerView) getView().findViewById(R.id.cardList);
-		recyclerView.setHasFixedSize(true);
-		recyclerView.setLayoutManager(layoutManager);
-		recyclerView.setAdapter(mTargetAdapter); 
-		
-		loadTargets();
-	}
-	
-	public class TargetAdapter extends RecyclerView.Adapter<TargetViewHolder> {
-		
-		private Typeface mRobotoCondensedBold;
-		
-		public TargetAdapter() {
-			mRobotoCondensedBold = Fonts.get(getActivity()).getTypeface("RobotoCondensed-Bold");
-		}
-		
-		@Override
-		public int getItemCount() {
-			return mTargets.size();
-		}
+	protected void refreshData() {
+		new SecuredStorageDataLoader() {
 
-		@Override
-		public void onBindViewHolder(TargetViewHolder holder, int position) {
-			Target target = mTargets.get(position);
+			@Override
+			protected Void doInBackground(Void... params) {
+				try {
+					StoreParcel storeParcel = getArguments().getParcelable("store");
+					
+					mQueryBuilder = mSecuredStorage.getTargetDao().queryBuilder();
+					mQueryBuilder.where()
+						.like("name", mQueryText)
+							.and()
+						.eq("store", storeParcel.getStore().getId());
+					mQueryBuilder.orderBy("name", true);
+					
+					mEntityList.addAll(mQueryBuilder.query());
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				
+				return null;
+			}
 			
-			holder.kpiName.setTypeface(mRobotoCondensedBold);  
-			holder.kpiName.setText(target.getName());
-			
-			holder.targetView.setTypeface(mRobotoCondensedBold);  
-			holder.targetView.setText(target.getTarget().toString());
-			
-			holder.fact.setTypeface(mRobotoCondensedBold);  
-			holder.fact.setText(target.getFact().toString());
-			
-			holder.index.setTypeface(mRobotoCondensedBold);  
-			holder.index.setText(target.getIndex().toString());
-		}
-
-		@Override
-		public TargetViewHolder onCreateViewHolder(ViewGroup parent, int arg1) {
-			View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.target_layout, parent, false);
-			
-			return new TargetViewHolder(itemView);
-		}
-		
-	}
-	
-	private List<Target> mTargets = new ArrayList<Target>();
-	
-	private void loadTargets() {
-		mTargets.clear();
-
-		SecuredStorage securedStorage = SecuredStorage.get(getActivity(), mAccount);
-		
-		try {
-			mTargets.addAll(securedStorage.getTargetDao().queryForEq("store", mStore.getId()));  
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		
-		SecuredStorage.close();
-		
-		mTargetAdapter.notifyDataSetChanged();
+		}.execute();
 	}
 	
 	public static class TargetViewHolder extends RecyclerView.ViewHolder {
@@ -131,4 +97,42 @@ public class TargetFragment extends Fragment {
 		
 	}
 	
+	@Override
+	public void onResume() {
+		super.onResume();
+
+		((MainActivity) getActivity()).registerSyncObserver(this);
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+
+		((MainActivity) getActivity()).unregisterSyncObserver(this);
+	}
+	
+	@Override
+	public void onStatusChanged(SyncStatus status) {
+		switch (status) {
+			case STARTED: {
+				
+			} break;
+			case ACK: {
+				
+			} break;
+			case COMPLETED: {
+				refreshData();
+			} break;
+			case CANCELED: {
+				
+			} break;
+			case ERROR: {
+				
+			} break;
+			default: {
+				throw new RuntimeException();
+			}
+		}
+	}
+
 }

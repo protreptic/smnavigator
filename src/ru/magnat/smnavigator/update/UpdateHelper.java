@@ -52,7 +52,7 @@ public class UpdateHelper {
 				centralRepository = new CentralRepository(mContext); 
 				
 				Notification.Builder builder = new Builder(mContext);
-				builder.setSmallIcon(R.drawable.logotype_small_icon);
+				builder.setSmallIcon(R.drawable.book_bookmark);
 				builder.setContentTitle(mContext.getString(R.string.app_name));
 				builder.setContentText(mContext.getString(R.string.update_check)); 
 				builder.setProgress(0, 0, true);
@@ -83,7 +83,7 @@ public class UpdateHelper {
 					long[] pattern = {3, 1000, 1000};
 					
 					Notification.Builder builder = new Builder(mContext);
-					builder.setSmallIcon(R.drawable.logotype_small_icon);
+					builder.setSmallIcon(R.drawable.book_bookmark);
 					builder.setContentTitle(mContext.getString(R.string.app_name));
 					builder.setContentText(String.format(mContext.getString(R.string.update_update_available), artifact.getVersionName())); 
 					builder.setVibrate(pattern);					
@@ -92,7 +92,7 @@ public class UpdateHelper {
 					mNotificationManager.notify(NOTIFICATION_ID, builder.build()); 
 				} else {
 					Notification.Builder builder = new Builder(mContext);
-					builder.setSmallIcon(R.drawable.logotype_small_icon);
+					builder.setSmallIcon(R.drawable.book_bookmark);
 					builder.setContentTitle(mContext.getString(R.string.app_name));
 					builder.setContentText(mContext.getString(R.string.update_update_unavailable)); 
 					builder.setAutoCancel(false);
