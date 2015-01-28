@@ -1,4 +1,6 @@
-package ru.magnat.smnavigator.sync;
+package ru.magnat.smnavigator.sync.util;
+
+import ru.magnat.smnavigator.sync.SyncStatus;
 
 public interface SyncObserver {
 

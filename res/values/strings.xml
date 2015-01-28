@@ -21,6 +21,7 @@
     <string name="refresh">Обновить данные</string>
     <string name="actionChangeUser">Сменить пользователя</string>
     <string name="search">Поиск</string>
+    <string name="legend">Легенда</string>
     
     <string name="loading">Загрузка</string>
     <string name="waiting">Ожидайте</string>
@@ -31,11 +32,12 @@
    	<string name="calendar">Календарь</string>
     
     <string name="contentDescription" />
+    <string name="version">Версия: </string>
     
     <string name="mainServer">http://sfs.magnat.ru:8081/</string>
     <string name="mainServerSecure">https://sfs.magnat.ru:8081/</string>
-    <string name="syncServer">http://sfs.magnat.ru:8081/sm_auth2</string>
-    <string name="syncServerSecure">https://sfs.magnat.ru:8443/sm_auth2</string>
+    <string name="syncServer">http://sfs.magnat.ru:8081/</string>
+    <string name="syncServerSecure">https://sfs.magnat.ru:8443/</string>
 
     <string name="syncSuccess">Синхронизация успешно завершена</string>
     <string name="syncError">Синхронизация не выполненна</string>
@@ -54,22 +56,8 @@
     <string name="locationUnavailable">Местополжение недоступно</string>
     <string name="locationAvailable">Местополжение доступно</string>
     <string name="manager">Мобильный менеджер</string>
-    <string name="address">[address]</string>
-    <string name="name">[name]</string>
     
     <string name="crash_message">Программа остановлена, отчет об ошибке отправлен автоматически</string>
-    
-    <string name="channel">[channel]</string>
-    
-    <string name="golden_status">[golden_status]</string>
-    
-    <string name="title">[title]</string>
-    
-    <string name="subtitle">[subtitle]</string>
-    
-    <string name="description">[description]</string>
-    
-    <string name="staticmaptitle">[staticmaptitle]</string>
     
     <string name="totalDistribution">Общая дистрибьюция (ОПД)</string>
     <string name="goldenDistribution">Золотая дистрибьюция</string>
@@ -83,6 +71,11 @@
     <string name="drawer_title">Navigation</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
+    
+    <string name="shop_potential">  Потенциальный магазин</string>
+    <string name="shop_active">  Рабочий магазин</string>
+    <string name="shop_visited">  Посещенный магазин</string>
+    <string name="psr">  Торговый агент</string>
     
     <!-- Обновление -->
     <string name="update_loading">Загрузка обновления</string>

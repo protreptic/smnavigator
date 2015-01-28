@@ -62,7 +62,10 @@ create table store (
 
 create table store_property (
 	id integer primary key,
-	golden_status varchar (255)
+	golden_status varchar (255),
+	is_potential boolean,
+	is_active boolean,
+	is_visited boolean
 );
 
 create table measure (

@@ -8,7 +8,7 @@ import org.javaprotrepticon.android.widgetutils.fragment.base.BaseFragment;
 import org.javaprotrepticon.android.widgetutils.widget.StaticMapView;
 
 import ru.magnat.smnavigator.storage.SecuredStorage;
-import ru.magnat.smnavigator.sync.SyncObserver;
+import ru.magnat.smnavigator.sync.util.SyncObserver;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;

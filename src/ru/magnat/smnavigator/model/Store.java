@@ -2,6 +2,15 @@ package ru.magnat.smnavigator.model;
 
 import org.javaprotrepticon.android.androidutils.Text;
 
+import ru.magnat.smnavigator.model.json.CustomerDeserializer;
+import ru.magnat.smnavigator.model.json.CustomerSerializer;
+import ru.magnat.smnavigator.model.json.StoreDeserializer;
+import ru.magnat.smnavigator.model.json.StorePropertyDeserializer;
+import ru.magnat.smnavigator.model.json.StorePropertySerializer;
+import ru.magnat.smnavigator.model.json.StoreSerializer;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
@@ -115,11 +124,6 @@ public class Store implements Mappable {
 		this.longitude = longitude;
 	}
 
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + ", customer=" + customer + ", address=" + address + ", tel=" + tel + ", channel=" + channel + ", coverageType=" + coverageType + ", latitude=" + latitude + ", longitude=" + longitude + "]";	
-	}
-
 	public StoreProperty getStoreProperty() {
 		return storeProperty;
 	}
@@ -134,6 +138,41 @@ public class Store implements Mappable {
 
 	public void setTargets(ForeignCollection<Target> targets) {
 		this.targets = targets;
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + ", customer=" + customer + ", address=" + address + ", tel=" + tel + ", channel=" + channel + ", coverageType=" + coverageType + ", latitude=" + latitude + ", longitude=" + longitude + "]";	
+	}
+	
+	public String toJson() {
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(Store.class, new StoreSerializer()); 
+		gsonBuilder.registerTypeAdapter(Store.class, new StoreDeserializer());
+		gsonBuilder.registerTypeAdapter(Customer.class, new CustomerSerializer()); 
+		gsonBuilder.registerTypeAdapter(Customer.class, new CustomerDeserializer());
+		gsonBuilder.registerTypeAdapter(StoreProperty.class, new StorePropertySerializer()); 
+		gsonBuilder.registerTypeAdapter(StoreProperty.class, new StorePropertyDeserializer()); 
+		gsonBuilder.serializeNulls();
+		
+		Gson gson = gsonBuilder.create();
+		
+		return gson.toJson(this);
+	}
+	
+	public static Store fromJson(String jsonString) {
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(Store.class, new StoreSerializer()); 
+		gsonBuilder.registerTypeAdapter(Store.class, new StoreDeserializer());
+		gsonBuilder.registerTypeAdapter(Customer.class, new CustomerSerializer()); 
+		gsonBuilder.registerTypeAdapter(Customer.class, new CustomerDeserializer());
+		gsonBuilder.registerTypeAdapter(StoreProperty.class, new StorePropertySerializer()); 
+		gsonBuilder.registerTypeAdapter(StoreProperty.class, new StorePropertyDeserializer()); 
+		gsonBuilder.serializeNulls();
+		
+		Gson gson = gsonBuilder.create();
+		
+		return gson.fromJson(jsonString, Store.class);
 	}
 
 }

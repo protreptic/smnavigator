@@ -1,5 +1,7 @@
 package ru.magnat.smnavigator.sync;
 
+import ru.magnat.smnavigator.sync.util.SyncObservable;
+import ru.magnat.smnavigator.sync.util.SyncObserver;
 import android.accounts.Account;
 import android.content.BroadcastReceiver;
 import android.content.Context;

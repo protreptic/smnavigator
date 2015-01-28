@@ -14,15 +14,10 @@ public class PsrMarker extends AbstractMarker {
         
         setMarker(new MarkerOptions()
         	.position(new LatLng(psr.getLatitude(), psr.getLongitude()))
-            .title(psr.getName())
-            .snippet(psr.getProject()) 
+            .title("psr")
+            .snippet(psr.getId().toString()) 
             .icon(BitmapDescriptorFactory.fromResource(R.drawable.psr)));
     }
-
-	@Override
-	public String toString() {
-		return null;
-	}
 
 	@Override
 	public MarkerOptions getMarker() {

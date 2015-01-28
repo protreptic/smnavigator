@@ -6,8 +6,8 @@ import java.sql.Timestamp;
 import org.javaprotrepticon.android.androidutils.Fonts;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.account.AccountSettings;
-import ru.magnat.smnavigator.account.Authenticator;
+import ru.magnat.smnavigator.security.Authenticator;
+import ru.magnat.smnavigator.security.account.AccountSettings;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.accounts.AccountManagerCallback;
@@ -42,8 +42,8 @@ public class LauncherActivity extends ListActivity {
 	
 	private void addAccount() {
 		Bundle options = new Bundle();
-		options.putString("syncServer", getString(R.string.syncServer));  
-		options.putString("syncServerSecure", getString(R.string.syncServerSecure));  
+		options.putString("syncServer", getString(R.string.syncServer) + "sm_auth2");  
+		options.putString("syncServerSecure", getString(R.string.syncServerSecure) + "sm_auth2");  
 		options.putString("accountType", AccountSettings.ACCOUNT_TYPE); 
 		options.putString("certificatePath", "server-certificate.pem"); 
 		
@@ -77,8 +77,8 @@ public class LauncherActivity extends ListActivity {
 		Authenticator.validateSession(getBaseContext(), account);
  		
 		Bundle options = new Bundle();
-		options.putString("syncServer", getString(R.string.syncServer));  
-		options.putString("syncServerSecure", getString(R.string.syncServerSecure));  
+		options.putString("syncServer", getString(R.string.syncServer) + "sm_auth2");  
+		options.putString("syncServerSecure", getString(R.string.syncServerSecure) + "sm_auth2");  
 		options.putString("accountType", AccountSettings.ACCOUNT_TYPE); 
 		options.putString("certificatePath", "server-certificate.pem"); 
 		

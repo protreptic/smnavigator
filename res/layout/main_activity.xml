@@ -38,7 +38,7 @@
         <ListView
             android:id="@+id/left_drawer_list"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:choiceMode="singleChoice"
             android:divider="@android:color/transparent"
             android:dividerHeight="0dp" />
@@ -46,10 +46,11 @@
         <TextView
             android:id="@+id/version"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_gravity="bottom"
-            android:text=""
-            android:textAppearance="?android:attr/textAppearanceSmall" />
+            android:gravity="center_vertical|bottom"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:padding="5dp" />
     </LinearLayout>
 
 </android.support.v4.widget.DrawerLayout>

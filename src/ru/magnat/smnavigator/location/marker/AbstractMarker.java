@@ -21,9 +21,6 @@ public abstract class AbstractMarker implements ClusterItem  {
         setLongitude(longitude);
     }
 
-    @Override
-    public abstract String toString();
-
     public abstract MarkerOptions getMarker();
 
     public void setMarker(MarkerOptions marker) {
@@ -37,5 +34,5 @@ public abstract class AbstractMarker implements ClusterItem  {
 	private void setLongitude(double longitude) {
 		this.longitude = longitude;
 	}
-    
+
 }

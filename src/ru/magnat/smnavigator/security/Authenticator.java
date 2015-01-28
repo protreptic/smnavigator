@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.account;
+package ru.magnat.smnavigator.security;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -10,12 +10,12 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
-import org.javaprotrepticon.android.widgetutils.security.DefaultTrustManager;
-import org.javaprotrepticon.android.widgetutils.security.FakeHostnameVerifier;
-import org.javaprotrepticon.android.widgetutils.security.KeyStoreManager;
 import org.javaprotrepticon.android.widgetutils.security.account.LoginActivity;
 import org.javaprotrepticon.android.widgetutils.security.account.LoginActivity.AuthenticationResponse;
 
+import ru.magnat.smnavigator.security.util.DefaultTrustManager;
+import ru.magnat.smnavigator.security.util.FakeHostnameVerifier;
+import ru.magnat.smnavigator.security.util.KeyStoreManager;
 import android.accounts.AbstractAccountAuthenticator;
 import android.accounts.Account;
 import android.accounts.AccountAuthenticatorResponse;

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/LinearLayout1"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="5dp" >
+
+    <TextView
+        android:id="@+id/TextView04"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/psr"
+        android:drawableStart="@drawable/psr"
+        android:padding="5dp"
+        android:text="@string/psr"
+        android:textAppearance="?android:attr/textAppearanceMediumInverse" />
+
+    <TextView
+        android:id="@+id/TextView03"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/store"
+        android:drawableStart="@drawable/store"
+        android:padding="5dp"
+        android:text="@string/shop_active"
+        android:textAppearance="?android:attr/textAppearanceMediumInverse" />
+
+    <TextView
+        android:id="@+id/TextView02"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/shop_open"
+        android:drawableStart="@drawable/shop_open"
+        android:padding="5dp"
+        android:text="@string/shop_visited"
+        android:textAppearance="?android:attr/textAppearanceMediumInverse" />
+
+    <TextView
+        android:id="@+id/TextView01"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/shop_closed"
+        android:drawableStart="@drawable/shop_closed"
+        android:padding="5dp"
+        android:text="@string/shop_potential"
+        android:textAppearance="?android:attr/textAppearanceMediumInverse" />
+
+</LinearLayout>

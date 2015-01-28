@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ru.magnat.smnavigator"
-    android:versionCode="22"
-    android:versionName="1.0.0-beta.10" >
+    android:versionCode="24"
+    android:versionName="1.0.0-beta.12" >
 
     <uses-sdk
         android:minSdkVersion="14"
@@ -60,7 +60,7 @@
         </activity>
 
         <service
-            android:name="ru.magnat.smnavigator.account.AuthenticatorService"
+            android:name="ru.magnat.smnavigator.security.AuthenticatorService"
             android:permission="android.permission.INTERNET" >
             <intent-filter>
                 <action android:name="android.accounts.AccountAuthenticator" />
@@ -72,7 +72,7 @@
         </service>
 
         <provider
-            android:name="ru.magnat.smnavigator.account.StubProvider"
+            android:name="ru.magnat.smnavigator.security.StubProvider"
             android:authorities="ru.magnat.smnavigator.auth"
             android:exported="false"
             android:syncable="true" />

@@ -4,10 +4,10 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import org.javaprotrepticon.android.androidutils.Apps;
 import org.javaprotrepticon.android.androidutils.Fonts;
 
 import ru.magnat.smnavigator.R;
-import ru.magnat.smnavigator.account.AccountSettings;
 import ru.magnat.smnavigator.activities.base.BaseActivity;
 import ru.magnat.smnavigator.fragments.CustomerListFragment;
 import ru.magnat.smnavigator.fragments.EmptyFragment;
@@ -16,15 +16,18 @@ import ru.magnat.smnavigator.fragments.MapFragment;
 import ru.magnat.smnavigator.fragments.PsrListFragment;
 import ru.magnat.smnavigator.fragments.StoreListFragment;
 import ru.magnat.smnavigator.model.Manager;
+import ru.magnat.smnavigator.security.account.AccountSettings;
 import ru.magnat.smnavigator.storage.SecuredStorage;
 import ru.magnat.smnavigator.sync.SyncStatus;
 import ru.magnat.smnavigator.update.UpdateHelper;
 import ru.magnat.smnavigator.view.ManagerCardView;
+import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -142,6 +145,11 @@ public class MainActivity extends BaseActivity {
         
 		//requestUpdate();
 		requestInitialSync();
+		
+		TextView version = (TextView) findViewById(R.id.version);
+		version.setTypeface(Fonts.get(getBaseContext()).getTypeface("RobotoCondensed-Regular")); 
+		version.setText(getString(R.string.version) + Apps.getVersionName(getBaseContext()) + " (" + Apps.getVersionCode(getBaseContext()) + ")"); 
+		version.setTextSize(10); 
 	}
 
 	@Override
@@ -194,6 +202,7 @@ public class MainActivity extends BaseActivity {
 	 
 	private boolean mInitialSynchronize;
 	
+	@TargetApi(value = Build.VERSION_CODES.LOLLIPOP)
 	private void requestInitialSync() {
 		if (mManager == null) {
 			mInitialSynchronize = true;
@@ -312,9 +321,11 @@ public class MainActivity extends BaseActivity {
 					mMapFragment = new MapFragment();
 					
 					if (mManager != null) {
-						arguments.putBoolean("initialGeopoint", true); 
-						arguments.putDouble("latitude", mManager.getBranch().getLocation().getLatitude());
-						arguments.putDouble("longitude", mManager.getBranch().getLocation().getLongitude());
+						if (mManager.getBranch().getLocation().getLatitude() != 0 && mManager.getBranch().getLocation().getLongitude() != 0) {
+							arguments.putBoolean("initialGeopoint", true); 
+							arguments.putDouble("latitude", mManager.getBranch().getLocation().getLatitude());
+							arguments.putDouble("longitude", mManager.getBranch().getLocation().getLongitude());
+						}
 					}
 					
 					mMapFragment.setArguments(arguments);

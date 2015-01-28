@@ -4,6 +4,15 @@ import java.util.List;
 
 import org.javaprotrepticon.android.androidutils.Text;
 
+import ru.magnat.smnavigator.model.json.BranchDeserializer;
+import ru.magnat.smnavigator.model.json.BranchSerializer;
+import ru.magnat.smnavigator.model.json.DepartmentDeserializer;
+import ru.magnat.smnavigator.model.json.DepartmentSerializer;
+import ru.magnat.smnavigator.model.json.PsrDeserializer;
+import ru.magnat.smnavigator.model.json.PsrSerializer;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
@@ -118,17 +127,47 @@ public class Psr implements Mappable {
 		this.email = email;
 	}
 	
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + ", email=" + email + ", tel=" + tel + ", branch=" + branch + ", department=" + department + "]";
-	}
-
 	public ForeignCollection<Route> getRoutes() {
 		return routes;
 	}
 
 	public void setRoutes(ForeignCollection<Route> routes) {
 		this.routes = routes;
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + " [id=" + id + ", name=" + name + ", project=" + project + ", email=" + email + ", tel=" + tel + ", branch=" + branch + ", department=" + department + "]";
+	}
+	
+	public String toJson() {
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(Psr.class, new PsrSerializer()); 
+		gsonBuilder.registerTypeAdapter(Psr.class, new PsrDeserializer());
+		gsonBuilder.registerTypeAdapter(Branch.class, new BranchSerializer()); 
+		gsonBuilder.registerTypeAdapter(Branch.class, new BranchDeserializer());
+		gsonBuilder.registerTypeAdapter(Department.class, new DepartmentSerializer()); 
+		gsonBuilder.registerTypeAdapter(Department.class, new DepartmentDeserializer()); 
+		gsonBuilder.serializeNulls();
+		
+		Gson gson = gsonBuilder.create();
+		
+		return gson.toJson(this);
+	}
+	
+	public static Psr fromJson(String jsonString) {
+		GsonBuilder gsonBuilder = new GsonBuilder();
+		gsonBuilder.registerTypeAdapter(Psr.class, new PsrSerializer()); 
+		gsonBuilder.registerTypeAdapter(Psr.class, new PsrDeserializer());
+		gsonBuilder.registerTypeAdapter(Branch.class, new BranchSerializer()); 
+		gsonBuilder.registerTypeAdapter(Branch.class, new BranchDeserializer());
+		gsonBuilder.registerTypeAdapter(Department.class, new DepartmentSerializer()); 
+		gsonBuilder.registerTypeAdapter(Department.class, new DepartmentDeserializer()); 
+		gsonBuilder.serializeNulls();
+		
+		Gson gson = gsonBuilder.create();
+		
+		return gson.fromJson(jsonString, Psr.class);
 	}
 	
 }

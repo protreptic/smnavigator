@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.sync;
+package ru.magnat.smnavigator.sync.util;
 
 import java.util.ArrayList;
 

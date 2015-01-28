@@ -5,8 +5,8 @@ import java.sql.SQLException;
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.activities.MainActivity;
 import ru.magnat.smnavigator.model.Psr;
-import ru.magnat.smnavigator.sync.SyncObserver;
 import ru.magnat.smnavigator.sync.SyncStatus;
+import ru.magnat.smnavigator.sync.util.SyncObserver;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -62,7 +62,6 @@ public class PsrListFragment extends DefaultEntityListFragment<Psr> implements S
 	@Override
 	protected void refreshData() {
 		new SecuredStorageDataLoader() {
-
 			@Override
 			protected Void doInBackground(Void... params) {
 				try {
@@ -121,5 +120,4 @@ public class PsrListFragment extends DefaultEntityListFragment<Psr> implements S
 			}
 		}
 	}
-	
 }

@@ -1,7 +1,5 @@
 package ru.magnat.smnavigator.location.marker;
 
-import org.javaprotrepticon.android.androidutils.Text;
-
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.model.Store;
 
@@ -14,17 +12,24 @@ public class StoreMarker extends AbstractMarker {
     public StoreMarker(Store store) {
         super(store.getLatitude(), store.getLongitude());
         
+        int icon;
+        
+        if (store.getStoreProperty().getIsActive()) {
+        	icon = R.drawable.store;
+        } else if (store.getStoreProperty().getIsPotential()) {
+        	icon = R.drawable.shop_closed;
+        } else if (store.getStoreProperty().getIsVisited()) {
+        	icon = R.drawable.shop_open;
+        } else {
+        	icon = R.drawable.store;
+        }
+        
         setMarker(new MarkerOptions()
         	.position(new LatLng(store.getLatitude(), store.getLongitude()))
-            .title(store.getCustomer().getName())
-            .snippet(Text.prepareAddress(store.getAddress())) 
-            .icon(BitmapDescriptorFactory.fromResource(R.drawable.store)));
+            .title("store")
+            .snippet(store.getId().toString()) 
+            .icon(BitmapDescriptorFactory.fromResource(icon)));
     }
-
-	@Override
-	public String toString() {
-		return null;
-	}
 
 	@Override
 	public MarkerOptions getMarker() {

@@ -1,4 +1,4 @@
-package ru.magnat.smnavigator.account;
+package ru.magnat.smnavigator.security.account;
 
 public interface AccountSettings {
 	

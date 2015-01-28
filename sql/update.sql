@@ -177,6 +177,8 @@ insert into "sm_release" ("artifact_name","package","description","version_code"
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',19,'1.0.0-beta.7');
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',20,'1.0.0-beta.8');
 insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',21,'1.0.0-beta.9');
+insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',23,'1.0.0-beta.11');
+insert into "sm_release" ("artifact_name","package","description","version_code","version_name") values ('smnavigator','ru.magnat.smnavigator','',24,'1.0.0-beta.12');
 
 /*
     
@@ -278,7 +280,7 @@ begin
         select
             a."Id",
             a."Descr",
-            ifnull(c."Email",'Нет'),
+            ifnull(a."Email",'Нет'),
             ifnull(c."Phone",'Нет'),
             c."Branch",
             c."Department"
@@ -410,7 +412,7 @@ begin
 
     if ("sm_validateToken" ("token") >= 0) then    
         select distinct
-            d."Id", d."Descr", b."Descr", b."Email", 
+            d."Id", d."Descr", b."Descr", d."Email", 
             b."Phone", b."Branch", b."Department",
             ifnull(d."LastLatitude",0,d."LastLatitude"), ifnull(d."LastLongitude",0,d."LastLongitude")
         from     
@@ -425,6 +427,8 @@ begin
             d."IsMark" = 0
             and d."TestUser" = 0
             and d."IsMark" = 0
+            and b."IsMark" = 0
+            and c."IsMark" = 0
         order by
             d."Descr" asc;
     endif;
@@ -514,15 +518,22 @@ create service "sm_getStore"
     methods 'GET,POST'
     as call "sm_getStore" (:token);
 
+create or replace function "isPotential" () returns bit 
+begin
+    
+end;
+
 create or replace procedure "sm_getStoreProperty" ("token" sm_token) 
     result (
-        "id" integer, 
-        "goldenStatus" nvarchar(255))
+        "id" integer, "goldenStatus" nvarchar(255), "isPotential" bit, "isActive" bit, "isVisited" bit)
 begin
     if ("sm_validateToken" ("token") >= 0) then    
         select
             a."id",
-            isnull(c."Descr", 'Статус недоступен')
+            isnull(c."Descr", 'Статус недоступен'),
+            if (rand() >= 0.5) then 1 else 0 endif,
+            if (rand() >= 0.5) then 1 else 0 endif,
+            if (rand() >= 0.5) then 1 else 0 endif
         from
             "sm_getStore" ("token") a 
             join "RefOutlet" b 

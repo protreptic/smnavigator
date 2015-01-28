@@ -1,7 +1,7 @@
 package ru.magnat.smnavigator.activities.base;
 
 import ru.magnat.smnavigator.sync.SyncManager;
-import ru.magnat.smnavigator.sync.SyncObserver;
+import ru.magnat.smnavigator.sync.util.SyncObserver;
 import android.accounts.Account;
 import android.content.IntentFilter;
 import android.os.Bundle;

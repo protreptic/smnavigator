@@ -1,11 +1,20 @@
 package ru.magnat.smnavigator.sync;
 
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
 
 import ru.magnat.smnavigator.R;
 import ru.magnat.smnavigator.model.Branch;
@@ -29,14 +38,22 @@ import ru.magnat.smnavigator.model.json.PsrDeserializer;
 import ru.magnat.smnavigator.model.json.StoreDeserializer;
 import ru.magnat.smnavigator.model.json.StorePropertyDeserializer;
 import ru.magnat.smnavigator.model.json.StorePropertySerializer;
+import ru.magnat.smnavigator.security.Authenticator;
+import ru.magnat.smnavigator.security.util.DefaultTrustManager;
+import ru.magnat.smnavigator.security.util.KeyStoreManager;
 import ru.magnat.smnavigator.storage.SecuredStorage;
 import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.content.AbstractThreadedSyncAdapter;
 import android.content.ContentProviderClient;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.SyncResult;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -44,24 +61,74 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.j256.ormlite.dao.Dao;
 
-public class SyncAdapter extends BaseSyncAdapter {
+public class SyncAdapter extends AbstractThreadedSyncAdapter {
     
-	private SecuredStorage mSecuredStorage;
+    @SuppressWarnings("unused")
+	private ContentResolver mContentResolver;
+    
+    private SecuredStorage mMainDbHelper;
+    private Account mAccount;
+    
+    private String sessionToken;
+    private SSLContext sslContext;
+    private HostnameVerifier hostnameVerifier = new HostnameVerifier () {
+
+		@Override
+		public boolean verify(String hostname, SSLSession session) {
+			return true;
+		}
+		
+	};
+    
+	private HttpsURLConnection prepareConnection(String serviceName) throws Exception {
+		URL url = new URL(getContext().getResources().getString(R.string.syncServerSecure) + serviceName + "?token=" + sessionToken);
+		 
+		HttpsURLConnection httpsURLConnection = (HttpsURLConnection) url.openConnection(); 
+		httpsURLConnection.setSSLSocketFactory(sslContext.getSocketFactory());
+		httpsURLConnection.setHostnameVerifier(hostnameVerifier); 
+		httpsURLConnection.addRequestProperty("token", sessionToken); 
+		
+		return httpsURLConnection;
+	}
 	
     public SyncAdapter(Context context, boolean autoInitialize) {
-		super(context, autoInitialize);
-	}
+        super(context, autoInitialize);
 
-	@Override
+        mContentResolver = context.getContentResolver();
+    }
+    
+    public SyncAdapter(Context context, boolean autoInitialize, boolean allowParallelSyncs) {
+        super(context, autoInitialize, allowParallelSyncs);
+        
+        mContentResolver = context.getContentResolver();
+    }
+    
+    @Override
     public void onPerformSync(Account account, Bundle extras, String authority, ContentProviderClient provider, SyncResult syncResult) {
-    	super.onPerformSync(account, extras, authority, provider, syncResult);
+    	mAccount = account;    	
     	
     	sendNotification("started");
     	
-    	startAck();
+    	Authenticator.validateSession(getContext(), account);
+		
+    	sessionToken = AccountManager.get(getContext()).peekAuthToken(account, account.type);
+    	
+    	Timer timer = new Timer("ackSender");
+    	timer.schedule(new TimerTask() {
+			
+			@Override
+			public void run() {
+				sendNotification("ack");
+			}
+		}, 0, 1500);
     	
 		try {
-			mSecuredStorage = new SecuredStorage(getContext(), account);
+			TimeUnit.SECONDS.sleep(2);
+		
+			mMainDbHelper = new SecuredStorage(getContext(), account);
+			
+			sslContext = SSLContext.getInstance("TLS");
+			sslContext.init(null, new TrustManager[] { new DefaultTrustManager(KeyStoreManager.getInstance(getContext()).getKeyStore()) } , null);
 			
 			getManager();
 			getBranch();
@@ -76,14 +143,17 @@ public class SyncAdapter extends BaseSyncAdapter {
 			getTarget();
 			getGeoregion();
 			
-			mSecuredStorage.closeConnection();
+			mMainDbHelper.closeConnection();
+			
+			TimeUnit.SECONDS.sleep(2);
 		} catch (Exception e) {
-			stopAck();
+			timer.cancel();
 			sendNotification("error"); 
 			e.printStackTrace();
+			return;
 	    }
 		
-		stopAck();
+		timer.cancel();
 		
 		saveLastSync();
 		
@@ -97,7 +167,15 @@ public class SyncAdapter extends BaseSyncAdapter {
         editor.putString("lastSync", new Timestamp(System.currentTimeMillis()).toString());
         editor.commit();
     }
-	
+    
+    private void sendNotification(String action) {
+    	Intent intentStarted = new Intent(SyncManager.ACTION_SYNC);
+    	intentStarted.putExtra("action", action);
+    	intentStarted.putExtra("account", mAccount.name);
+    	
+    	getContext().sendBroadcast(intentStarted);
+    }
+    
     private void getManager() throws Exception {
 		HttpsURLConnection urlConnection = prepareConnection("sm_getManager");
 		
@@ -108,18 +186,24 @@ public class SyncAdapter extends BaseSyncAdapter {
 		
 		Gson gson = gsonBuilder.create();
 		
-		List<Manager> managers = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Manager>>() {}.getType());
+		final List<Manager> managers = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Manager>>() {}.getType());
 		
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Manager, Integer> managerDao = mSecuredStorage.getManagerDao();
-		managerDao.setObjectCache(false); 
+		final Dao<Manager, Integer> managerDao = mMainDbHelper.getManagerDao();
 		managerDao.delete(managerDao.queryForAll());
-		
-		for (Manager manager : managers) {
-			managerDao.createOrUpdate(manager);
-		}
+		managerDao.callBatchTasks(new Callable<Void>() {
+		    public Void call() throws Exception {
+				for (Manager manager : managers) {
+					managerDao.createOrUpdate(manager);
+					
+					//Log.d("", manager.toString()); 
+				}
+				
+				return null;
+		    }
+		});
     }
     
     private void getBranch() throws Exception {
@@ -131,18 +215,24 @@ public class SyncAdapter extends BaseSyncAdapter {
 		
 		Gson gson = gsonBuilder.create();
 		
-		List<Branch> branches = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Branch>>() {}.getType());
+		final List<Branch> branches = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Branch>>() {}.getType());
 
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Branch, Integer> branchDao = mSecuredStorage.getBranchDao();
-		branchDao.setObjectCache(false); 
+		final Dao<Branch, Integer> branchDao = mMainDbHelper.getBranchDao();
 		branchDao.delete(branchDao.queryForAll());
-		
-		for (Branch branch : branches) {
-			branchDao.createOrUpdate(branch);
-		}
+		branchDao.callBatchTasks(new Callable<Void>() {
+		    public Void call() throws Exception {
+				for (Branch branch : branches) {
+					branchDao.createOrUpdate(branch);
+					
+					//Log.d("", branch.toString()); 
+				}
+				
+				return null;
+		    }
+		});
     }
     
     private void getLocation() throws Exception {
@@ -153,18 +243,24 @@ public class SyncAdapter extends BaseSyncAdapter {
 		
 		Gson gson = gsonBuilder.create();
 		
-		List<Location> locations = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Location>>() {}.getType());
+		final List<Location> locations = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Location>>() {}.getType());
 
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Location, Integer> locationDao = mSecuredStorage.getLocationDao();
-		locationDao.setObjectCache(false); 
+		final Dao<Location, Integer> locationDao = mMainDbHelper.getLocationDao();
 		locationDao.delete(locationDao.queryForAll());
-		
-		for (Location location : locations) {
-			locationDao.createOrUpdate(location);
-		}
+		locationDao.callBatchTasks(new Callable<Void>() {
+		    public Void call() throws Exception {
+				for (Location location : locations) {
+					locationDao.createOrUpdate(location);
+					
+					//Log.d("", location.toString()); 
+				}
+				
+				return null;
+		    }
+		});
     }
     
     private void getDepartment() throws Exception {
@@ -175,18 +271,24 @@ public class SyncAdapter extends BaseSyncAdapter {
 		
 		Gson gson = gsonBuilder.create();
 		
-		List<Department> departments = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Department>>() {}.getType());
+		final List<Department> departments = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Department>>() {}.getType());
 
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Department, Integer> departmentDao = mSecuredStorage.getDepartmentDao();
-		departmentDao.setObjectCache(false); 
+		final Dao<Department, Integer> departmentDao = mMainDbHelper.getDepartmentDao();
 		departmentDao.delete(departmentDao.queryForAll());
-		
-		for (Department department : departments) {
-			departmentDao.createOrUpdate(department);
-		}
+		departmentDao.callBatchTasks(new Callable<Void>() {
+		    public Void call() throws Exception {
+				for (Department department : departments) {
+					departmentDao.createOrUpdate(department);
+					
+					//Log.d("", department.toString()); 
+				}
+				
+				return null;
+		    }
+		});
     }
     
     private void getPsr() throws Exception {
@@ -199,18 +301,24 @@ public class SyncAdapter extends BaseSyncAdapter {
 		
 		Gson gson = gsonBuilder.create();
 		
-		List<Psr> psrs = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Psr>>() {}.getType());
+		final List<Psr> psrs = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Psr>>() {}.getType());
 
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Psr, Integer> psrDao = mSecuredStorage.getPsrDao();
-		psrDao.setObjectCache(false); 
+		final Dao<Psr, Integer> psrDao = mMainDbHelper.getPsrDao();
 		psrDao.delete(psrDao.queryForAll());
-		
-		for (Psr psr : psrs) {
-			psrDao.createOrUpdate(psr);
-		}
+		psrDao.callBatchTasks(new Callable<Void>() {
+		    public Void call() throws Exception {
+				for (Psr psr : psrs) {
+					psrDao.createOrUpdate(psr);
+					
+					//Log.d("", psr.toString()); 
+				}
+				
+				return null;
+		    }
+		});
     }
     
     private void getRoute() throws Exception {
@@ -224,18 +332,24 @@ public class SyncAdapter extends BaseSyncAdapter {
 		
 		Gson gson = gsonBuilder.create();
 		
-		List<Route> routes = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Route>>() {}.getType());
+		final List<Route> routes = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Route>>() {}.getType());
 
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Route, Integer> routeDao = mSecuredStorage.getRouteDao();
-		routeDao.setObjectCache(false); 
+		final Dao<Route, Integer> routeDao = mMainDbHelper.getRouteDao();
 		routeDao.delete(routeDao.queryForAll());
-		
-		for (Route route : routes) {
-			routeDao.createOrUpdate(route);
-		}
+		routeDao.callBatchTasks(new Callable<Void>() {
+		    public Void call() throws Exception {
+				for (Route route : routes) {
+					routeDao.createOrUpdate(route);
+					
+					//Log.d("", route.toString()); 
+				}
+				
+				return null;
+		    }
+		});
     }
     
 	private void getStore() throws Exception { 
@@ -250,18 +364,24 @@ public class SyncAdapter extends BaseSyncAdapter {
 		
 		Gson gson = gsonBuilder.create();
 		
-		List<Store> stores = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Store>>() {}.getType());
+		final List<Store> stores = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Store>>() {}.getType());
 
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Store, Integer> storeDao = mSecuredStorage.getStoreDao();
-		storeDao.setObjectCache(false); 
+		final Dao<Store, Integer> storeDao = mMainDbHelper.getStoreDao();
 		storeDao.delete(storeDao.queryForAll());
-		
-		for (Store store : stores) {
-			storeDao.createOrUpdate(store);
-		}
+		storeDao.callBatchTasks(new Callable<Void>() {
+		    public Void call() throws Exception {
+				for (Store store : stores) {
+					storeDao.createOrUpdate(store);
+					
+					//Log.d("", store.toString()); 
+				}
+				
+				return null;
+		    }
+		});
 	}
 	
 	private void getStoreProperties() throws Exception { 
@@ -272,18 +392,24 @@ public class SyncAdapter extends BaseSyncAdapter {
 		
 		Gson gson = gsonBuilder.create();
 		
-		List<StoreProperty> storeProperties = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<StoreProperty>>() {}.getType());
+		final List<StoreProperty> storeProperties = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<StoreProperty>>() {}.getType());
 
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<StoreProperty, Integer> storePropertyDao = mSecuredStorage.getStorePropertyDao();
-		storePropertyDao.setObjectCache(false); 
+		final Dao<StoreProperty, Integer> storePropertyDao = mMainDbHelper.getStorePropertyDao();
 		storePropertyDao.delete(storePropertyDao.queryForAll());
-		
-		for (StoreProperty storeProperty : storeProperties) {
-			storePropertyDao.createOrUpdate(storeProperty);
-		}
+		storePropertyDao.callBatchTasks(new Callable<Void>() {
+		    public Void call() throws Exception {
+				for (StoreProperty storeProperty : storeProperties) {
+					storePropertyDao.createOrUpdate(storeProperty);
+					
+					Log.d("", storeProperty.toString()); 
+				}
+				
+				return null;
+		    }
+		});
 	}
 	
 	private void getCustomer() throws Exception { 
@@ -294,18 +420,24 @@ public class SyncAdapter extends BaseSyncAdapter {
 		
 		Gson gson = gsonBuilder.create();
 		
-		List<Customer> customers = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Customer>>() {}.getType());
+		final List<Customer> customers = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Customer>>() {}.getType());
 
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Customer, Integer> customerDao = mSecuredStorage.getCustomerDao();
-		customerDao.setObjectCache(false); 
+		final Dao<Customer, Integer> customerDao = mMainDbHelper.getCustomerDao();
 		customerDao.delete(customerDao.queryForAll());
-		
-		for (Customer store : customers) {
-			customerDao.createOrUpdate(store);
-		}
+		customerDao.callBatchTasks(new Callable<Void>() {
+		    public Void call() throws Exception {
+				for (Customer store : customers) {
+					customerDao.createOrUpdate(store);
+					
+					//Log.d("", store.toString()); 
+				}
+				
+				return null;
+		    }
+		});
 	}
 	
 	private void getMeasure() throws Exception {   
@@ -317,18 +449,24 @@ public class SyncAdapter extends BaseSyncAdapter {
 		
 		Gson gson = gsonBuilder.create();
 		
-		List<Measure> measures = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Measure>>() {}.getType());
+		final List<Measure> measures = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Measure>>() {}.getType());
 		
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Measure, Integer> measureDao = mSecuredStorage.getMeasureDao();
-		measureDao.setObjectCache(false); 
+		final Dao<Measure, Integer> measureDao = mMainDbHelper.getMeasureDao();
 		measureDao.delete(measureDao.queryForAll());
-		
-		for (Measure measure : measures) {
-			measureDao.createOrUpdate(measure);
-		}
+		measureDao.callBatchTasks(new Callable<Void>() {
+		    public Void call() throws Exception {
+				for (Measure measure : measures) {
+					measureDao.createOrUpdate(measure);
+					
+					//Log.d("", measure.toString()); 
+				}
+				
+				return null;
+		    }
+		});
 	}
 	
 	private void getTarget() throws Exception {   
@@ -340,18 +478,24 @@ public class SyncAdapter extends BaseSyncAdapter {
 		
 		Gson gson = gsonBuilder.create();
 		
-		List<Target> targets = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Target>>() {}.getType());
+		final List<Target> targets = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Target>>() {}.getType());
 		
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Target, Integer> targetDao = mSecuredStorage.getTargetDao();
-		targetDao.setObjectCache(false); 
+		final Dao<Target, Integer> targetDao = mMainDbHelper.getTargetDao();
 		targetDao.delete(targetDao.queryForAll());
-		
-		for (Target target : targets) {
-			targetDao.createOrUpdate(target);
-		}
+		targetDao.callBatchTasks(new Callable<Void>() {
+		    public Void call() throws Exception {
+				for (Target target : targets) {
+					targetDao.createOrUpdate(target);
+					
+					//Log.d("", target.toString()); 
+				}
+				
+				return null;
+		    }
+		});
 	}
 
     private void getGeoregion() throws Exception {
@@ -362,28 +506,38 @@ public class SyncAdapter extends BaseSyncAdapter {
 		
 		Gson gson = gsonBuilder.create();
 		
-		List<Georegion> georegions = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Georegion>>() {}.getType());
+		final List<Georegion> georegions = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream(), "UTF-8")), new TypeToken<Collection<Georegion>>() {}.getType());
 		
 		urlConnection.disconnect();
 		urlConnection = null;
 		
-		Dao<Georegion, Integer> georegionDao = mSecuredStorage.getGeoregionDao();
-		georegionDao.setObjectCache(false); 
+		final Dao<Georegion, Integer> georegionDao = mMainDbHelper.getGeoregionDao();
 		georegionDao.delete(georegionDao.queryForAll());
-		
-		for (Georegion georegion : georegions) {
-			georegionDao.createOrUpdate(georegion);
-		}
+		georegionDao.callBatchTasks(new Callable<Void>() {
+		    public Void call() throws Exception {
+				for (Georegion georegion : georegions) {
+					georegionDao.createOrUpdate(georegion);
+					
+					//Log.d("", georegion.toString()); 
+				}
+				
+				return null;
+		    }
+		});
 	}
 	
 	@Override
-	public String getActionTag() {
-		return SyncManager.ACTION_SYNC;
+	public void onSyncCanceled() {
+		super.onSyncCanceled();
+		
+		sendNotification("canceled"); 
 	}
 
 	@Override
-	public String getServerName() {
-		return getContext().getString(R.string.mainServerSecure);
+	public void onSyncCanceled(Thread thread) {
+		super.onSyncCanceled(thread);
+		
+		sendNotification("canceled"); 
 	}
 
 }
