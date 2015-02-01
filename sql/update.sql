@@ -347,8 +347,8 @@ begin
     if ("sm_validateToken" ("token") >= 0) then
         select
             b."Id",     // идентификатор филиала
-            48.7193900,   // наименование филиала
-            44.5018400
+            b."LocationLat",   // наименование филиала
+            b."LocationLon"
         from     
             "sm_getManager" ("token") a
             join "RefBranch" b 
