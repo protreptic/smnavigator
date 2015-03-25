@@ -33,8 +33,8 @@
     
     <string name="contentDescription" />
     
-    <string name="syncServer">http://88.87.93.68/</string>
-    <string name="syncServerSecure">https://88.87.93.68/</string>
+    <string name="syncServer">http://mob1.magnat.ru:8081/</string>
+    <string name="syncServerSecure">https://mob1.magnat.ru:8443/</string>
 
     <string name="syncSuccess">Синхронизация успешно завершена</string>
     <string name="syncError">Синхронизация не выполненна</string>
